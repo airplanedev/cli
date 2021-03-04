@@ -17,7 +17,7 @@ const (
 	Host = "https://api.airplane.dev"
 )
 
-// Client implemnets Airplane client.
+// Client implements Airplane client.
 //
 // The zero-value is ready for use.
 type Client struct {
