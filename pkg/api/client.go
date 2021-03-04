@@ -5,10 +5,11 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/pkg/errors"
 )
 
 const (
@@ -43,14 +44,14 @@ func (c Client) do(ctx context.Context, method, path string, payload, reply inte
 	if payload != nil {
 		buf, err := json.Marshal(payload)
 		if err != nil {
-			return fmt.Errorf("api: marshal payload %T - %w", payload, err)
+			return errors.Wrap(err, "api: marshal payload")
 		}
 		body = bytes.NewReader(buf)
 	}
 
 	req, err := http.NewRequestWithContext(ctx, method, url, body)
 	if err != nil {
-		return fmt.Errorf("api: new request - %w", err)
+		return errors.Wrap(err, "api: new request")
 	}
 
 	resp, err := http.DefaultClient.Do(req)
@@ -63,16 +64,16 @@ func (c Client) do(ctx context.Context, method, path string, payload, reply inte
 	}
 
 	if err != nil {
-		return fmt.Errorf("api: %s %s - %w", method, url, err)
+		return errors.Wrapf(err, "api: %s %s", method, url)
 	}
 
 	if resp.StatusCode >= 400 && resp.StatusCode <= 500 {
-		return fmt.Errorf("api: %s %s - %s", method, url, resp.Status)
+		return errors.Errorf("api: %s %s - %s", method, url, resp.Status)
 	}
 
 	if reply != nil {
 		if err := json.NewDecoder(resp.Body).Decode(reply); err != nil {
-			return fmt.Errorf("api: %s %s - decoding json - %w", method, url, err)
+			return errors.Wrap(err, "api: %s %s - decoding json", method, url)
 		}
 	}
 
