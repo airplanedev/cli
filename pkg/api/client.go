@@ -13,18 +13,18 @@ import (
 )
 
 const (
-	// Endpoint is the default HTTP endpoint.
-	Endpoint = "https://api.airplane.dev"
+	// Host is the default HTTP endpoint.
+	Host = "https://api.airplane.dev"
 )
 
 // Client implemnets Airplane client.
 //
 // The zero-value is ready for use.
 type Client struct {
-	// Endpoint is the HTTP endpoint to use.
+	// Host is the HTTP endpoint to use.
 	//
-	// If empty, it uses the global `api.Endpoint`.
-	Endpoint string
+	// If empty, it uses the global `api.Host`.
+	Host string
 }
 
 // CreateTask creates a task with the given request.
@@ -35,7 +35,7 @@ func (c Client) CreateTask(ctx context.Context, req CreateTaskRequest) (res Crea
 
 // Do sends a request with `method`, `path`, `payload` and `reply`.
 func (c Client) do(ctx context.Context, method, path string, payload, reply interface{}) error {
-	var url = c.endpoint() + path
+	var url = c.host() + path
 	var body io.Reader
 
 	// TODO(amir): validate before sending?
@@ -73,17 +73,17 @@ func (c Client) do(ctx context.Context, method, path string, payload, reply inte
 
 	if reply != nil {
 		if err := json.NewDecoder(resp.Body).Decode(reply); err != nil {
-			return errors.Wrap(err, "api: %s %s - decoding json", method, url)
+			return errors.Wrapf(err, "api: %s %s - decoding json", method, url)
 		}
 	}
 
 	return nil
 }
 
-// Endpoint returns the configured endpoint.
-func (c Client) endpoint() string {
-	if c.Endpoint != "" {
-		return c.Endpoint
+// Host returns the configured endpoint.
+func (c Client) host() string {
+	if c.Host != "" {
+		return c.Host
 	}
-	return Endpoint
+	return Host
 }
