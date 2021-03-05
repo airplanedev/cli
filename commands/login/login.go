@@ -34,7 +34,7 @@ func run(ctx context.Context) error {
 		}
 		defer srv.Close()
 
-		fmt.Println("goto", loginURL(srv.URL()))
+		fmt.Printf("Visit %s to complete logging in\n", loginURL(srv.URL()))
 
 		select {
 		case <-ctx.Done():
@@ -49,7 +49,7 @@ func run(ctx context.Context) error {
 		}
 	}
 
-	fmt.Println("logged in")
+	fmt.Printf("You're all set!\n\nTo see what tasks you can run, try `$ airplane list`\n")
 	return nil
 }
 
