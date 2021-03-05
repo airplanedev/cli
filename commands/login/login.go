@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/url"
-	"os"
-	"path/filepath"
 
 	"github.com/airplanedev/cli/pkg/conf"
 	"github.com/airplanedev/cli/pkg/token"
@@ -27,14 +25,7 @@ func New() *cobra.Command {
 
 // Run runs the login command.
 func run(ctx context.Context) error {
-	homedir, err := os.UserHomeDir()
-	if err != nil {
-		// TODO(amir): Better error message
-		return errors.Wrap(err, "missing homedir")
-	}
-
-	path := filepath.Join(homedir, ".airplane", "config")
-	cfg, err := conf.Read(path)
+	cfg, err := conf.ReadDefault()
 
 	if errors.Is(err, conf.ErrMissing) {
 		srv, err := token.NewServer(ctx)
@@ -53,7 +44,7 @@ func run(ctx context.Context) error {
 			cfg.Token = token
 		}
 
-		if err := conf.Save(path, cfg); err != nil {
+		if err := conf.SaveDefault(cfg); err != nil {
 			return err
 		}
 	}
