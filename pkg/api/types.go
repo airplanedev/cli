@@ -47,4 +47,5 @@ type AgentLabel struct {
 // CreateTaskResponse represents a create task response.
 type CreateTaskResponse struct {
 	TaskID string `json:"taskID"`
+	Slug   string `json:"slug"`
 }
