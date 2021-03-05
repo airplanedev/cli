@@ -1,0 +1,10 @@
+
+name: Echo
+description: Echo a name.
+image: alpine
+command: ["echo"]
+arguments: ["{{.Name}}"]
+
+parameters:
+  - name: Name
+    type: string
