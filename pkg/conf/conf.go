@@ -59,8 +59,8 @@ func Read(path string) (Config, error) {
 	return cfg, nil
 }
 
-// Save saves the configuration to the given path.
-func Save(path string, cfg Config) error {
+// Write writes the configuration to the given path.
+func Write(path string, cfg Config) error {
 	if err := os.MkdirAll(filepath.Dir(path), 0777); err != nil {
 		return errors.Wrap(err, "mkdir")
 	}
@@ -77,7 +77,7 @@ func Save(path string, cfg Config) error {
 	return nil
 }
 
-// SaveDefault saves configuration to the default location.
-func SaveDefault(cfg Config) error {
-	return Save(path(), cfg)
+// WriteDefault saves configuration to the default location.
+func WriteDefault(cfg Config) error {
+	return Write(path(), cfg)
 }

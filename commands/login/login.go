@@ -44,7 +44,7 @@ func run(ctx context.Context) error {
 			cfg.Token = token
 		}
 
-		if err := conf.SaveDefault(cfg); err != nil {
+		if err := conf.WriteDefault(cfg); err != nil {
 			return err
 		}
 	}

@@ -22,12 +22,12 @@ func TestConfig(t *testing.T) {
 		assert.True(errors.Is(err, ErrMissing))
 	})
 
-	t.Run("save missing dir", func(t *testing.T) {
+	t.Run("write missing dir", func(t *testing.T) {
 		var assert = require.New(t)
 		var homedir = tempdir(t)
 		var path = filepath.Join(homedir, ".airplane", "config")
 
-		err := Save(path, Config{
+		err := Write(path, Config{
 			Token: "foo",
 		})
 		assert.NoError(err)
@@ -43,7 +43,7 @@ func TestConfig(t *testing.T) {
 		var path = filepath.Join(homedir, ".airplane", "config")
 
 		{
-			err := Save(path, Config{
+			err := Write(path, Config{
 				Token: "foo",
 			})
 			assert.NoError(err)
@@ -54,7 +54,7 @@ func TestConfig(t *testing.T) {
 		}
 
 		{
-			err := Save(path, Config{
+			err := Write(path, Config{
 				Token: "baz",
 			})
 			assert.NoError(err)
