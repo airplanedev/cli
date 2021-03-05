@@ -2,6 +2,7 @@ package token
 
 import (
 	"context"
+	"io"
 	"net"
 	"net/http"
 	"sync"
@@ -71,6 +72,8 @@ func (srv *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	select {
 	case <-r.Context().Done():
 	case srv.tokens <- r.URL.Query().Get("token"):
+		w.Header().Set("Content-Type", "text/html")
+		io.WriteString(w, `<script>window.close()</script>`)
 	}
 }
 
