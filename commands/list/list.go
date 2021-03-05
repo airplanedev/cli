@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/airplanedev/cli/pkg/api"
+	"github.com/airplanedev/cli/pkg/conf"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -25,6 +26,13 @@ func New() *cobra.Command {
 // Run runs the list command.
 func run(ctx context.Context) error {
 	var client api.Client
+
+	cfg, err := conf.ReadDefault()
+	if err != nil {
+		return err
+	}
+
+	client.Token = cfg.Token
 
 	res, err := client.ListTasks(ctx)
 	if err != nil {

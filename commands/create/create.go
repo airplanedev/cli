@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 
 	"github.com/airplanedev/cli/pkg/api"
+	"github.com/airplanedev/cli/pkg/conf"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
@@ -40,6 +41,13 @@ func New() *cobra.Command {
 func run(ctx context.Context, cfg config) error {
 	var client api.Client
 	var req api.CreateTaskRequest
+
+	c, err := conf.ReadDefault()
+	if err != nil {
+		return err
+	}
+
+	client.Token = c.Token
 
 	buf, err := ioutil.ReadFile(cfg.file)
 	if err != nil {
