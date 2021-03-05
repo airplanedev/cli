@@ -33,6 +33,12 @@ func (c Client) CreateTask(ctx context.Context, req CreateTaskRequest) (res Crea
 	return
 }
 
+// ListTasks lists all tasks.
+func (c Client) ListTasks(ctx context.Context) (res ListTasksResponse, err error) {
+	err = c.do(ctx, "GET", "/tasks/list", nil, &res)
+	return
+}
+
 // Do sends a request with `method`, `path`, `payload` and `reply`.
 func (c Client) do(ctx context.Context, method, path string, payload, reply interface{}) error {
 	var url = c.host() + path

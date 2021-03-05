@@ -49,3 +49,18 @@ type CreateTaskResponse struct {
 	TaskID string `json:"taskID"`
 	Slug   string `json:"slug"`
 }
+
+// ListTasksResponse represents a list tasks response.
+type ListTasksResponse struct {
+	Tasks []Task `json:"tasks"`
+}
+
+// Task represents a task.
+//
+// Even though the task object contains many other fields
+// we don't add them here unless we need them for presenting tasks.
+type Task struct {
+	ID   string `json:"taskID"`
+	Name string `json:"name"`
+	Slug string `json:"slug"`
+}
