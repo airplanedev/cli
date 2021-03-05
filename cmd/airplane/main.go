@@ -7,6 +7,7 @@ import (
 
 	"github.com/airplanedev/cli/commands/root"
 	"github.com/airplanedev/cli/pkg/trap"
+	_ "github.com/segmentio/events/v2/text"
 )
 
 var (
