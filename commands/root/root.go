@@ -2,6 +2,7 @@ package root
 
 import (
 	"github.com/airplanedev/cli/commands/create"
+	"github.com/airplanedev/cli/commands/list"
 	"github.com/spf13/cobra"
 )
 
@@ -13,6 +14,7 @@ func New() *cobra.Command {
 	}
 
 	cmd.AddCommand(create.New())
+	cmd.AddCommand(list.New())
 
 	return cmd
 }
