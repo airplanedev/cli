@@ -59,8 +59,8 @@ func run(ctx context.Context) error {
 func loginURL(redirect string) string {
 	uri := &url.URL{
 		Scheme: "https",
-		Host:   "app.airplane.local:5000",
-		Path:   "/cli/login",
+		Host:   "api.airplane.local:5000",
+		Path:   "/i/cli/getToken",
 		RawQuery: url.Values{
 			"redirect": []string{redirect},
 		}.Encode(),
