@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"os/exec"
+	"runtime"
 
 	"github.com/airplanedev/cli/pkg/conf"
 	"github.com/airplanedev/cli/pkg/token"
@@ -34,7 +36,7 @@ func run(ctx context.Context) error {
 		}
 		defer srv.Close()
 
-		fmt.Printf("Visit %s to complete logging in\n", loginURL(srv.URL()))
+		open(loginURL(srv.URL()))
 
 		select {
 		case <-ctx.Done():
@@ -64,4 +66,18 @@ func loginURL(redirect string) string {
 		}.Encode(),
 	}
 	return uri.String()
+}
+
+// Open attempts to open the URL in the browser.
+//
+// It uses `open(1)` on darwin and simply prints the URL
+// on other operating systems.
+func open(url string) {
+	if runtime.GOOS == "darwin" {
+		if err := exec.Command("open", url).Run(); err == nil {
+			return
+		}
+	}
+
+	fmt.Printf("Visit %s to complete logging in\n", url)
 }
