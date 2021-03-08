@@ -4,7 +4,6 @@ package api
 import (
 	"bytes"
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"io"
 	"io/ioutil"
@@ -34,8 +33,7 @@ type Client struct {
 
 	// Token is the token to use for authentication.
 	//
-	// When empty the client will attempt to read the token from
-	// the configuration.
+	// When empty the client will return an error.
 	Token string
 }
 
@@ -117,11 +115,5 @@ func (c Client) token() (string, error) {
 	if c.Token == "" {
 		return "", errors.New("api: token is missing")
 	}
-
-	t, err := base64.URLEncoding.DecodeString(c.Token)
-	if err != nil {
-		return "", errors.Wrapf(err, "api: decoding token")
-	}
-
-	return string(t), nil
+	return string(c.Token), nil
 }
