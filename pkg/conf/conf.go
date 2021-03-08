@@ -70,7 +70,7 @@ func Write(path string, cfg Config) error {
 		return errors.Wrap(err, "marshal config")
 	}
 
-	if err := ioutil.WriteFile(path, buf, 0666); err != nil {
+	if err := ioutil.WriteFile(path, buf, 0600); err != nil {
 		return errors.Wrap(err, "write config")
 	}
 
