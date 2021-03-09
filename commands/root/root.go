@@ -27,7 +27,7 @@ func New() *cobra.Command {
 	}
 
 	// Persistent flags, set globally to all commands.
-	cmd.PersistentFlags().StringVarP(&cfg.Client.Host, "host", "H", api.Host, "Airplane API Host.")
+	cmd.PersistentFlags().StringVarP(&cfg.Client.Host, "host", "", api.Host, "Airplane API Host.")
 
 	// Most used sub commands.
 	cmd.AddCommand(login.New(cfg))
