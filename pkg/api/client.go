@@ -115,5 +115,5 @@ func (c Client) token() (string, error) {
 	if c.Token == "" {
 		return "", errors.New("api: token is missing")
 	}
-	return string(c.Token), nil
+	return c.Token, nil
 }
