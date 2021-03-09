@@ -31,12 +31,15 @@ func send(t testing.TB, url, token string) {
 		t.Fatalf("new request: %s", err)
 	}
 
-	resp, err := http.DefaultClient.Do(req)
+	var client = &http.Client{
+		CheckRedirect: func(*http.Request, []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
+
+	resp, err := client.Do(req)
 	if err != nil {
 		t.Fatalf("do request: %s", err)
 	}
-
-	if resp.StatusCode != 200 {
-		t.Fatalf("response status code %q", resp.Status)
-	}
+	resp.Body.Close()
 }
