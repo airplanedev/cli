@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"runtime"
 
+	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/conf"
 	"github.com/airplanedev/cli/pkg/token"
 	"github.com/pkg/errors"
@@ -14,19 +15,19 @@ import (
 )
 
 // New returns a new login command.
-func New() *cobra.Command {
+func New(c *cli.Config) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "login",
 		Short: "Login to Airplane",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return run(cmd.Context())
+			return run(cmd.Context(), c)
 		},
 	}
 	return cmd
 }
 
 // Run runs the login command.
-func run(ctx context.Context) error {
+func run(ctx context.Context, c *cli.Config) error {
 	cfg, err := conf.ReadDefault()
 
 	if errors.Is(err, conf.ErrMissing) {
@@ -36,7 +37,7 @@ func run(ctx context.Context) error {
 		}
 		defer srv.Close()
 
-		open(loginURL(srv.URL()))
+		open(loginURL(c.Client.Host, srv.URL()))
 
 		select {
 		case <-ctx.Done():
@@ -56,10 +57,10 @@ func run(ctx context.Context) error {
 }
 
 // LoginURL returns the CLI login URL.
-func loginURL(redirect string) string {
+func loginURL(host, redirect string) string {
 	uri := &url.URL{
 		Scheme: "https",
-		Host:   "api.airplane.local:5000",
+		Host:   host,
 		Path:   "/i/cli/getToken",
 		RawQuery: url.Values{
 			"redirect": []string{redirect},

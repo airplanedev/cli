@@ -6,20 +6,15 @@ import (
 	"io/ioutil"
 
 	"github.com/airplanedev/cli/pkg/api"
-	"github.com/airplanedev/cli/pkg/conf"
+	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 )
 
-// Config represents create config.
-type config struct {
-	file string
-}
-
 // New returns a new create command.
-func New() *cobra.Command {
-	var cfg config
+func New(c *cli.Config) *cobra.Command {
+	var file string
 
 	cmd := &cobra.Command{
 		Use:     "create",
@@ -27,31 +22,24 @@ func New() *cobra.Command {
 		Long:    "Create a new task with a YAML configuration",
 		Example: "airplane create -f task.yml",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return run(cmd.Context(), cfg)
+			return run(cmd.Context(), c, file)
 		},
 	}
 
-	cmd.Flags().StringVarP(&cfg.file, "file", "f", "", "Configuration file")
+	cmd.Flags().StringVarP(&file, "file", "f", "", "Configuration file")
 	cmd.MarkFlagRequired("file")
 
 	return cmd
 }
 
 // Run runs the create command.
-func run(ctx context.Context, cfg config) error {
-	var client api.Client
+func run(ctx context.Context, c *cli.Config, file string) error {
+	var client = c.Client
 	var req api.CreateTaskRequest
 
-	c, err := conf.ReadDefault()
+	buf, err := ioutil.ReadFile(file)
 	if err != nil {
-		return err
-	}
-
-	client.Token = c.Token
-
-	buf, err := ioutil.ReadFile(cfg.file)
-	if err != nil {
-		return errors.Wrapf(err, "read config %q", cfg.file)
+		return errors.Wrapf(err, "read config %q", file)
 	}
 
 	if err := yaml.Unmarshal(buf, &req); err != nil {
