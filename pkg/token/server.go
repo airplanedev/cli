@@ -77,7 +77,7 @@ func (srv *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	select {
 	case <-r.Context().Done():
 	case srv.tokens <- r.URL.Query().Get("token"):
-		http.Redirect(w, r, DocsURL, 307)
+		http.Redirect(w, r, DocsURL, http.StatusSeeOther)
 	}
 }
 
