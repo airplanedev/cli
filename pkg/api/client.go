@@ -89,7 +89,7 @@ func (c Client) do(ctx context.Context, method, path string, payload, reply inte
 		return errors.Wrapf(err, "api: %s %s", method, url)
 	}
 
-	if resp.StatusCode >= 400 && resp.StatusCode <= 500 {
+	if resp.StatusCode >= 400 && resp.StatusCode < 600 {
 		return errors.Errorf("api: %s %s - %s", method, url, resp.Status)
 	}
 
