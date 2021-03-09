@@ -14,7 +14,7 @@ import (
 
 const (
 	// Host is the default API host.
-	Host = "api.airplane.local:5000"
+	Host = "api.airplane.dev"
 )
 
 // Client implements Airplane client.
