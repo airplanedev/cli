@@ -3,7 +3,6 @@ package login
 import (
 	"context"
 	"fmt"
-	"net/url"
 	"os"
 	"runtime"
 
@@ -38,7 +37,7 @@ func run(ctx context.Context, c *cli.Config) error {
 		}
 		defer srv.Close()
 
-		open(loginURL(c.Client.Host, srv.URL()))
+		open(c.Client.LoginURL(srv.URL()))
 
 		select {
 		case <-ctx.Done():
@@ -55,19 +54,6 @@ func run(ctx context.Context, c *cli.Config) error {
 
 	fmt.Printf("You're all set!\n\nTo see what tasks you can run, try `$ airplane list`\n")
 	return nil
-}
-
-// LoginURL returns the CLI login URL.
-func loginURL(host, redirect string) string {
-	uri := &url.URL{
-		Scheme: "https",
-		Host:   host,
-		Path:   "/i/cli/getToken",
-		RawQuery: url.Values{
-			"redirect": []string{redirect},
-		}.Encode(),
-	}
-	return uri.String()
 }
 
 // Open attempts to open the URL in the browser.

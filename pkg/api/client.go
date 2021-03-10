@@ -8,6 +8,8 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
+	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -35,6 +37,17 @@ type Client struct {
 	//
 	// When empty the client will return an error.
 	Token string
+}
+
+// LoginURL returns a login URL that redirects to `uri`.
+func (c Client) LoginURL(uri string) string {
+	apphost := strings.ReplaceAll(c.host(), "api", "app")
+
+	u, _ := url.Parse("https://" + apphost)
+	u.Path = "/cli/login"
+	u.RawQuery = url.Values{"redirect": []string{uri}}.Encode()
+
+	return u.String()
 }
 
 // CreateTask creates a task with the given request.
