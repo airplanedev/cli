@@ -3,6 +3,7 @@ name: Echo
 description: Echo a name.
 image: alpine
 command: ["echo"]
+arguments: ["{{.name}}"]
 
 parameters:
   - name: Name
