@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -13,6 +14,17 @@ import (
 
 	"github.com/pkg/errors"
 )
+
+// Error represents an API error.
+type Error struct {
+	Code    int
+	Message string `json:"error"`
+}
+
+// Error implementation.
+func (err Error) Error() string {
+	return fmt.Sprintf("api: %d - %s", err.Code, err.Message)
+}
 
 const (
 	// Host is the default API host.
@@ -103,6 +115,13 @@ func (c Client) do(ctx context.Context, method, path string, payload, reply inte
 	}
 
 	if resp.StatusCode >= 400 && resp.StatusCode < 600 {
+		var errt Error
+
+		if err := json.NewDecoder(resp.Body).Decode(&errt); err == nil {
+			errt.Code = resp.StatusCode
+			return errt
+		}
+
 		return errors.Errorf("api: %s %s - %s", method, url, resp.Status)
 	}
 
