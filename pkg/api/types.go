@@ -1,5 +1,7 @@
 package api
 
+import "encoding/json"
+
 // CreateTaskRequest creates a new task.
 type CreateTaskRequest struct {
 	Name           string            `json:"name" yaml:"name"`
@@ -19,8 +21,19 @@ type CreateTaskRequest struct {
 }
 
 // Parameters represents a slice of task parameters.
-type Parameters struct {
-	Parameters []Parameter `yaml:"parameters" json:"parameters"`
+type Parameters []Parameter
+
+// MarshalJSON implementation.
+//
+// Marshals the slice of parameters as an object
+// of `{ "parameters": [] }`.
+//
+// TODO(amir): remove once the API accepts a flat array of parameters.
+func (p Parameters) MarshalJSON() ([]byte, error) {
+	type object struct {
+		Parameters []Parameter `json:"parameters"`
+	}
+	return json.Marshal(object{p})
 }
 
 // Parameter represents a task parameter.
