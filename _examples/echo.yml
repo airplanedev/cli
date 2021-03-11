@@ -1,5 +1,11 @@
 
-name: Echo
+name: Echo 3
 description: Echo a name.
 image: alpine
 command: ["echo"]
+
+parameters:
+  parameters:
+    - name: Name
+      slug: name
+      type: string

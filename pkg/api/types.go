@@ -19,19 +19,39 @@ type CreateTaskRequest struct {
 }
 
 // Parameters represents a slice of task parameters.
-type Parameters []Parameter
+type Parameters struct {
+	Parameters []Parameter `yaml:"parameters" json:"parameters"`
+}
 
 // Parameter represents a task parameter.
 type Parameter struct {
-	Name       string `json:"name" yaml:"name"`
-	Type       string `json:"type" yaml:"type"`
-	Format     string `json:"format" yaml:"format"`
-	Label      string `json:"label" yaml:"label"`
-	HelpText   string `json:"helpText" yaml:"helpText"`
-	Default    string `json:"default" yaml:"default"`
-	TrueValue  string `json:"trueValue" yaml:"trueValue"`
-	FalseValue string `json:"falseValue" yaml:"falseValue"`
+	Name        string      `json:"name" yaml:"name"`
+	Slug        string      `json:"slug" yaml:"slug"`
+	Type        string      `json:"type" yaml:"type"`
+	Desc        string      `json:"desc" yaml:"desc"`
+	Component   Component   `json:"component" yaml:"component"`
+	Default     Value       `json:"default" yaml:"default"`
+	Constraints Constraints `json:"constraints" yaml:"constraints"`
 }
+
+// Constraints represent constraints.
+type Constraints struct {
+	Optional bool   `json:"optional" yaml:"optional"`
+	Regex    string `json:"regex" yaml:"regex"`
+}
+
+// Value represents a value.
+type Value interface{}
+
+// Component enumerates components.
+type Component string
+
+// All Component types.
+const (
+	ComponentNone      Component = ""
+	ComponentEditorSQL Component = "editor-sql"
+	ComponentTextarea  Component = "textarea"
+)
 
 // RunConstraints represents run constraints.
 type RunConstraints struct {
