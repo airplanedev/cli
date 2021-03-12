@@ -1,6 +1,9 @@
 package api
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"time"
+)
 
 // CreateTaskRequest creates a new task.
 type CreateTaskRequest struct {
@@ -21,14 +24,25 @@ type CreateTaskRequest struct {
 }
 
 // Parameters represents a slice of task parameters.
+//
+// TODO(amir): remove custom marshal/unmarshal once the API is updated.
 type Parameters []Parameter
 
+// UnmarshalJSON implementation.
+func (p *Parameters) UnmarshalJSON(buf []byte) error {
+	var tmp struct {
+		Parameters []Parameter `json:"parameters"`
+	}
+
+	if err := json.Unmarshal(buf, &tmp); err != nil {
+		return err
+	}
+
+	*p = tmp.Parameters
+	return nil
+}
+
 // MarshalJSON implementation.
-//
-// Marshals the slice of parameters as an object
-// of `{ "parameters": [] }`.
-//
-// TODO(amir): remove once the API accepts a flat array of parameters.
 func (p Parameters) MarshalJSON() ([]byte, error) {
 	type object struct {
 		Parameters []Parameter `json:"parameters"`
@@ -93,7 +107,69 @@ type ListTasksResponse struct {
 // Even though the task object contains many other fields
 // we don't add them here unless we need them for presenting tasks.
 type Task struct {
-	ID   string `json:"taskID"`
-	Name string `json:"name"`
-	Slug string `json:"slug"`
+	ID          string            `json:"taskID"`
+	Name        string            `json:"name"`
+	Slug        string            `json:"slug"`
+	Description string            `json:"description"`
+	Image       string            `json:"image"`
+	Command     []string          `json:"command"`
+	Arguments   []string          `json:"arguments"`
+	Parameters  Parameters        `json:"parameters"`
+	Constraints Constraints       `json:"constraints"`
+	Env         map[string]string `json:"env"`
+	Timeout     int               `json:"timeout"`
+}
+
+// Values represent parameters values.
+//
+// An alias is used because we want the type
+// to be `map[string]interface{}` and not a custom one.
+//
+// They're keyed by the parameter "slug".
+type Values = map[string]interface{}
+
+// RunTaskRequest represents a run task request.
+type RunTaskRequest struct {
+	TaskID      string            `json:"taskID"`
+	Parameters  Values            `json:"params"`
+	Env         map[string]string `json:"env"`
+	Constraints Constraints       `json:"constraints"`
+}
+
+// RunTaskResponse represents a run task response.
+type RunTaskResponse struct {
+	RunID string `json:"runID"`
+}
+
+// GetRunResponse represents a get task response.
+type GetRunResponse struct {
+	Run Run `json:"run"`
+}
+
+// RunStatus enumerates run status.
+type RunStatus string
+
+// All RunStatus types.
+const (
+	RunNotStarted RunStatus = "NotStarted"
+	RunQueued     RunStatus = "Queued"
+	RunActive     RunStatus = "Active"
+	RunSucceeded  RunStatus = "Succeeded"
+	RunFailed     RunStatus = "Failed"
+	RunCancelled  RunStatus = "Cancelled"
+)
+
+// Run represents a run.
+type Run struct {
+	RunID       string     `json:"runID"`
+	TeamID      string     `json:"teamID"`
+	Status      RunStatus  `json:"status"`
+	CreatedAt   time.Time  `json:"createdAt"`
+	CreatorID   string     `json:"creatorID"`
+	QueuedAt    *time.Time `json:"queuedAt"`
+	ActiveAt    *time.Time `json:"activeAt"`
+	SucceededAt *time.Time `json:"succeededAt"`
+	FailedAt    *time.Time `json:"failedAt"`
+	CancelledAt *time.Time `json:"cancelledAt"`
+	CancelledBy *string    `json:"cancelledBy"`
 }

@@ -62,6 +62,26 @@ func (c Client) ListTasks(ctx context.Context) (res ListTasksResponse, err error
 	return
 }
 
+// RunTask runs a task.
+func (c Client) RunTask(ctx context.Context, req RunTaskRequest) (res RunTaskResponse, err error) {
+	err = c.do(ctx, "POST", "/runs/create", req, &res)
+	return
+}
+
+// GetRun returns a run by id.
+func (c Client) GetRun(ctx context.Context, id string) (res GetRunResponse, err error) {
+	q := url.Values{"runID": []string{id}}
+	err = c.do(ctx, "GET", "/runs/get?"+q.Encode(), nil, &res)
+	return
+}
+
+// GetTask returns a task by its slug.
+func (c Client) GetTask(ctx context.Context, slug string) (res Task, err error) {
+	q := url.Values{"slug": []string{slug}}
+	err = c.do(ctx, "GET", "/tasks/get?"+q.Encode(), nil, &res)
+	return
+}
+
 // Do sends a request with `method`, `path`, `payload` and `reply`.
 func (c Client) do(ctx context.Context, method, path string, payload, reply interface{}) error {
 	var url = "https://" + c.host() + "/v0" + path
