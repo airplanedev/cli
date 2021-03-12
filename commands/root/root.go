@@ -26,6 +26,12 @@ func New() *cobra.Command {
 		},
 	}
 
+	// Silence usage and errors.
+	//
+	// Allows us to control how the output looks like.
+	cmd.SilenceUsage = true
+	cmd.SilenceErrors = true
+
 	// Persistent flags, set globally to all commands.
 	cmd.PersistentFlags().StringVarP(&cfg.Client.Host, "host", "", api.Host, "Airplane API Host.")
 

@@ -31,9 +31,17 @@ func run(ctx context.Context, c *cli.Config) error {
 		return errors.Wrap(err, "list tasks")
 	}
 
-	for _, t := range res.Tasks {
-		fmt.Println(t.Name)
+	if len(res.Tasks) == 0 {
+		fmt.Printf("\n  There are no tasks yet, create a task:\n")
+		fmt.Printf("\n    $ airplane create -f echo.yml\n")
+		return nil
 	}
+
+	fmt.Println()
+	for _, t := range res.Tasks {
+		fmt.Printf("  %s\n", t.Slug)
+	}
+	fmt.Println()
 
 	return nil
 }

@@ -46,11 +46,16 @@ func run(ctx context.Context, c *cli.Config, file string) error {
 		return errors.Wrapf(err, "unmarshal config")
 	}
 
-	if res, err := client.CreateTask(ctx, req); err != nil {
-		return errors.Wrapf(err, "create task")
-	} else {
-		fmt.Println("created task", res.Slug)
+	res, err := client.CreateTask(ctx, req)
+	if err != nil {
+		return err
 	}
 
+	fmt.Printf(`
+  Created the task %s, to execute it:
+
+    $ airplane execute %s
+
+`, req.Name, res.Slug)
 	return nil
 }
