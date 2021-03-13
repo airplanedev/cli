@@ -16,8 +16,8 @@ import (
 func New(c *cli.Config) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "execute",
-		Short:   "Execute a Task",
-		Long:    "Execute a Task by its slug with the provided arguments.",
+		Short:   "Execute a task",
+		Long:    "Execute a task by its slug with the provided arguments.",
 		Example: "airplane execute echo",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return run(cmd.Context(), c, args)
