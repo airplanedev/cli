@@ -39,14 +39,25 @@ type Client struct {
 	Token string
 }
 
+// AppURL returns the app URL.
+func (c Client) appURL() *url.URL {
+	apphost := strings.ReplaceAll(c.host(), "api", "app")
+	u, _ := url.Parse("https://" + apphost)
+	return u
+}
+
 // LoginURL returns a login URL that redirects to `uri`.
 func (c Client) LoginURL(uri string) string {
-	apphost := strings.ReplaceAll(c.host(), "api", "app")
-
-	u, _ := url.Parse("https://" + apphost)
+	u := c.appURL()
 	u.Path = "/cli/login"
 	u.RawQuery = url.Values{"redirect": []string{uri}}.Encode()
+	return u.String()
+}
 
+// RunURL returns a run URL for a run ID.
+func (c Client) RunURL(id string) string {
+	u := c.appURL()
+	u.Path = "/runs/" + id
 	return u.String()
 }
 

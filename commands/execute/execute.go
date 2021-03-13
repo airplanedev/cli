@@ -2,9 +2,8 @@ package execute
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"os"
+	"time"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/airplanedev/cli/pkg/api"
@@ -56,15 +55,34 @@ func run(ctx context.Context, c *cli.Config, args []string) error {
 		return errors.Wrap(err, "run task")
 	}
 
-	resp, err := client.GetRun(ctx, run.RunID)
-	if err != nil {
-		return errors.Wrap(err, "get run")
+	fmt.Printf("  Queued: %s\n", client.RunURL(run.RunID))
+
+	var resp api.GetRunResponse
+
+	for {
+		resp, err = client.GetRun(ctx, run.RunID)
+		if err != nil {
+			return errors.Wrap(err, "get run")
+		}
+
+		var done bool
+
+		switch resp.Run.Status {
+		case api.RunSucceeded,
+			api.RunCancelled,
+			api.RunFailed:
+			done = true
+		}
+
+		if done {
+			break
+		}
+
+		time.Sleep(1 * time.Second)
 	}
 
-	enc := json.NewEncoder(os.Stdout)
-	enc.SetIndent("", "  ")
-	enc.Encode(resp.Run)
-
+	fmt.Printf("  Done: %s\n", resp.Run.Status)
+	fmt.Println()
 	return nil
 }
 
