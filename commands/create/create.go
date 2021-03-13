@@ -54,7 +54,7 @@ func run(ctx context.Context, c *cli.Config, file string) error {
 	fmt.Printf(`
   Created the task %s, to execute it:
 
-    $ airplane execute %s
+    airplane execute %s
 
 `, req.Name, res.Slug)
 	return nil
