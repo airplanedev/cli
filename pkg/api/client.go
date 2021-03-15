@@ -73,6 +73,12 @@ func (c Client) RunURL(id string) string {
 	return u.String()
 }
 
+// GetRegistryToken responds with the registry token.
+func (c Client) GetRegistryToken(ctx context.Context) (res RegistryTokenResponse, err error) {
+	err = c.do(ctx, "POST", "/registry/getToken", nil, &res)
+	return
+}
+
 // CreateTask creates a task with the given request.
 func (c Client) CreateTask(ctx context.Context, req CreateTaskRequest) (res CreateTaskResponse, err error) {
 	err = c.do(ctx, "POST", "/tasks/create", req, &res)

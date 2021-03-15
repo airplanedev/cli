@@ -42,6 +42,13 @@ type UpdateTaskRequest struct {
 	Timeout int `json:"timeout" yaml:"timeout"`
 }
 
+// RegistryTokenResponse represents a registry token response.
+type RegistryTokenResponse struct {
+	Token      string `json:"token"`
+	Expiration string `json:"expiration"`
+	Repo       string `json:"repo"`
+}
+
 // Parameters represents a slice of task parameters.
 //
 // TODO(amir): remove custom marshal/unmarshal once the API is updated.
