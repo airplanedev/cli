@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"path/filepath"
 
 	"github.com/airplanedev/cli/pkg/api"
+	"github.com/airplanedev/cli/pkg/build"
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -50,6 +52,47 @@ func run(ctx context.Context, c *cli.Config, file, slug string) error {
 	req.Slug = slug
 	if err := client.UpdateTask(ctx, req); err != nil {
 		return errors.Wrapf(err, "updating task %s", slug)
+	}
+	fmt.Println("  Updated", req.Slug)
+
+	task, err := client.GetTask(ctx, slug)
+	if err != nil {
+		return errors.Wrap(err, "getting task")
+	}
+
+	registry, err := client.GetRegistryToken(ctx)
+	if err != nil {
+		return errors.Wrap(err, "getting registry token")
+	}
+
+	root, err := filepath.Abs(filepath.Dir(file))
+	if err != nil {
+		return err
+	}
+
+	b, err := build.New(build.Config{
+		Root:    root,
+		Builder: req.Builder,
+		Args:    build.Args(req.BuilderConfig),
+		Writer:  ioutil.Discard,
+		Auth: &build.RegistryAuth{
+			Token: registry.Token,
+			Repo:  registry.Repo,
+		},
+	})
+	if err != nil {
+		return errors.Wrap(err, "new build")
+	}
+
+	fmt.Println("  Building...")
+	img, err := b.Build(ctx, task.ID)
+	if err != nil {
+		return errors.Wrap(err, "build")
+	}
+
+	fmt.Println("  Pushing...")
+	if err := b.Push(ctx, img.RepoTags[0]); err != nil {
+		return errors.Wrap(err, "push")
 	}
 
 	fmt.Printf(`
