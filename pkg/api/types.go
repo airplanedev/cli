@@ -13,7 +13,26 @@ type CreateTaskRequest struct {
 	Command        []string          `json:"command" yaml:"command"`
 	Arguments      []string          `json:"arguments" yaml:"arguments"`
 	Parameters     Parameters        `json:"parameters" yaml:"parameters"`
-	Constraints    interface{}       `json:"constraints" yaml:"constraints"`
+	Constraints    Constraints       `json:"constraints" yaml:"constraints"`
+	Env            map[string]string `json:"env" yaml:"env"`
+	ResourceLimits map[string]string `json:"resourceLimits" yaml:"resourceLimits"`
+	Builder        string            `json:"builder" yaml:"builder"`
+	BuilderConfig  map[string]string `json:"builderConfig" yaml:"builderConfig"`
+	Repo           string            `json:"repo" yaml:"repo"`
+	// TODO(amir): friendly type here (120s, 5m ...)
+	Timeout int `json:"timeout" yaml:"timeout"`
+}
+
+// UpdateTaskRequest updates a task.
+type UpdateTaskRequest struct {
+	Slug           string            `json:"slug" yaml:"-"`
+	Name           string            `json:"name" yaml:"name"`
+	Description    string            `json:"description" yaml:"description"`
+	Image          string            `json:"image" yaml:"image"`
+	Command        []string          `json:"command" yaml:"command"`
+	Arguments      []string          `json:"arguments" yaml:"arguments"`
+	Parameters     Parameters        `json:"parameters" yaml:"parameters"`
+	Constraints    Constraints       `json:"constraints" yaml:"constraints"`
 	Env            map[string]string `json:"env" yaml:"env"`
 	ResourceLimits map[string]string `json:"resourceLimits" yaml:"resourceLimits"`
 	Builder        string            `json:"builder" yaml:"builder"`

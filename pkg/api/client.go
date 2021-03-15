@@ -79,6 +79,12 @@ func (c Client) CreateTask(ctx context.Context, req CreateTaskRequest) (res Crea
 	return
 }
 
+// UpdateTask updates a task with the given req.
+func (c Client) UpdateTask(ctx context.Context, req UpdateTaskRequest) (err error) {
+	err = c.do(ctx, "POST", "/tasks/update", req, nil)
+	return
+}
+
 // ListTasks lists all tasks.
 func (c Client) ListTasks(ctx context.Context) (res ListTasksResponse, err error) {
 	err = c.do(ctx, "GET", "/tasks/list", nil, &res)
