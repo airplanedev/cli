@@ -1,0 +1,13 @@
+
+name: Deno Echo
+description: Echo a name using Deno.
+arguments: ["--name", "{{.name}}"]
+repo: github.com/dummy/dummy
+builder: deno
+builderConfig:
+  entrypoint: main.ts
+
+parameters:
+  - name: Name
+    slug: name
+    type: string

@@ -1,0 +1,12 @@
+{
+  "name": "node-teypscript",
+  "version": "1.0.0",
+  "description": "Example Airplane tasks",
+  "dependencies": {
+    "cowsay2": "^2.0.4",
+    "typescript": "^4.1.5"
+  },
+  "devDependencies": {
+    "@types/node": "^14.14.25"
+  }
+}
