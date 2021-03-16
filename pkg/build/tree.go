@@ -20,7 +20,7 @@ type Tree struct {
 
 // NewTree returns a new tree in a temporary directory.
 func NewTree() (*Tree, error) {
-	tmpdir, err := ioutil.TempDir("", "ap_context_*")
+	tmpdir, err := ioutil.TempDir("", "airplane_context_*")
 	if err != nil {
 		return nil, errors.Wrap(err, "tempdir")
 	}
@@ -62,7 +62,7 @@ func (t *Tree) Archive() (io.ReadCloser, error) {
 	return r, nil
 }
 
-// Discard discards the tree.
-func (t *Tree) Discard() error {
+// Close discards the tree.
+func (t *Tree) Close() error {
 	return os.RemoveAll(t.root)
 }

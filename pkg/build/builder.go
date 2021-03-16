@@ -145,7 +145,7 @@ func (b *Builder) Build(ctx context.Context, tag string) (*types.ImageSummary, e
 	if err != nil {
 		return nil, errors.Wrap(err, "new tree")
 	}
-	defer tree.Discard()
+	defer tree.Close()
 
 	buf, err := b.dockerfile()
 	if err != nil {
