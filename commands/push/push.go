@@ -40,6 +40,11 @@ func run(ctx context.Context, c *cli.Config, file, slug string) error {
 	var client = c.Client
 	var req api.UpdateTaskRequest
 
+	task, err := client.GetTask(ctx, slug)
+	if err != nil {
+		return errors.Wrap(err, "get task")
+	}
+
 	buf, err := ioutil.ReadFile(file)
 	if err != nil {
 		return errors.Wrapf(err, "read config %s", file)
@@ -47,17 +52,6 @@ func run(ctx context.Context, c *cli.Config, file, slug string) error {
 
 	if err := yaml.Unmarshal(buf, &req); err != nil {
 		return errors.Wrapf(err, "unmarshal config")
-	}
-
-	req.Slug = slug
-	if err := client.UpdateTask(ctx, req); err != nil {
-		return errors.Wrapf(err, "updating task %s", slug)
-	}
-	fmt.Println("  Updated", req.Slug)
-
-	task, err := client.GetTask(ctx, slug)
-	if err != nil {
-		return errors.Wrap(err, "getting task")
 	}
 
 	registry, err := client.GetRegistryToken(ctx)
@@ -95,11 +89,16 @@ func run(ctx context.Context, c *cli.Config, file, slug string) error {
 		return errors.Wrap(err, "push")
 	}
 
+	req.Slug = slug
+	if err := client.UpdateTask(ctx, req); err != nil {
+		return errors.Wrapf(err, "updating task %s", slug)
+	}
+	fmt.Println("  Updated", req.Slug)
+
 	fmt.Printf(`
   Updated the task %s, to execute it:
 
     airplane execute %s
-
 `, req.Name, slug)
 	return nil
 }
