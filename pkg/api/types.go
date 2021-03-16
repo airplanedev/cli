@@ -50,11 +50,25 @@ func (p Parameters) MarshalJSON() ([]byte, error) {
 	return json.Marshal(object{p})
 }
 
+// Type enumerates parameter types.
+type Type string
+
+// All Parameter types.
+const (
+	TypeString   Type = "string"
+	TypeBoolean  Type = "boolean"
+	TypeUpload   Type = "upload"
+	TypeInteger  Type = "integer"
+	TypeFloat    Type = "float"
+	TypeDate     Type = "date"
+	TypeDatetime Type = "datetime"
+)
+
 // Parameter represents a task parameter.
 type Parameter struct {
 	Name        string      `json:"name" yaml:"name"`
 	Slug        string      `json:"slug" yaml:"slug"`
-	Type        string      `json:"type" yaml:"type"`
+	Type        Type        `json:"type" yaml:"type"`
 	Desc        string      `json:"desc" yaml:"desc"`
 	Component   Component   `json:"component" yaml:"component"`
 	Default     Value       `json:"default" yaml:"default"`
