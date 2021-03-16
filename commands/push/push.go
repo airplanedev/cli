@@ -3,7 +3,9 @@ package push
 import (
 	"context"
 	"fmt"
+	"io"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 
 	"github.com/airplanedev/cli/pkg/api"
@@ -14,9 +16,17 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+// Config represents push configuration.
+type config struct {
+	cli   *cli.Config
+	slug  string
+	debug bool
+	file  string
+}
+
 // New returns a new push command.
 func New(c *cli.Config) *cobra.Command {
-	var file string
+	var cfg = config{cli: c}
 
 	cmd := &cobra.Command{
 		Use:     "push <slug>",
@@ -25,29 +35,31 @@ func New(c *cli.Config) *cobra.Command {
 		Example: "airplane push my-task -f task.yml",
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return run(cmd.Context(), c, file, args[0])
+			cfg.slug = args[0]
+			return run(cmd.Context(), cfg)
 		},
 	}
 
-	cmd.Flags().StringVarP(&file, "file", "f", "", "Configuration file")
+	cmd.Flags().BoolVarP(&cfg.debug, "debug", "d", false, "Debug docker builds.")
+	cmd.Flags().StringVarP(&cfg.file, "file", "f", "", "Configuration file.")
 	cmd.MarkFlagRequired("file")
 
 	return cmd
 }
 
 // Run runs the create command.
-func run(ctx context.Context, c *cli.Config, file, slug string) error {
-	var client = c.Client
+func run(ctx context.Context, cfg config) error {
+	var client = cfg.cli.Client
 	var req api.UpdateTaskRequest
 
-	task, err := client.GetTask(ctx, slug)
+	task, err := client.GetTask(ctx, cfg.slug)
 	if err != nil {
 		return errors.Wrap(err, "get task")
 	}
 
-	buf, err := ioutil.ReadFile(file)
+	buf, err := ioutil.ReadFile(cfg.file)
 	if err != nil {
-		return errors.Wrapf(err, "read config %s", file)
+		return errors.Wrapf(err, "read config %s", cfg.file)
 	}
 
 	if err := yaml.Unmarshal(buf, &req); err != nil {
@@ -59,16 +71,21 @@ func run(ctx context.Context, c *cli.Config, file, slug string) error {
 		return errors.Wrap(err, "getting registry token")
 	}
 
-	root, err := filepath.Abs(filepath.Dir(file))
+	root, err := filepath.Abs(filepath.Dir(cfg.file))
 	if err != nil {
 		return err
+	}
+
+	var output io.Writer = ioutil.Discard
+	if cfg.debug {
+		output = os.Stderr
 	}
 
 	b, err := build.New(build.Config{
 		Root:    root,
 		Builder: req.Builder,
 		Args:    build.Args(req.BuilderConfig),
-		Writer:  ioutil.Discard,
+		Writer:  output,
 		Auth: &build.RegistryAuth{
 			Token: registry.Token,
 			Repo:  registry.Repo,
@@ -89,9 +106,9 @@ func run(ctx context.Context, c *cli.Config, file, slug string) error {
 		return errors.Wrap(err, "push")
 	}
 
-	req.Slug = slug
+	req.Slug = cfg.slug
 	if err := client.UpdateTask(ctx, req); err != nil {
-		return errors.Wrapf(err, "updating task %s", slug)
+		return errors.Wrapf(err, "updating task %s", cfg.slug)
 	}
 	fmt.Println("  Updated", req.Slug)
 
@@ -99,6 +116,6 @@ func run(ctx context.Context, c *cli.Config, file, slug string) error {
   Updated the task %s, to execute it:
 
     airplane execute %s
-`, req.Name, slug)
+`, req.Name, cfg.slug)
 	return nil
 }
