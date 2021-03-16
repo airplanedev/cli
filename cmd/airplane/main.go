@@ -27,7 +27,7 @@ func main() {
 			return
 		}
 		fmt.Println("")
-		fmt.Println("  Error: ", errors.Cause(err).Error())
+		fmt.Printf("  Error: %s\n", errors.Cause(err).Error())
 		fmt.Println("")
 		os.Exit(1)
 	}
