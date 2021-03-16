@@ -69,44 +69,46 @@ func run(ctx context.Context, cfg config) error {
 		return errors.Wrapf(err, "unmarshal config")
 	}
 
-	registry, err := client.GetRegistryToken(ctx)
-	if err != nil {
-		return errors.Wrap(err, "getting registry token")
-	}
+	if req.Builder != "" {
+		registry, err := client.GetRegistryToken(ctx)
+		if err != nil {
+			return errors.Wrap(err, "getting registry token")
+		}
 
-	root, err := filepath.Abs(filepath.Dir(cfg.file))
-	if err != nil {
-		return err
-	}
+		root, err := filepath.Abs(filepath.Dir(cfg.file))
+		if err != nil {
+			return err
+		}
 
-	var output io.Writer = ioutil.Discard
-	if cfg.debug {
-		output = os.Stderr
-	}
+		var output io.Writer = ioutil.Discard
+		if cfg.debug {
+			output = os.Stderr
+		}
 
-	b, err := build.New(build.Config{
-		Root:    root,
-		Builder: req.Builder,
-		Args:    build.Args(req.BuilderConfig),
-		Writer:  output,
-		Auth: &build.RegistryAuth{
-			Token: registry.Token,
-			Repo:  registry.Repo,
-		},
-	})
-	if err != nil {
-		return errors.Wrap(err, "new build")
-	}
+		b, err := build.New(build.Config{
+			Root:    root,
+			Builder: req.Builder,
+			Args:    build.Args(req.BuilderConfig),
+			Writer:  output,
+			Auth: &build.RegistryAuth{
+				Token: registry.Token,
+				Repo:  registry.Repo,
+			},
+		})
+		if err != nil {
+			return errors.Wrap(err, "new build")
+		}
 
-	fmt.Println("  Building...")
-	img, err := b.Build(ctx, task.ID, cfg.version)
-	if err != nil {
-		return errors.Wrap(err, "build")
-	}
+		fmt.Println("  Building...")
+		img, err := b.Build(ctx, task.ID, cfg.version)
+		if err != nil {
+			return errors.Wrap(err, "build")
+		}
 
-	fmt.Println("  Pushing...")
-	if err := b.Push(ctx, img.RepoTags[0]); err != nil {
-		return errors.Wrap(err, "push")
+		fmt.Println("  Pushing...")
+		if err := b.Push(ctx, img.RepoTags[0]); err != nil {
+			return errors.Wrap(err, "push")
+		}
 	}
 
 	req.Slug = cfg.slug
