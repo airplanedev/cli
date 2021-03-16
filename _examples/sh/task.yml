@@ -3,8 +3,6 @@ name: Shell Echo
 description: Echo a name using sh(1).
 arguments: ["{{.name}}"]
 
-repo: github.com/dummy/dummy
-
 # TODO(amir): The API requires a Dockerfile
 # but we want to build an image locally, push it to
 # the registry and run it :/
