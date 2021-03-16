@@ -118,6 +118,7 @@ type Task struct {
 	Constraints Constraints       `json:"constraints"`
 	Env         map[string]string `json:"env"`
 	Timeout     int               `json:"timeout"`
+	Builder     string            `json:"builder"`
 }
 
 // Values represent parameters values.
