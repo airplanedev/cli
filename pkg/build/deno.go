@@ -10,7 +10,7 @@ import (
 
 // Deno creates a dockerfile for Deno.
 func deno(root string, args Args) (string, error) {
-	var entrypoint = args.entrypoint("main.ts")
+	var entrypoint = args["entrypoint"]
 	var main = filepath.Join(root, entrypoint)
 
 	if err := exist(main); err != nil {

@@ -8,7 +8,7 @@ import (
 
 // Python creates a dockerfile for Python.
 func python(root string, args Args) (string, error) {
-	var entrypoint = args.entrypoint("main.py")
+	var entrypoint = args["entrypoint"]
 	var main = filepath.Join(root, entrypoint)
 	var reqs = filepath.Join(root, "requirements.txt")
 

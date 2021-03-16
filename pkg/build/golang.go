@@ -15,7 +15,7 @@ import (
 func golang(root string, args Args) (string, error) {
 	var gomod = filepath.Join(root, "go.mod")
 	var gosum = filepath.Join(root, "go.sum")
-	var entrypoint = args.entrypoint("main.go")
+	var entrypoint = args["entrypoint"]
 	var main = filepath.Join(root, entrypoint)
 
 	if err := exist(gomod, gosum, main); err != nil {

@@ -12,7 +12,7 @@ import (
 // TODO(amir): possibly just run `npm start` instead of exposing lots
 // of options to users?
 func node(root string, args Args) (string, error) {
-	var entrypoint = args.entrypoint("main.js")
+	var entrypoint = args["entrypoint"]
 	var main = filepath.Join(root, entrypoint)
 	var deps = filepath.Join(root, "package.json")
 	var yarnlock = filepath.Join(root, "yarn.lock")

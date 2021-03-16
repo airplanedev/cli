@@ -23,14 +23,6 @@ import (
 // to be typed so we can show their usage in the CLI.
 type Args map[string]string
 
-// Entrypoint returns the configured entrypoint or v.
-func (args Args) entrypoint(v string) string {
-	if e := args["entrypoint"]; e != "" {
-		return e
-	}
-	return v
-}
-
 // RegistryAuth represents the registry auth.
 type RegistryAuth struct {
 	Token string
@@ -225,6 +217,10 @@ func (b *Builder) Push(ctx context.Context, tag string) error {
 
 // Dockerfile returns the dockerfile for the builder.
 func (b *Builder) dockerfile() (string, error) {
+	if b.args["entrypoint"] == "" {
+		return "", fmt.Errorf("build: .entrypoint is required")
+	}
+
 	switch b.name {
 	case "go":
 		return golang(b.root, b.args)
