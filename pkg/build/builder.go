@@ -136,10 +136,10 @@ func New(c Config) (*Builder, error) {
 // The method creates a Dockerfile depending on the configured builder
 // and adds it to the tree, it passes the tree as the build context
 // and initializes the build.
-func (b *Builder) Build(ctx context.Context, taskID string) (*types.ImageSummary, error) {
+func (b *Builder) Build(ctx context.Context, taskID, version string) (*types.ImageSummary, error) {
 	var repo = b.auth.Repo
 	var name = "task-" + strings.ToLower(taskID)
-	var tag = repo + "/" + name
+	var tag = repo + "/" + name + ":" + version
 
 	tree, err := NewTree()
 	if err != nil {
@@ -192,7 +192,7 @@ func (b *Builder) Build(ctx context.Context, taskID string) (*types.ImageSummary
 
 	for _, img := range images {
 		for _, t := range img.RepoTags {
-			if strings.HasPrefix(t, tag+":") {
+			if t == tag {
 				return &img, nil
 			}
 		}
