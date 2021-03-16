@@ -18,10 +18,11 @@ import (
 
 // Config represents push configuration.
 type config struct {
-	cli   *cli.Config
-	slug  string
-	debug bool
-	file  string
+	cli     *cli.Config
+	slug    string
+	debug   bool
+	version string
+	file    string
 }
 
 // New returns a new push command.
@@ -40,8 +41,10 @@ func New(c *cli.Config) *cobra.Command {
 		},
 	}
 
+	cmd.Flags().StringVarP(&cfg.version, "version", "v", "latest", "The version of the image.")
 	cmd.Flags().BoolVarP(&cfg.debug, "debug", "d", false, "Debug docker builds.")
 	cmd.Flags().StringVarP(&cfg.file, "file", "f", "", "Configuration file.")
+
 	cmd.MarkFlagRequired("file")
 
 	return cmd
@@ -96,7 +99,7 @@ func run(ctx context.Context, cfg config) error {
 	}
 
 	fmt.Println("  Building...")
-	img, err := b.Build(ctx, task.ID)
+	img, err := b.Build(ctx, task.ID, cfg.version)
 	if err != nil {
 		return errors.Wrap(err, "build")
 	}
