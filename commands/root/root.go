@@ -1,6 +1,8 @@
 package root
 
 import (
+	"errors"
+
 	"github.com/airplanedev/cli/commands/create"
 	"github.com/airplanedev/cli/commands/execute"
 	"github.com/airplanedev/cli/commands/list"
@@ -8,11 +10,13 @@ import (
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/conf"
+	"github.com/airplanedev/cli/pkg/print"
 	"github.com/spf13/cobra"
 )
 
 // New returns a new root cobra command.
 func New() *cobra.Command {
+	var formatter string
 	var cfg = &cli.Config{
 		Client: &api.Client{},
 	}
@@ -20,10 +24,23 @@ func New() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "airplane <command>",
 		Short: "Airplane CLI",
-		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			if c, err := conf.ReadDefault(); err == nil {
 				cfg.Client.Token = c.Token
 			}
+
+			switch formatter {
+			case "json":
+				print.DefaultFormatter = print.JSON{}
+			case "yaml":
+				print.DefaultFormatter = print.YAML{}
+			case "table":
+				print.DefaultFormatter = print.Table{}
+			default:
+				return errors.New("--formatter must be (json|yaml|table)")
+			}
+
+			return nil
 		},
 	}
 
@@ -35,6 +52,7 @@ func New() *cobra.Command {
 
 	// Persistent flags, set globally to all commands.
 	cmd.PersistentFlags().StringVarP(&cfg.Client.Host, "host", "", api.Host, "Airplane API Host.")
+	cmd.PersistentFlags().StringVarP(&formatter, "formatter", "f", "table", "The formatter to use for output (json|yaml|table).")
 
 	// Most used sub commands.
 	cmd.AddCommand(login.New(cfg))
