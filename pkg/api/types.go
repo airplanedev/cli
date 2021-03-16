@@ -107,18 +107,18 @@ type ListTasksResponse struct {
 // Even though the task object contains many other fields
 // we don't add them here unless we need them for presenting tasks.
 type Task struct {
-	ID          string            `json:"taskID"`
-	Name        string            `json:"name"`
-	Slug        string            `json:"slug"`
-	Description string            `json:"description"`
-	Image       string            `json:"image"`
-	Command     []string          `json:"command"`
-	Arguments   []string          `json:"arguments"`
-	Parameters  Parameters        `json:"parameters"`
-	Constraints Constraints       `json:"constraints"`
-	Env         map[string]string `json:"env"`
-	Timeout     int               `json:"timeout"`
-	Builder     string            `json:"builder"`
+	ID          string            `json:"taskID" yaml:"id"`
+	Name        string            `json:"name" yaml:"name"`
+	Slug        string            `json:"slug" yaml:"slug"`
+	Description string            `json:"description" yaml:"description"`
+	Image       string            `json:"image" yaml:"image"`
+	Command     []string          `json:"command" yaml:"command"`
+	Arguments   []string          `json:"arguments" yaml:"arguments"`
+	Parameters  Parameters        `json:"parameters" yaml:"parameters"`
+	Constraints Constraints       `json:"constraints" yaml:"constraints"`
+	Env         map[string]string `json:"env" yaml:"env"`
+	Timeout     int               `json:"timeout" yaml:"timeout"`
+	Builder     string            `json:"builder" yaml:"builder"`
 }
 
 // Values represent parameters values.
