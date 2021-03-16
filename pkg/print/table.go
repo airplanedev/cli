@@ -15,7 +15,8 @@ type Table struct{}
 
 // Tasks implementation.
 func (t Table) tasks(tasks []api.Task) {
-	var tw = tablewriter.NewWriter(os.Stderr)
+	tw := tablewriter.NewWriter(os.Stderr)
+	tw.SetBorder(false)	
 	tw.SetHeader([]string{"name", "slug", "builder", "arguments"})
 
 	for _, t := range tasks {
