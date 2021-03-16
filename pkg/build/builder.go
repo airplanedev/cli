@@ -51,9 +51,8 @@ type Config struct {
 
 	// Builder is the builder name to use.
 	//
-	// There are built-in builders and manual builders
-	// a manual builder uses the default `Dockerfile`
-	// that resides in the root directory.
+	// There are various built-in builders, along with the docker
+	// builder and manual builder.
 	//
 	// If empty, it assumes a manual builder.
 	Builder string
