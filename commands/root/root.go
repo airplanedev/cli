@@ -16,7 +16,7 @@ import (
 
 // New returns a new root cobra command.
 func New() *cobra.Command {
-	var formatter string
+	var output string
 	var cfg = &cli.Config{
 		Client: &api.Client{},
 	}
@@ -29,7 +29,7 @@ func New() *cobra.Command {
 				cfg.Client.Token = c.Token
 			}
 
-			switch formatter {
+			switch output {
 			case "json":
 				print.DefaultFormatter = print.JSON{}
 			case "yaml":
@@ -37,7 +37,7 @@ func New() *cobra.Command {
 			case "table":
 				print.DefaultFormatter = print.Table{}
 			default:
-				return errors.New("--formatter must be (json|yaml|table)")
+				return errors.New("--output must be (json|yaml|table)")
 			}
 
 			return nil
@@ -52,7 +52,7 @@ func New() *cobra.Command {
 
 	// Persistent flags, set globally to all commands.
 	cmd.PersistentFlags().StringVarP(&cfg.Client.Host, "host", "", api.Host, "Airplane API Host.")
-	cmd.PersistentFlags().StringVarP(&formatter, "formatter", "f", "table", "The formatter to use for output (json|yaml|table).")
+	cmd.PersistentFlags().StringVarP(&output, "output", "o", "table", "The format to use for output (json|yaml|table).")
 
 	// Most used sub commands.
 	cmd.AddCommand(login.New(cfg))
