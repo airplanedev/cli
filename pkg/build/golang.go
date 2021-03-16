@@ -15,7 +15,8 @@ import (
 func golang(root string, args Args) (string, error) {
 	var gomod = filepath.Join(root, "go.mod")
 	var gosum = filepath.Join(root, "go.sum")
-	var main = filepath.Join(root, args.entrypoint("main.go"))
+	var entrypoint = args.entrypoint("main.go")
+	var main = filepath.Join(root, entrypoint)
 
 	if err := exist(gomod, gosum, main); err != nil {
 		return "", err
@@ -40,9 +41,7 @@ ENTRYPOINT ["go", "run", "/airplane/{{ .Main }}"]
 		Gosum string
 	}
 	data.Root = root
-	data.Main = path.Base(main)
-	data.Gosum = gosum
-	data.Gomod = gomod
+	data.Main = entrypoint
 
 	var buf strings.Builder
 	if err := t.Execute(&buf, data); err != nil {

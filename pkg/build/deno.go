@@ -2,7 +2,6 @@ package build
 
 import (
 	"html/template"
-	"path"
 	"path/filepath"
 	"strings"
 
@@ -11,7 +10,8 @@ import (
 
 // Deno creates a dockerfile for Deno.
 func deno(root string, args Args) (string, error) {
-	var main = filepath.Join(root, args.entrypoint("main.ts"))
+	var entrypoint = args.entrypoint("main.ts")
+	var main = filepath.Join(root, entrypoint)
 
 	if err := exist(main); err != nil {
 		return "", err
@@ -30,7 +30,7 @@ ENTRYPOINT ["deno", "run", "-A", "{{ . }}"]
 	}
 
 	var buf strings.Builder
-	if err := t.Execute(&buf, path.Base(main)); err != nil {
+	if err := t.Execute(&buf, entrypoint); err != nil {
 		return "", err
 	}
 
