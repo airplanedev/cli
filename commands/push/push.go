@@ -42,7 +42,7 @@ func New(c *cli.Config) *cobra.Command {
 	}
 
 	cmd.Flags().StringVarP(&cfg.version, "version", "v", "latest", "The version of the image.")
-	cmd.Flags().BoolVarP(&cfg.debug, "debug", "d", false, "Debug docker builds.")
+	cmd.Flags().BoolVarP(&cfg.debug, "debug", "", false, "Debug docker builds.")
 	cmd.Flags().StringVarP(&cfg.file, "file", "f", "", "Configuration file.")
 
 	cmd.MarkFlagRequired("file")
