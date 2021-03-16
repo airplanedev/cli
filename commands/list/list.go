@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/airplanedev/cli/pkg/cli"
+	"github.com/airplanedev/cli/pkg/print"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -37,11 +38,6 @@ func run(ctx context.Context, c *cli.Config) error {
 		return nil
 	}
 
-	fmt.Println()
-	for _, t := range res.Tasks {
-		fmt.Printf("  %s\n", t.Slug)
-	}
-	fmt.Println()
-
+	print.Tasks(res.Tasks)
 	return nil
 }
