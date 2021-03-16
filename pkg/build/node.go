@@ -35,7 +35,7 @@ func node(root string, args Args) (string, error) {
 	if err := exist(pkglock); err == nil {
 		cmds = append(cmds, `npm install package-lock.json`)
 	} else if err := exist(yarnlock); err == nil {
-		cmds = append(cmds, `yarn yarn.lock`)
+		cmds = append(cmds, `yarn install`)
 	}
 
 	// Language specific.
