@@ -15,6 +15,7 @@ require (
 	github.com/segmentio/events/v2 v2.4.0
 	github.com/spf13/cobra v1.1.3
 	github.com/stretchr/testify v1.6.1
+	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/sys v0.0.0-20210309074719-68d13333faf2 // indirect
 	golang.org/x/text v0.3.5 // indirect
 	gopkg.in/yaml.v2 v2.4.0
