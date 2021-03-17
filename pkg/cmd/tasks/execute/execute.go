@@ -4,8 +4,8 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"os"
 	"strconv"
-	"time"
 
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/cli"
@@ -64,38 +64,39 @@ func run(ctx context.Context, cfg config) error {
 
 	fmt.Printf("Running: %s\n", task.Name)
 
-	run, err := client.RunTask(ctx, req)
+	w, err := client.Watcher(ctx, req)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("Queued: %s\n", client.RunURL(run.RunID))
+	fmt.Printf("Queued: %s\n", client.RunURL(w.RunID()))
 
-	var resp api.GetRunResponse
+	var state api.RunState
 
 	for {
-		resp, err = client.GetRun(ctx, run.RunID)
-		if err != nil {
-			return errors.Wrap(err, "get run")
-		}
-
-		var done bool
-
-		switch resp.Run.Status {
-		case api.RunSucceeded,
-			api.RunCancelled,
-			api.RunFailed:
-			done = true
-		}
-
-		if done {
+		if state = w.Next(); state.Err() != nil {
 			break
 		}
 
-		time.Sleep(1 * time.Second)
+		for _, l := range state.Logs {
+			fmt.Fprintln(os.Stdout, l.Timestamp, l.Text)
+		}
+
+		if state.Stopped() {
+			break
+		}
 	}
 
-	fmt.Printf("Done: %s\n", resp.Run.Status)
+	if err := state.Err(); err != nil {
+		return err
+	}
+
+	fmt.Printf("Done: %s\n", state.Status)
+
+	if state.Failed() {
+		return errors.New("Run has failed")
+	}
+
 	return nil
 }
 
