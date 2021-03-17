@@ -8,8 +8,6 @@ import (
 )
 
 // JSON implements a JSON formatter.
-//
-// Its zero-value is ready for use.
 type JSON struct {
 	enc *json.Encoder
 }
