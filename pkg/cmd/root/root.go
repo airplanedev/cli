@@ -32,7 +32,7 @@ func New() *cobra.Command {
 
 			switch output {
 			case "json":
-				print.DefaultFormatter = print.JSON{}
+				print.DefaultFormatter = print.NewJSONFormatter()
 			case "yaml":
 				print.DefaultFormatter = print.YAML{}
 			case "table":

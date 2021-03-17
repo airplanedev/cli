@@ -7,6 +7,7 @@ import (
 	"github.com/airplanedev/cli/pkg/cmd/tasks/execute"
 	"github.com/airplanedev/cli/pkg/cmd/tasks/list"
 	"github.com/airplanedev/cli/pkg/cmd/tasks/push"
+	"github.com/airplanedev/cli/pkg/cmd/tasks/show"
 	"github.com/spf13/cobra"
 )
 
@@ -27,6 +28,7 @@ func New(c *cli.Config) *cobra.Command {
 	cmd.AddCommand(push.New(c))
 	cmd.AddCommand(list.New(c))
 	cmd.AddCommand(execute.New(c))
+	cmd.AddCommand(show.New(c))
 
 	return cmd
 }
