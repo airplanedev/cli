@@ -1,4 +1,4 @@
-package show
+package get
 
 import (
 	"context"
@@ -9,15 +9,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// New returns a new show command.
+// New returns a new get command.
 func New(c *cli.Config) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "show",
-		Short: "Show information about a task",
+		Use:   "get",
+		Short: "Get information about a task",
 		Example: heredoc.Doc(`
-			$ airplane tasks show my-task
-			$ airplane tasks show my-task -o yaml
-			$ airplane tasks show my-task -o json
+			$ airplane tasks get my-task
+			$ airplane tasks get my-task -o yaml
+			$ airplane tasks get my-task -o json
 		`),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -27,7 +27,7 @@ func New(c *cli.Config) *cobra.Command {
 	return cmd
 }
 
-// Run runs the show command.
+// Run runs the get command.
 func run(ctx context.Context, c *cli.Config, slug string) error {
 	var client = c.Client
 
