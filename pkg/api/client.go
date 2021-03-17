@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 )
@@ -114,6 +115,18 @@ func (c Client) RunTask(ctx context.Context, req RunTaskRequest) (res RunTaskRes
 func (c Client) GetRun(ctx context.Context, id string) (res GetRunResponse, err error) {
 	q := url.Values{"runID": []string{id}}
 	err = c.do(ctx, "GET", "/runs/get?"+q.Encode(), nil, &res)
+	return
+}
+
+// GetLogs returns the logs by runID and since timestamp.
+func (c Client) GetLogs(ctx context.Context, runID string, since time.Time) (res GetLogsResponse, err error) {
+	q := url.Values{"runID": []string{runID}}
+
+	if !since.IsZero() {
+		q.Set("since", since.Format(time.RFC3339))
+	}
+
+	err = c.do(ctx, "GET", "/runs/getLogs?"+q.Encode(), nil, &res)
 	return
 }
 
