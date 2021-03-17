@@ -10,6 +10,7 @@ import (
 	"github.com/airplanedev/cli/pkg/cmd/tasks/create"
 	"github.com/airplanedev/cli/pkg/cmd/tasks/list"
 	"github.com/airplanedev/cli/pkg/cmd/tasks/push"
+	"github.com/airplanedev/cli/pkg/cmd/tasks/show"
 	"github.com/airplanedev/cli/pkg/conf"
 	"github.com/airplanedev/cli/pkg/print"
 	"github.com/spf13/cobra"
@@ -61,6 +62,7 @@ func New() *cobra.Command {
 	cmd.AddCommand(create.New(cfg))
 	cmd.AddCommand(push.New(cfg))
 	cmd.AddCommand(list.New(cfg))
+	cmd.AddCommand(show.New(cfg))
 
 	return cmd
 }
