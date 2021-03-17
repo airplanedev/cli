@@ -51,11 +51,22 @@ func run(ctx context.Context, c *cli.Config, file string) error {
 		return err
 	}
 
-	fmt.Printf(`
-  Created the task %s, to execute it:
+	task, err := client.GetTask(ctx, res.Slug)
+	if err != nil {
+		return err
+	}
 
-    airplane execute %s
-
-`, req.Name, res.Slug)
+	printTask(task, client.TaskURL(task.ID))
 	return nil
+}
+
+// PrintTask prints the given task.
+func printTask(t api.Task, url string) {
+	fmt.Printf("\nCreated a task:\n\n")
+	fmt.Printf("%s (%s)\n", t.Name, t.Slug)
+	fmt.Printf("%s\n\n", t.Description)
+	fmt.Printf("URL: %s\n", url)
+	fmt.Printf("Arguments: %v\n\n", t.Arguments)
+	fmt.Printf("To execute the task:\n")
+	fmt.Printf("  airplane execute %s [args]\n\n", t.Slug)
 }

@@ -73,6 +73,13 @@ func (c Client) RunURL(id string) string {
 	return u.String()
 }
 
+// TaskURL returns a task URL for a task ID.
+func (c Client) TaskURL(id string) string {
+	u := c.appURL()
+	u.Path = "/tasks/" + id
+	return u.String()
+}
+
 // GetRegistryToken responds with the registry token.
 func (c Client) GetRegistryToken(ctx context.Context) (res RegistryTokenResponse, err error) {
 	err = c.do(ctx, "POST", "/registry/getToken", nil, &res)
