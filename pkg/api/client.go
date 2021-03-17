@@ -111,6 +111,15 @@ func (c Client) RunTask(ctx context.Context, req RunTaskRequest) (res RunTaskRes
 	return
 }
 
+// Watcher runs a task with the given arguments and returns a run watcher.
+func (c Client) Watcher(ctx context.Context, req RunTaskRequest) (*Watcher, error) {
+	resp, err := c.RunTask(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return newWatcher(ctx, c, resp.RunID), nil
+}
+
 // GetRun returns a run by id.
 func (c Client) GetRun(ctx context.Context, id string) (res GetRunResponse, err error) {
 	q := url.Values{"runID": []string{id}}
