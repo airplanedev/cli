@@ -130,6 +130,13 @@ func (c Client) GetLogs(ctx context.Context, runID string, since time.Time) (res
 	return
 }
 
+// GetOutputs returns the outputs by runID.
+func (c Client) GetOutputs(ctx context.Context, runID string) (res GetOutputsResponse, err error) {
+	q := url.Values{"runID": []string{runID}}
+	err = c.do(ctx, "GET", "/runs/getOutputs?"+q.Encode(), nil, &res)
+	return
+}
+
 // GetTask returns a task by its slug.
 func (c Client) GetTask(ctx context.Context, slug string) (res Task, err error) {
 	q := url.Values{"slug": []string{slug}}

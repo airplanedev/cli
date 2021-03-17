@@ -48,6 +48,14 @@ type GetLogsResponse struct {
 	Logs  []LogItem `json:"logs"`
 }
 
+// Outputs represents outputs.
+type Outputs map[string][]json.RawMessage
+
+// GetOutputsResponse represents a get outputs response.
+type GetOutputsResponse struct {
+	Outputs Outputs `json:"outputs"`
+}
+
 // LogItem represents a log item.
 type LogItem struct {
 	Timestamp time.Time `json:"timestamp"`
