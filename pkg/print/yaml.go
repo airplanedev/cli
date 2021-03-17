@@ -16,3 +16,8 @@ type YAML struct{}
 func (YAML) tasks(tasks []api.Task) {
 	yaml.NewEncoder(os.Stderr).Encode(tasks)
 }
+
+// Task implementation.
+func (YAML) task(task api.Task) {
+	yaml.NewEncoder(os.Stderr).Encode(task)
+}

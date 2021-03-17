@@ -16,7 +16,7 @@ type Table struct{}
 // Tasks implementation.
 func (t Table) tasks(tasks []api.Task) {
 	tw := tablewriter.NewWriter(os.Stderr)
-	tw.SetBorder(false)	
+	tw.SetBorder(false)
 	tw.SetHeader([]string{"name", "slug", "builder", "arguments"})
 
 	for _, t := range tasks {
@@ -35,4 +35,9 @@ func (t Table) tasks(tasks []api.Task) {
 	}
 
 	tw.Render()
+}
+
+// Task implementation.
+func (t Table) task(task api.Task) {
+	t.tasks([]api.Task{task})
 }

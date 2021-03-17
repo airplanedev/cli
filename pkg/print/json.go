@@ -10,9 +10,25 @@ import (
 // JSON implements a JSON formatter.
 //
 // Its zero-value is ready for use.
-type JSON struct{}
+type JSON struct {
+	enc *json.Encoder
+}
+
+// NewJSONFormatter returns a new json formatter.
+func NewJSONFormatter() *JSON {
+	enc := json.NewEncoder(os.Stderr)
+	enc.SetIndent("", "  ")
+	return &JSON{
+		enc: enc,
+	}
+}
 
 // Tasks implementation.
-func (JSON) tasks(tasks []api.Task) {
-	json.NewEncoder(os.Stderr).Encode(tasks)
+func (j *JSON) tasks(tasks []api.Task) {
+	j.enc.Encode(tasks)
+}
+
+// Task implementation.
+func (j *JSON) task(task api.Task) {
+	j.enc.Encode(task)
 }
