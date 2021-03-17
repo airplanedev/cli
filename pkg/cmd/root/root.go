@@ -3,13 +3,10 @@ package root
 import (
 	"errors"
 
-	"github.com/airplanedev/cli/commands/create"
-	"github.com/airplanedev/cli/commands/execute"
-	"github.com/airplanedev/cli/commands/list"
-	"github.com/airplanedev/cli/commands/login"
-	"github.com/airplanedev/cli/commands/push"
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/cli"
+	"github.com/airplanedev/cli/pkg/cmd/login"
+	"github.com/airplanedev/cli/pkg/cmd/tasks"
 	"github.com/airplanedev/cli/pkg/conf"
 	"github.com/airplanedev/cli/pkg/print"
 	"github.com/spf13/cobra"
@@ -55,12 +52,9 @@ func New() *cobra.Command {
 	cmd.PersistentFlags().StringVarP(&cfg.Client.Host, "host", "", api.Host, "Airplane API Host.")
 	cmd.PersistentFlags().StringVarP(&output, "output", "o", "table", "The format to use for output (json|yaml|table).")
 
-	// Most used sub commands.
+	// Sub-commands.
 	cmd.AddCommand(login.New(cfg))
-	cmd.AddCommand(create.New(cfg))
-	cmd.AddCommand(list.New(cfg))
-	cmd.AddCommand(execute.New(cfg))
-	cmd.AddCommand(push.New(cfg))
+	cmd.AddCommand(tasks.New(cfg))
 
 	return cmd
 }

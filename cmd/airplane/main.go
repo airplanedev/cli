@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/airplanedev/cli/commands/root"
+	"github.com/airplanedev/cli/pkg/cmd/root"
 	"github.com/airplanedev/cli/pkg/trap"
 	"github.com/pkg/errors"
 	_ "github.com/segmentio/events/v2/text"
