@@ -79,7 +79,7 @@ func run(ctx context.Context, cfg config) error {
 		}
 
 		for _, l := range state.Logs {
-			fmt.Fprintln(os.Stdout, l.Timestamp, l.Text)
+			fmt.Fprintln(os.Stderr, l.Timestamp, l.Text)
 		}
 
 		if state.Stopped() {
