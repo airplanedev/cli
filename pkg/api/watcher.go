@@ -187,8 +187,8 @@ func newLogKey(l LogItem) logKey {
 
 // DedupeLogs de-duplicates logs by timestamp and insertId.
 func dedupeLogs(a, b []LogItem) []LogItem {
-	dedupe := make(map[logKey]struct{})
-	ret := make([]LogItem, 0, len(b))
+	var dedupe = make(map[logKey]struct{})
+	var ret []LogItem
 
 	for _, l := range a {
 		dedupe[newLogKey(l)] = struct{}{}
