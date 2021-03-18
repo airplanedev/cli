@@ -104,12 +104,12 @@ func (c Client) ListTasks(ctx context.Context) (res ListTasksResponse, err error
 	return
 }
 
-// ListRuns lists all runs.
+// ListRuns lists most recent runs.
 func (c Client) ListRuns(ctx context.Context, taskID string) (resp ListRunsResponse, err error) {
 	q := url.Values{
 		"taskID": []string{taskID},
 		"page":   []string{"0"},
-		"limit":  []string{"50"},
+		"limit":  []string{"100"},
 	}
 
 	err = c.do(ctx, "GET", "/runs/list?"+q.Encode(), nil, &resp)
