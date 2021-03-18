@@ -13,7 +13,7 @@ import (
 func New(c *cli.Config) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get",
-		Short: "Get information about a task",
+		Short: "Get information about a run",
 		Example: heredoc.Doc(`
 			$ airplane runs get <id>
 			$ airplane runs get <id> -o yaml
