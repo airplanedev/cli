@@ -6,6 +6,7 @@ import (
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/cmd/login"
+	"github.com/airplanedev/cli/pkg/cmd/runs"
 	"github.com/airplanedev/cli/pkg/cmd/tasks"
 	"github.com/airplanedev/cli/pkg/conf"
 	"github.com/airplanedev/cli/pkg/print"
@@ -55,6 +56,7 @@ func New() *cobra.Command {
 	// Sub-commands.
 	cmd.AddCommand(login.New(cfg))
 	cmd.AddCommand(tasks.New(cfg))
+	cmd.AddCommand(runs.New(cfg))
 
 	return cmd
 }

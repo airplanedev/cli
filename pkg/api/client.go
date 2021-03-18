@@ -104,6 +104,18 @@ func (c Client) ListTasks(ctx context.Context) (res ListTasksResponse, err error
 	return
 }
 
+// ListRuns lists all runs.
+func (c Client) ListRuns(ctx context.Context, taskID string) (resp ListRunsResponse, err error) {
+	q := url.Values{
+		"taskID": []string{taskID},
+		"page":   []string{"0"},
+		"limit":  []string{"50"},
+	}
+
+	err = c.do(ctx, "GET", "/runs/list?"+q.Encode(), nil, &resp)
+	return
+}
+
 // RunTask runs a task.
 func (c Client) RunTask(ctx context.Context, req RunTaskRequest) (res RunTaskResponse, err error) {
 	err = c.do(ctx, "POST", "/runs/create", req, &res)

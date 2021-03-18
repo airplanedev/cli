@@ -14,6 +14,8 @@ var (
 type Formatter interface {
 	tasks([]api.Task)
 	task(api.Task)
+	runs([]api.Run)
+	run(api.Run)
 }
 
 // Tasks prints the given slice of tasks using the default formatter.
@@ -24,4 +26,14 @@ func Tasks(tasks []api.Task) {
 // Task prints a single task.
 func Task(task api.Task) {
 	DefaultFormatter.task(task)
+}
+
+// Runs prints the given runs.
+func Runs(runs []api.Run) {
+	DefaultFormatter.runs(runs)
+}
+
+// Run prints a single run.
+func Run(run api.Run) {
+	DefaultFormatter.run(run)
 }

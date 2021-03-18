@@ -214,3 +214,8 @@ type Run struct {
 	CancelledAt *time.Time `json:"cancelledAt"`
 	CancelledBy *string    `json:"cancelledBy"`
 }
+
+// ListRunsResponse represents a list runs response.
+type ListRunsResponse struct {
+	Runs []Run `json:"runs"`
+}

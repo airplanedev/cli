@@ -30,3 +30,13 @@ func (j *JSON) tasks(tasks []api.Task) {
 func (j *JSON) task(task api.Task) {
 	j.enc.Encode(task)
 }
+
+// Runs implementation.
+func (j *JSON) runs(runs []api.Run) {
+	j.enc.Encode(runs)
+}
+
+// Run implementation.
+func (j *JSON) run(run api.Run) {
+	j.enc.Encode(run)
+}

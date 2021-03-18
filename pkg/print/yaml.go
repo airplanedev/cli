@@ -21,3 +21,13 @@ func (YAML) tasks(tasks []api.Task) {
 func (YAML) task(task api.Task) {
 	yaml.NewEncoder(os.Stderr).Encode(task)
 }
+
+// Runs implementation.
+func (YAML) runs(runs []api.Run) {
+	yaml.NewEncoder(os.Stderr).Encode(runs)
+}
+
+// Run implementation.
+func (YAML) run(run api.Run) {
+	yaml.NewEncoder(os.Stderr).Encode(run)
+}
