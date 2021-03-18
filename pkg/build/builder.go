@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"unicode"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
@@ -129,7 +130,7 @@ func New(c Config) (*Builder, error) {
 // and initializes the build.
 func (b *Builder) Build(ctx context.Context, taskID, version string) (*types.ImageSummary, error) {
 	var repo = b.auth.Repo
-	var name = "task-" + strings.ToLower(taskID)
+	var name = "task-" + sanitizeTaskID(taskID)
 	var tag = repo + "/" + name + ":" + version
 
 	tree, err := NewTree()
@@ -248,4 +249,22 @@ func (b *Builder) authconfigs() map[string]types.AuthConfig {
 	return map[string]types.AuthConfig{
 		b.auth.host(): b.registryAuth(),
 	}
+}
+
+// SanitizeTaskID sanitizes the given task ID.
+//
+// Names may only contain lowercase letters, numbers, and
+// hyphens, and must begin with a letter and end with a letter or number.
+//
+// We are planning to tweak our team/task ID generation to fit this:
+// https://linear.app/airplane/issue/AIR-355/restrict-task-id-charset
+//
+// The following string manipulations won't matter for non-ksuid
+// IDs (the current scheme).
+func sanitizeTaskID(s string) string {
+	s = strings.ToLower(s)
+	if unicode.IsDigit(rune(s[len(s)-1])) {
+		s = s[:len(s)-1] + "a"
+	}
+	return s
 }
