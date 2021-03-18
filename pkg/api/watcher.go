@@ -9,6 +9,18 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+var (
+	// fetchInterval is the interval to use for fetching
+	// new run states.
+	fetchInterval = 1 * time.Second
+)
+
+// LogsClient represents a logs client.
+type logsClient interface {
+	GetLogs(ctx context.Context, runID string, t time.Time) (GetLogsResponse, error)
+	GetRun(ctx context.Context, runID string) (GetRunResponse, error)
+}
+
 // RunState represents a run state.
 type RunState struct {
 	Status  RunStatus
@@ -57,13 +69,13 @@ func (r RunState) lastTimestamp() time.Time {
 // Watcher represents a run watcher.
 type Watcher struct {
 	ctx    context.Context
-	client Client
+	client logsClient
 	runID  string
 	state  chan RunState
 }
 
 // NewWatcher returns a new watcher with the given runID and context.
-func newWatcher(ctx context.Context, client Client, runID string) *Watcher {
+func newWatcher(ctx context.Context, client logsClient, runID string) *Watcher {
 	w := &Watcher{
 		ctx:    ctx,
 		client: client,
@@ -91,7 +103,7 @@ func (w *Watcher) Next() RunState {
 // on fetch failure, or when the task is canceled a special state
 // is sent with an error.
 func (w *Watcher) watch() {
-	var ticker = time.NewTicker(1 * time.Second)
+	var ticker = time.NewTicker(fetchInterval)
 	var prev RunState
 
 	for {
