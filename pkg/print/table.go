@@ -47,13 +47,25 @@ func (t Table) task(task api.Task) {
 func (t Table) runs(runs []api.Run) {
 	tw := tablewriter.NewWriter(os.Stderr)
 	tw.SetBorder(false)
-	tw.SetHeader([]string{"id", "status", "created at"})
+	tw.SetHeader([]string{"id", "status", "created at", "ended at"})
 
 	for _, run := range runs {
+		var endedAt string
+
+		switch {
+		case run.SucceededAt != nil:
+			endedAt = run.SucceededAt.Format(time.RFC3339)
+		case run.FailedAt != nil:
+			endedAt = run.FailedAt.Format(time.RFC3339)
+		case run.CancelledAt != nil:
+			endedAt = run.CancelledAt.Format(time.RFC3339)
+		}
+
 		tw.Append([]string{
 			run.RunID,
 			fmt.Sprintf("%s", run.Status),
 			run.CreatedAt.Format(time.RFC3339),
+			endedAt,
 		})
 	}
 
