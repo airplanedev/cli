@@ -30,26 +30,29 @@ func New(c *cli.Config) *cobra.Command {
 func run(ctx context.Context, c *cli.Config) error {
 	cfg, err := conf.ReadDefault()
 
-	if errors.Is(err, conf.ErrMissing) {
-		srv, err := token.NewServer(ctx)
-		if err != nil {
-			return err
+	if err != nil {
+		if errors.Is(err, conf.ErrMissing) {
+			srv, err := token.NewServer(ctx)
+			if err != nil {
+				return err
+			}
+			defer srv.Close()
+
+			open(c.Client.LoginURL(srv.URL()))
+
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+
+			case token := <-srv.Token():
+				cfg.Token = token
+			}
+
+			if err := conf.WriteDefault(cfg); err != nil {
+				return err
+			}
 		}
-		defer srv.Close()
-
-		open(c.Client.LoginURL(srv.URL()))
-
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-
-		case token := <-srv.Token():
-			cfg.Token = token
-		}
-
-		if err := conf.WriteDefault(cfg); err != nil {
-			return err
-		}
+		return err
 	}
 
 	fmt.Printf("You're all set!\n\nTo see what tasks you can run, try `$ airplane list`\n")
