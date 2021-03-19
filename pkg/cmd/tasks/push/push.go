@@ -123,7 +123,7 @@ func run(ctx context.Context, cfg config) error {
 	fmt.Printf(`
   Updated the task %s, to execute it:
 
-    airplane execute %s
+    airplane tasks execute %s
 `, req.Name, cfg.slug)
 	return nil
 }

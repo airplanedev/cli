@@ -71,5 +71,5 @@ func printTask(t api.Task, url string) {
 	fmt.Printf("URL: %s\n", url)
 	fmt.Printf("Arguments: %v\n\n", t.Arguments)
 	fmt.Printf("To execute the task:\n")
-	fmt.Printf("  airplane execute %s [args]\n\n", t.Slug)
+	fmt.Printf("  airplane tasks execute %s [args]\n\n", t.Slug)
 }
