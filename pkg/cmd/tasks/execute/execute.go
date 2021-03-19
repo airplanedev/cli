@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/MakeNowJust/heredoc"
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/pkg/errors"
@@ -25,11 +26,14 @@ func New(c *cli.Config) *cobra.Command {
 	var cfg = config{cli: c}
 
 	cmd := &cobra.Command{
-		Use:     "execute <slug>",
-		Short:   "Execute a task",
-		Long:    "Execute a task by its slug with the provided arguments.",
-		Example: "airplane execute echo -- --name value",
-		Args:    cobra.MinimumNArgs(1),
+		Use:   "execute <slug>",
+		Short: "Execute a task",
+		Long:  "Execute a task by its slug with the provided arguments.",
+		Example: heredoc.Doc(`
+			$ airplane tasks execute echo -- --name value
+			$ airplane tasks execute <slug> -- [arguments]
+		`),
+		Args: cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg.slug = args[0]
 			cfg.args = args[1:]

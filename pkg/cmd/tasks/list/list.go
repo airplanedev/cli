@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/MakeNowJust/heredoc"
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/print"
 	"github.com/pkg/errors"
@@ -13,9 +14,12 @@ import (
 // New returns a new list command.
 func New(c *cli.Config) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "list",
-		Short:   "Lists all tasks",
-		Example: "airplane list",
+		Use:   "list",
+		Short: "Lists all tasks",
+		Example: heredoc.Doc(`
+			$ airplane tasks list
+			$ airplane tasks list -o json
+		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return run(cmd.Context(), c)
 		},

@@ -3,6 +3,7 @@ package list
 import (
 	"context"
 
+	"github.com/MakeNowJust/heredoc"
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/print"
 	"github.com/pkg/errors"
@@ -14,9 +15,12 @@ func New(c *cli.Config) *cobra.Command {
 	var slug string
 
 	cmd := &cobra.Command{
-		Use:     "list",
-		Short:   "Lists runs for a task",
-		Example: "airplane runs list --task my-task",
+		Use:   "list",
+		Short: "Lists runs for a task",
+		Example: heredoc.Doc(`
+			$ airplane runs list --task <slug>
+			$ airplane runs list --task my-task -o json
+		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return run(cmd.Context(), c, slug)
 		},

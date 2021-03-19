@@ -3,11 +3,13 @@ module github.com/airplanedev/cli
 go 1.16
 
 require (
-	github.com/MakeNowJust/heredoc v1.0.0 // indirect
+	github.com/MakeNowJust/heredoc v1.0.0
 	github.com/Microsoft/hcsshim v0.8.15 // indirect
 	github.com/containerd/continuity v0.0.0-20210313171317-968621f0704d // indirect
 	github.com/docker/docker v20.10.5+incompatible
 	github.com/docker/go-connections v0.4.0 // indirect
+	github.com/fatih/color v1.10.0
+	github.com/kr/text v0.1.0
 	github.com/moby/sys/mount v0.2.0 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/olekukonko/tablewriter v0.0.5

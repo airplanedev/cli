@@ -57,10 +57,22 @@ func trim(s string) string {
 // Dedent trims spaces from each line.
 func dedent(s string) string {
 	var lines = strings.Split(s, "\n")
-	var ret = make([]string, 0, len(lines))
+	var ret []string
+	var min = -1
+
+	for _, line := range lines {
+		if len(line) > 0 {
+			indent := len(line) - len(strings.TrimLeft(line, " "))
+			if min == -1 || indent < min {
+				min = indent
+			}
+		}
+	}
 
 	for _, l := range lines {
-		ret = append(ret, trim(l))
+		ret = append(ret, strings.TrimPrefix(l,
+			strings.Repeat(" ", min),
+		))
 	}
 
 	return strings.Join(ret, "\n")
