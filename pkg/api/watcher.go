@@ -124,7 +124,6 @@ func (w *Watcher) watch() {
 			}
 
 			w.send(w.ctx, prev.merge(state))
-
 			prev = state
 		}
 	}
