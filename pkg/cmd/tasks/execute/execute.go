@@ -2,6 +2,7 @@ package execute
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
@@ -93,6 +94,22 @@ func run(ctx context.Context, cfg config) error {
 
 	if err := state.Err(); err != nil {
 		return err
+	}
+
+	// print output to cli
+	for k, v := range state.Outputs {
+		jsonBytes, err := json.Marshal(v)
+		if err != nil {
+			return errors.Wrap(err, "Error parsing output")
+		}
+		jsonStr := string(jsonBytes)
+		fmt.Fprintln(os.Stderr, "")
+		fmt.Fprintln(os.Stderr, "--------------------")
+		fmt.Fprintln(os.Stderr, k)
+		fmt.Fprintln(os.Stderr, "--------")
+		fmt.Fprintln(os.Stderr, jsonStr)
+		fmt.Fprintln(os.Stderr, "--------------------")
+		fmt.Fprintln(os.Stderr, "")
 	}
 
 	fmt.Printf("Done: %s\n", state.Status)
