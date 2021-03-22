@@ -2,7 +2,6 @@ package login
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"runtime"
 
@@ -20,14 +19,14 @@ func New(c *cli.Config) *cobra.Command {
 		Use:   "login",
 		Short: "Login to Airplane",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return run(cmd.Context(), c)
+			return run(cmd.Context(), cmd, c)
 		},
 	}
 	return cmd
 }
 
 // Run runs the login command.
-func run(ctx context.Context, c *cli.Config) error {
+func run(ctx context.Context, cmd *cobra.Command, c *cli.Config) error {
 	cfg, err := conf.ReadDefault()
 
 	if err != nil {
@@ -38,7 +37,7 @@ func run(ctx context.Context, c *cli.Config) error {
 			}
 			defer srv.Close()
 
-			open(c.Client.LoginURL(srv.URL()))
+			open(cmd, c.Client.LoginURL(srv.URL()))
 
 			select {
 			case <-ctx.Done():
@@ -55,7 +54,7 @@ func run(ctx context.Context, c *cli.Config) error {
 		return err
 	}
 
-	fmt.Printf("You're all set!\n\nTo see what tasks you can run, try `$ airplane list`\n")
+	cmd.Printf("You're all set!\n\nTo see what tasks you can run, try:\n    airplane tasks list\n")
 	return nil
 }
 
@@ -63,12 +62,12 @@ func run(ctx context.Context, c *cli.Config) error {
 //
 // As a special case, if `AP_BROWSER` env var is set to `none`
 // the command will always print the URL.
-func open(url string) {
+func open(cmd *cobra.Command, url string) {
 	if os.Getenv("AP_BROWSER") != "none" {
 		if err := browser.Open(runtime.GOOS, url); err == nil {
 			return
 		}
 	}
 
-	fmt.Printf("Visit %s to complete logging in\n", url)
+	cmd.Printf("Visit %s to complete logging in\n", url)
 }
