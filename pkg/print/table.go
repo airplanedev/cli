@@ -105,10 +105,7 @@ func (t Table) outputs(outputs api.Outputs) {
 func isJsonObject(value json.RawMessage) bool {
 	var output JsonObject
 	err := json.Unmarshal(value, &output)
-	if err != nil {
-		return false
-	}
-	return true
+	return err == nil
 }
 
 func printJson(values []json.RawMessage) {
