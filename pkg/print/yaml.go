@@ -42,5 +42,5 @@ func (YAML) outputs(outputs api.Outputs) {
 			})
 		}
 	}
-	yaml.NewEncoder(os.Stderr).Encode(rows)
+	yaml.NewEncoder(os.Stdout).Encode(rows)
 }

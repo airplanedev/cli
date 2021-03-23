@@ -19,7 +19,6 @@ func NewJSONFormatter() *JSON {
 	encErr.SetIndent("", "  ")
 
 	encOut := json.NewEncoder(os.Stdout)
-	encOut.SetIndent("", "  ")
 	return &JSON{
 		encErr,
 		encOut,

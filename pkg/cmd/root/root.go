@@ -63,11 +63,11 @@ func New() *cobra.Command {
 
 	// Persistent flags, set globally to all commands.
 	cmd.PersistentFlags().StringVarP(&cfg.Client.Host, "host", "", api.Host, "Airplane API Host.")
-	output_format := "table"
+	defaultFormat := "table"
 	if !isatty.IsTerminal(os.Stdout.Fd()) {
-		output_format = "json"
+		defaultFormat = "json"
 	}
-	cmd.PersistentFlags().StringVarP(&output, "output", "o", output_format, "The format to use for output (json|yaml|table).")
+	cmd.PersistentFlags().StringVarP(&output, "output", "o", defaultFormat, "The format to use for output (json|yaml|table).")
 
 	// Sub-commands.
 	cmd.AddCommand(login.New(cfg))
