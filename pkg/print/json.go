@@ -2,6 +2,7 @@ package print
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 
 	"github.com/airplanedev/cli/pkg/api"
@@ -39,4 +40,8 @@ func (j *JSON) runs(runs []api.Run) {
 // Run implementation.
 func (j *JSON) run(run api.Run) {
 	j.enc.Encode(run)
+}
+
+func (j *JSON) outputs(outputs api.Outputs) {
+	errors.New("Not implemented")
 }

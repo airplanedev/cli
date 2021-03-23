@@ -1,6 +1,8 @@
 package print
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"time"
@@ -13,6 +15,8 @@ import (
 //
 // Its zero-value is ready for use.
 type Table struct{}
+
+type JsonObject map[string]string
 
 // Tasks implementation.
 func (t Table) tasks(tasks []api.Task) {
@@ -75,4 +79,85 @@ func (t Table) runs(runs []api.Run) {
 // Run implementation.
 func (t Table) run(run api.Run) {
 	t.runs([]api.Run{run})
+}
+
+// print outputs as table
+func (t Table) outputs(outputs api.Outputs) {
+	for key, values := range outputs {
+
+		fmt.Fprintln(os.Stdout, "")
+		fmt.Fprintln(os.Stdout, key)
+
+		if isJsonObject(values[0]) {
+			printJson(values)
+		} else {
+			if len(values) == 1 {
+				fmt.Fprintln(os.Stdout, string(values[0]))
+			} else {
+				printArray(values)
+			}
+		}
+
+		fmt.Fprintln(os.Stdout, "")
+	}
+}
+
+func isJsonObject(value json.RawMessage) bool {
+	var output JsonObject
+	err := json.Unmarshal(value, &output)
+	if err != nil {
+		return false
+	}
+	return true
+}
+
+func printJson(values []json.RawMessage) {
+	objectArray := make([]JsonObject, len(values))
+
+	keys := make(map[string]bool)
+
+	for i, value := range values {
+		var output JsonObject
+		err := json.Unmarshal(value, &output)
+		if err != nil {
+			errors.New("Error parsing JSON output")
+		}
+		objectArray[i] = output
+
+		for key := range output {
+			keys[key] = true
+		}
+	}
+
+	var keyList []string
+	for _, object := range objectArray {
+		for key := range object {
+			keyList = append(keyList, key)
+		}
+	}
+
+	tw := tablewriter.NewWriter(os.Stdout)
+	tw.SetBorder(true)
+	tw.SetHeader(keyList)
+
+	for _, object := range objectArray {
+		values := make([]string, len(keyList))
+		for i, key := range keyList {
+			values[i] = object[key]
+		}
+		tw.Append(values)
+	}
+
+	tw.Render()
+}
+
+func printArray(values []json.RawMessage) {
+	tw := tablewriter.NewWriter(os.Stdout)
+	tw.SetBorder(true)
+
+	for _, value := range values {
+		tw.Append([]string{string(value)})
+	}
+
+	tw.Render()
 }

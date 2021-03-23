@@ -1,6 +1,7 @@
 package print
 
 import (
+	"errors"
 	"os"
 
 	"github.com/airplanedev/cli/pkg/api"
@@ -30,4 +31,8 @@ func (YAML) runs(runs []api.Run) {
 // Run implementation.
 func (YAML) run(run api.Run) {
 	yaml.NewEncoder(os.Stderr).Encode(run)
+}
+
+func (YAML) outputs(outputs api.Outputs) {
+	errors.New("Not implemented")
 }
