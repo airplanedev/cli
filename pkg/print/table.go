@@ -105,8 +105,7 @@ func (t Table) outputs(outputs api.Outputs) {
 func parseArrayOfJsonObject(values []json.RawMessage) (bool, []JsonObject) {
 	jsonObjects := make([]JsonObject, len(values))
 	for i, value := range values {
-		err := json.Unmarshal(value, &jsonObjects[i])
-		if err != nil {
+		if err := json.Unmarshal(value, &jsonObjects[i]); err != nil {
 			return false, nil
 		}
 	}
