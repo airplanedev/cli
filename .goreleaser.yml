@@ -44,5 +44,8 @@ brews:
     homepage: "https://airplane.dev"
     test: |
       system "#{bin}/airplane help"
+    commit_author:
+      name: AirplaneBot
+      email: bot-github@airplane.dev
 release:
   prerelease: auto
