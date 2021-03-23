@@ -86,7 +86,6 @@ func (t Table) run(run api.Run) {
 func (t Table) outputs(outputs api.Outputs) {
 	i := 0
 	for key, values := range outputs {
-
 		fmt.Fprintln(os.Stdout, key)
 
 		ok, jsonObjects := parseArrayOfJsonObject(values)
@@ -115,7 +114,6 @@ func parseArrayOfJsonObject(values []json.RawMessage) (bool, []JsonObject) {
 }
 
 func printJsonObjects(objects []JsonObject) {
-
 	keyMap := make(map[string]bool)
 	var keyList []string
 	for _, object := range objects {
@@ -130,7 +128,6 @@ func printJsonObjects(objects []JsonObject) {
 
 	tw := newTableWriter()
 	tw.SetHeader(keyList)
-
 	for _, object := range objects {
 		values := make([]string, len(keyList))
 		for i, key := range keyList {
@@ -153,16 +150,15 @@ func newTableWriter() *tablewriter.Table {
 	tw := tablewriter.NewWriter(os.Stdout)
 	tw.SetBorder(true)
 	tw.SetAutoWrapText(false)
-
 	return tw
 }
 
 func getCellValue(value json.RawMessage) string {
 	var v interface{}
-
 	if err := json.Unmarshal(value, &v); err != nil {
 		return string(value)
 	}
+
 	switch t := v.(type) {
 	case int:
 		return strconv.Itoa(t)
