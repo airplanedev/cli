@@ -38,7 +38,7 @@ func TestWatcher(t *testing.T) {
 			{Logs: []LogItem{a, b}},
 		}
 
-		var outputs = GetOutputsResponse{
+		outputs := GetOutputsResponse{
 			Outputs: map[string][]json.RawMessage{"output": []json.RawMessage{
 				json.RawMessage(`{"test key": "test value"}`),
 			}},
