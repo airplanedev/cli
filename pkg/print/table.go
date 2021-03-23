@@ -90,7 +90,7 @@ func (t Table) outputs(outputs api.Outputs) {
 
 		ok, jsonObjects := parseArrayOfJsonObject(values)
 		if ok {
-			printJsonObjects(jsonObjects)
+			printOutputTable(jsonObjects)
 		} else {
 			printOutputArray(values)
 		}
@@ -112,7 +112,7 @@ func parseArrayOfJsonObject(values []json.RawMessage) (bool, []JsonObject) {
 	return true, jsonObjects
 }
 
-func printJsonObjects(objects []JsonObject) {
+func printOutputTable(objects []JsonObject) {
 	keyMap := make(map[string]bool)
 	var keyList []string
 	for _, object := range objects {
@@ -142,7 +142,6 @@ func printOutputArray(values []json.RawMessage) {
 	for _, value := range values {
 		var v interface{}
 		if err := json.Unmarshal(value, &v); err != nil {
-			fmt.Println("Error marshalling:", v)
 			tw.Append([]string{string(value)})
 		} else {
 			tw.Append([]string{getCellValue(v)})
@@ -165,7 +164,7 @@ func getCellValue(value interface{}) string {
 	case float64:
 		return strconv.FormatFloat(t, 'f', -1, 64)
 	case string:
-		return fmt.Sprintf("%s", t)
+		return t
 	case nil:
 		return ""
 	default:
