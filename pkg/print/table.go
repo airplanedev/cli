@@ -168,7 +168,10 @@ func getCellValue(value interface{}) string {
 	case nil:
 		return ""
 	default:
-		v, _ := json.Marshal(t)
+		v, err := json.Marshal(t)
+		if err != nil {
+			return fmt.Sprintf("%v", value)
+		}
 		return string(v)
 	}
 	return ""
