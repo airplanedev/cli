@@ -51,7 +51,7 @@ type GetLogsResponse struct {
 // Outputs represents outputs.
 type Outputs map[string][]interface{}
 
-// represents a line of the output
+// Represents a line of the output
 type OutputRow struct {
 	OutputName string      `json:"outputName" yaml:"outputName"`
 	Value      interface{} `json:"value" yaml:"value"`
