@@ -130,7 +130,7 @@ func printJsonObjects(objects []JsonObject) {
 	for _, object := range objects {
 		values := make([]string, len(keyList))
 		for i, key := range keyList {
-			values[i] = object[key]
+			values[i] = getCellValue(object[key])
 		}
 		tw.Append(values)
 	}
