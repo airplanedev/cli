@@ -1,0 +1,51 @@
+# Docs: https://goreleaser.com/
+
+project_name: airplane
+before:
+  hooks:
+    - go mod tidy
+builds:
+  - main: ./cmd/airplane/main.go
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    mod_timestamp: "{{ .CommitTimestamp }}"
+archives:
+  - files: [only-the-binary*]
+    wrap_in_directory: false
+    replacements:
+      darwin: Darwin
+      linux: Linux
+      windows: Windows
+      386: i386
+      amd64: x86_64
+  - id: binary
+    format: binary
+    files: [only-the-binary*]
+    replacements:
+      darwin: Darwin
+      linux: Linux
+      windows: Windows
+      386: i386
+      amd64: x86_64
+checksum:
+  name_template: "checksums.txt"
+snapshot:
+  name_template: "{{ .Tag }}-next"
+changelog:
+  sort: asc
+brews:
+  - tap:
+      owner: airplanedev
+      name: homebrew-tap
+    homepage: "https://airplane.dev"
+    test: |
+      system "#{bin}/airplane help"
+    commit_author:
+      name: AirplaneBot
+      email: bot-github@airplane.dev
+release:
+  prerelease: auto
