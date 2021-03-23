@@ -2,7 +2,6 @@ package api
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"sync/atomic"
 	"testing"
@@ -39,8 +38,8 @@ func TestWatcher(t *testing.T) {
 		}
 
 		outputs := GetOutputsResponse{
-			Outputs: map[string][]json.RawMessage{"output": []json.RawMessage{
-				json.RawMessage(`{"test key": "test value"}`),
+			Outputs: map[string][]interface{}{"output": []interface{}{
+				map[string]string{"test key": "test value"},
 			}},
 		}
 
