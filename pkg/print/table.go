@@ -17,7 +17,7 @@ import (
 // Its zero-value is ready for use.
 type Table struct{}
 
-type JsonObject map[string]string
+type JsonObject map[string]interface{}
 
 // Tasks implementation.
 func (t Table) tasks(tasks []api.Task) {
@@ -130,7 +130,7 @@ func printJsonObjects(objects []JsonObject) {
 	for _, object := range objects {
 		values := make([]string, len(keyList))
 		for i, key := range keyList {
-			values[i] = object[key]
+			values[i] = getCellValue(object[key])
 		}
 		tw.Append(values)
 	}
@@ -140,7 +140,13 @@ func printJsonObjects(objects []JsonObject) {
 func printOutputArray(values []json.RawMessage) {
 	tw := newTableWriter()
 	for _, value := range values {
-		tw.Append([]string{getCellValue(value)})
+		var v interface{}
+		if err := json.Unmarshal(value, &v); err != nil {
+			fmt.Println("Error marshalling:", v)
+			tw.Append([]string{string(value)})
+		} else {
+			tw.Append([]string{getCellValue(v)})
+		}
 	}
 	tw.Render()
 }
@@ -152,21 +158,19 @@ func newTableWriter() *tablewriter.Table {
 	return tw
 }
 
-func getCellValue(value json.RawMessage) string {
-	var v interface{}
-	if err := json.Unmarshal(value, &v); err != nil {
-		return string(value)
-	}
-
-	switch t := v.(type) {
+func getCellValue(value interface{}) string {
+	switch t := value.(type) {
 	case int:
 		return strconv.Itoa(t)
-	case float32, float64:
-		return fmt.Sprintf("%v", t)
+	case float64:
+		return strconv.FormatFloat(t, 'f', -1, 64)
 	case string:
 		return fmt.Sprintf("%s", t)
+	case nil:
+		return ""
 	default:
-		return string(value)
+		v, _ := json.Marshal(t)
+		return string(v)
 	}
 	return ""
 }
