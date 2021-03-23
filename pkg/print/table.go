@@ -161,8 +161,7 @@ func getCellValue(value json.RawMessage) string {
 	switch t := v.(type) {
 	case int:
 		return strconv.Itoa(t)
-	case float32:
-	case float64:
+	case float32, float64:
 		return fmt.Sprintf("%v", t)
 	case string:
 		return fmt.Sprintf("%s", t)
