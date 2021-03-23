@@ -2,6 +2,7 @@ package print
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 
 	"github.com/airplanedev/cli/pkg/api"
@@ -42,5 +43,9 @@ func (j *JSON) run(run api.Run) {
 }
 
 func (j *JSON) outputs(outputs api.Outputs) {
-	// TODO(sagar): implement this
+	for key, values := range outputs {
+		for _, value := range values {
+			fmt.Fprintln(os.Stdout, fmt.Sprintf(`{"output_name": "%s", "value": %s}`, key, string(value)))
+		}
+	}
 }

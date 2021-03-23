@@ -1,7 +1,10 @@
 package print
 
 import (
+	"os"
+
 	"github.com/airplanedev/cli/pkg/api"
+	isatty "github.com/mattn/go-isatty"
 )
 
 var (
@@ -42,5 +45,10 @@ func Run(run api.Run) {
 }
 
 func Outputs(outputs api.Outputs) {
-	DefaultFormatter.outputs(outputs)
+	if isatty.IsTerminal(os.Stdout.Fd()) {
+		DefaultFormatter.outputs(outputs)
+	} else {
+		formatter := JSON{}
+		formatter.outputs(outputs)
+	}
 }
