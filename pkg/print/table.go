@@ -2,10 +2,12 @@ package print
 
 import (
 	"encoding/json"
-	"errors"
+
 	"fmt"
 	"os"
 	"time"
+
+	"github.com/pkg/errors"
 
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/olekukonko/tablewriter"
@@ -83,22 +85,21 @@ func (t Table) run(run api.Run) {
 
 // print outputs as table
 func (t Table) outputs(outputs api.Outputs) {
+	i := 0
 	for key, values := range outputs {
 
-		fmt.Fprintln(os.Stdout, "")
 		fmt.Fprintln(os.Stdout, key)
 
 		if isJsonObject(values[0]) {
-			printJson(values)
+			printOutputObjects(values)
 		} else {
-			if len(values) == 1 {
-				fmt.Fprintln(os.Stdout, string(values[0]))
-			} else {
-				printArray(values)
-			}
+			printOutputArray(values)
 		}
 
-		fmt.Fprintln(os.Stdout, "")
+		if i < len(outputs)-1 {
+			fmt.Fprintln(os.Stdout, "")
+		}
+		i++
 	}
 }
 
@@ -108,7 +109,7 @@ func isJsonObject(value json.RawMessage) bool {
 	return err == nil
 }
 
-func printJson(values []json.RawMessage) {
+func printOutputObjects(values []json.RawMessage) {
 	objectArray := make([]JsonObject, len(values))
 
 	keys := make(map[string]bool)
@@ -116,12 +117,13 @@ func printJson(values []json.RawMessage) {
 	for i, value := range values {
 		var output JsonObject
 		if err := json.Unmarshal(value, &output); err != nil {
-			return errors.Wrap(err, "parsing JSON output")
-		}
-		objectArray[i] = output
+			fmt.Printf("  Error: %s\n", errors.Cause(err).Error())
+		} else {
+			objectArray[i] = output
 
-		for key := range output {
-			keys[key] = true
+			for key := range output {
+				keys[key] = true
+			}
 		}
 	}
 
@@ -147,7 +149,7 @@ func printJson(values []json.RawMessage) {
 	tw.Render()
 }
 
-func printArray(values []json.RawMessage) {
+func printOutputArray(values []json.RawMessage) {
 	tw := tablewriter.NewWriter(os.Stdout)
 	tw.SetBorder(true)
 
