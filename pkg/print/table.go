@@ -2,12 +2,11 @@ package print
 
 import (
 	"encoding/json"
+	"strconv"
 
 	"fmt"
 	"os"
 	"time"
-
-	"github.com/pkg/errors"
 
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/olekukonko/tablewriter"
@@ -90,8 +89,9 @@ func (t Table) outputs(outputs api.Outputs) {
 
 		fmt.Fprintln(os.Stdout, key)
 
-		if isJsonObject(values[0]) {
-			printOutputObjects(values)
+		ok, jsonObjects := parseArrayOfJsonObject(values)
+		if ok {
+			printJsonObjects(jsonObjects)
 		} else {
 			printOutputArray(values)
 		}
@@ -103,59 +103,76 @@ func (t Table) outputs(outputs api.Outputs) {
 	}
 }
 
-func isJsonObject(value json.RawMessage) bool {
-	var output JsonObject
-	err := json.Unmarshal(value, &output)
-	return err == nil
+func parseArrayOfJsonObject(values []json.RawMessage) (bool, []JsonObject) {
+	jsonObjects := make([]JsonObject, len(values))
+	for i, value := range values {
+		err := json.Unmarshal(value, &jsonObjects[i])
+		if err != nil {
+			return false, nil
+		}
+	}
+	return true, jsonObjects
 }
 
-func printOutputObjects(values []json.RawMessage) {
-	objectArray := make([]JsonObject, len(values))
+func printJsonObjects(objects []JsonObject) {
 
-	keys := make(map[string]bool)
-
-	for i, value := range values {
-		var output JsonObject
-		if err := json.Unmarshal(value, &output); err != nil {
-			fmt.Printf("  Error: %s\n", errors.Cause(err).Error())
-		} else {
-			objectArray[i] = output
-
-			for key := range output {
-				keys[key] = true
-			}
-		}
-	}
-
+	keyMap := make(map[string]bool)
 	var keyList []string
-	for _, object := range objectArray {
+	for _, object := range objects {
 		for key := range object {
-			keyList = append(keyList, key)
+			// add key to keyList if not already there
+			if _, ok := keyMap[key]; !ok {
+				keyList = append(keyList, key)
+			}
+			keyMap[key] = true
 		}
 	}
 
-	tw := tablewriter.NewWriter(os.Stdout)
-	tw.SetBorder(true)
+	tw := newTableWriter()
 	tw.SetHeader(keyList)
 
-	for _, object := range objectArray {
+	for _, object := range objects {
 		values := make([]string, len(keyList))
 		for i, key := range keyList {
 			values[i] = object[key]
 		}
 		tw.Append(values)
 	}
-
 	tw.Render()
 }
 
 func printOutputArray(values []json.RawMessage) {
+	tw := newTableWriter()
+	for _, value := range values {
+		tw.Append([]string{getCellValue(value)})
+	}
+	tw.Render()
+}
+
+func newTableWriter() *tablewriter.Table {
 	tw := tablewriter.NewWriter(os.Stdout)
 	tw.SetBorder(true)
+	tw.SetAutoWrapText(false)
 
-	for _, value := range values {
-		tw.Append([]string{string(value)})
+	return tw
+}
+
+func getCellValue(value json.RawMessage) string {
+	var v interface{}
+
+	if err := json.Unmarshal(value, &v); err != nil {
+		return string(value)
 	}
-
-	tw.Render()
+	switch t := v.(type) {
+	case int:
+		return strconv.Itoa(t)
+	case float32:
+	case float64:
+		return fmt.Sprintf("%v", t)
+	case string:
+		return fmt.Sprintf("%s", t)
+	default:
+		return string(value)
+	}
+	return ""
 }

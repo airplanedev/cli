@@ -1,7 +1,6 @@
 package print
 
 import (
-	"errors"
 	"os"
 
 	"github.com/airplanedev/cli/pkg/api"
@@ -34,5 +33,5 @@ func (YAML) run(run api.Run) {
 }
 
 func (YAML) outputs(outputs api.Outputs) {
-	errors.New("Not implemented")
+	// TODO(sagar): implement this
 }

@@ -2,7 +2,6 @@ package print
 
 import (
 	"encoding/json"
-	"errors"
 	"os"
 
 	"github.com/airplanedev/cli/pkg/api"
@@ -43,5 +42,5 @@ func (j *JSON) run(run api.Run) {
 }
 
 func (j *JSON) outputs(outputs api.Outputs) {
-	errors.New("Not implemented")
+	// TODO(sagar): implement this
 }
