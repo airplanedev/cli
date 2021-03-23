@@ -115,9 +115,8 @@ func printJson(values []json.RawMessage) {
 
 	for i, value := range values {
 		var output JsonObject
-		err := json.Unmarshal(value, &output)
-		if err != nil {
-			errors.New("Error parsing JSON output")
+		if err := json.Unmarshal(value, &output); err != nil {
+			return errors.Wrap(err, "parsing JSON output")
 		}
 		objectArray[i] = output
 
