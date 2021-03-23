@@ -2,7 +2,6 @@ package print
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 
 	"github.com/airplanedev/cli/pkg/api"
@@ -10,42 +9,50 @@ import (
 
 // JSON implements a JSON formatter.
 type JSON struct {
-	enc *json.Encoder
+	encErr *json.Encoder
+	encOut *json.Encoder
 }
 
 // NewJSONFormatter returns a new json formatter.
 func NewJSONFormatter() *JSON {
-	enc := json.NewEncoder(os.Stderr)
-	enc.SetIndent("", "  ")
+	encErr := json.NewEncoder(os.Stderr)
+	encErr.SetIndent("", "  ")
+
+	encOut := json.NewEncoder(os.Stdout)
+	encOut.SetIndent("", "  ")
 	return &JSON{
-		enc: enc,
+		encErr,
+		encOut,
 	}
 }
 
 // Tasks implementation.
 func (j *JSON) tasks(tasks []api.Task) {
-	j.enc.Encode(tasks)
+	j.encErr.Encode(tasks)
 }
 
 // Task implementation.
 func (j *JSON) task(task api.Task) {
-	j.enc.Encode(task)
+	j.encErr.Encode(task)
 }
 
 // Runs implementation.
 func (j *JSON) runs(runs []api.Run) {
-	j.enc.Encode(runs)
+	j.encErr.Encode(runs)
 }
 
 // Run implementation.
 func (j *JSON) run(run api.Run) {
-	j.enc.Encode(run)
+	j.encErr.Encode(run)
 }
 
 func (j *JSON) outputs(outputs api.Outputs) {
 	for key, values := range outputs {
 		for _, value := range values {
-			fmt.Fprintln(os.Stdout, fmt.Sprintf(`{"output_name": "%s", "value": %s}`, key, string(value)))
+			j.encOut.Encode(api.OutputRow{
+				OutputName: key,
+				Value:      value,
+			})
 		}
 	}
 }

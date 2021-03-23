@@ -102,10 +102,13 @@ func (t Table) outputs(outputs api.Outputs) {
 	}
 }
 
-func parseArrayOfJsonObject(values []json.RawMessage) (bool, []JsonObject) {
-	jsonObjects := make([]JsonObject, len(values))
-	for i, value := range values {
-		if err := json.Unmarshal(value, &jsonObjects[i]); err != nil {
+func parseArrayOfJsonObject(values []interface{}) (bool, []JsonObject) {
+	var jsonObjects []JsonObject
+	for _, value := range values {
+		switch t := value.(type) {
+		case map[string]interface{}:
+			jsonObjects = append(jsonObjects, t)
+		default:
 			return false, nil
 		}
 	}
@@ -137,15 +140,10 @@ func printOutputTable(objects []JsonObject) {
 	tw.Render()
 }
 
-func printOutputArray(values []json.RawMessage) {
+func printOutputArray(values []interface{}) {
 	tw := newTableWriter()
 	for _, value := range values {
-		var v interface{}
-		if err := json.Unmarshal(value, &v); err != nil {
-			tw.Append([]string{string(value)})
-		} else {
-			tw.Append([]string{getCellValue(v)})
-		}
+		tw.Append([]string{getCellValue(value)})
 	}
 	tw.Render()
 }
@@ -174,5 +172,4 @@ func getCellValue(value interface{}) string {
 		}
 		return string(v)
 	}
-	return ""
 }

@@ -33,5 +33,14 @@ func (YAML) run(run api.Run) {
 }
 
 func (YAML) outputs(outputs api.Outputs) {
-	// TODO(sagar): implement this
+	var rows []api.OutputRow
+	for key, values := range outputs {
+		for _, value := range values {
+			rows = append(rows, api.OutputRow{
+				OutputName: key,
+				Value:      value,
+			})
+		}
+	}
+	yaml.NewEncoder(os.Stderr).Encode(rows)
 }
