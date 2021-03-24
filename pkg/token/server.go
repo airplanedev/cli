@@ -104,8 +104,8 @@ func (srv *Server) Close() error {
 	// StateNew connections from Chrome. These get ignored after 5s during shutdown,
 	// but that would cause `airplane login` to hang for 5s.
 	//
-	// To handle this, we apply a short timeout to our server shutdown to force
-	// it to close those StateNew connections within a short period of time.
+	// To handle this, we apply a short timeout to force it to close
+	// those StateNew connections within a short period of time.
 	//
 	// See: https://github.com/golang/go/issues/22682#issuecomment-343987847
 	ctx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
