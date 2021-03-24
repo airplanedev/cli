@@ -25,8 +25,7 @@ archives:
     wrap_in_directory: false
     # This is the default name_template, but without the version. This allows install.sh to compute the
     # latest artifact name without knowing the version.
-    name_template: |
-      {{ .ProjectName }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}{{ if .Mips }}_{{ .Mips }}{{ end }}
+    name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}{{ if .Mips }}_{{ .Mips }}{{ end }}"
     replacements:
       amd64: x86_64
   - id: binary
