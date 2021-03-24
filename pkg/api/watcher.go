@@ -18,6 +18,7 @@ var (
 // LogsClient represents a logs client.
 type logsClient interface {
 	GetLogs(ctx context.Context, runID string, t time.Time) (GetLogsResponse, error)
+	GetOutputs(ctx context.Context, runID string) (GetOutputsResponse, error)
 	GetRun(ctx context.Context, runID string) (GetRunResponse, error)
 }
 
@@ -152,6 +153,15 @@ func (w *Watcher) fetch(ctx context.Context, prev RunState) (RunState, error) {
 		}
 
 		state.Status = run.Run.Status
+
+		if state.Stopped() {
+			resp, err := w.client.GetOutputs(subctx, w.runID)
+			if err != nil {
+				return errors.Wrap(err, "get outputs")
+			}
+
+			state.Outputs = resp.Outputs
+		}
 		return nil
 	})
 
@@ -165,8 +175,6 @@ func (w *Watcher) fetch(ctx context.Context, prev RunState) (RunState, error) {
 		state.Logs = resp.Logs
 		return nil
 	})
-
-	// TODO(amir): fetch outputs
 
 	if err := eg.Wait(); err != nil {
 		return RunState{}, err

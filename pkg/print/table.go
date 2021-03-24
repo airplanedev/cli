@@ -1,6 +1,9 @@
 package print
 
 import (
+	"encoding/json"
+	"strconv"
+
 	"fmt"
 	"os"
 	"time"
@@ -13,6 +16,8 @@ import (
 //
 // Its zero-value is ready for use.
 type Table struct{}
+
+type JsonObject map[string]interface{}
 
 // Tasks implementation.
 func (t Table) tasks(tasks []api.Task) {
@@ -75,4 +80,96 @@ func (t Table) runs(runs []api.Run) {
 // Run implementation.
 func (t Table) run(run api.Run) {
 	t.runs([]api.Run{run})
+}
+
+// print outputs as table
+func (t Table) outputs(outputs api.Outputs) {
+	i := 0
+	for key, values := range outputs {
+		fmt.Fprintln(os.Stdout, key)
+
+		ok, jsonObjects := parseArrayOfJsonObject(values)
+		if ok {
+			printOutputTable(jsonObjects)
+		} else {
+			printOutputArray(values)
+		}
+
+		if i < len(outputs)-1 {
+			fmt.Fprintln(os.Stdout, "")
+		}
+		i++
+	}
+}
+
+func parseArrayOfJsonObject(values []interface{}) (bool, []JsonObject) {
+	var jsonObjects []JsonObject
+	for _, value := range values {
+		switch t := value.(type) {
+		case map[string]interface{}:
+			jsonObjects = append(jsonObjects, t)
+		default:
+			return false, nil
+		}
+	}
+	return true, jsonObjects
+}
+
+func printOutputTable(objects []JsonObject) {
+	keyMap := make(map[string]bool)
+	var keyList []string
+	for _, object := range objects {
+		for key := range object {
+			// add key to keyList if not already there
+			if _, ok := keyMap[key]; !ok {
+				keyList = append(keyList, key)
+			}
+			keyMap[key] = true
+		}
+	}
+
+	tw := newTableWriter()
+	tw.SetHeader(keyList)
+	for _, object := range objects {
+		values := make([]string, len(keyList))
+		for i, key := range keyList {
+			values[i] = getCellValue(object[key])
+		}
+		tw.Append(values)
+	}
+	tw.Render()
+}
+
+func printOutputArray(values []interface{}) {
+	tw := newTableWriter()
+	for _, value := range values {
+		tw.Append([]string{getCellValue(value)})
+	}
+	tw.Render()
+}
+
+func newTableWriter() *tablewriter.Table {
+	tw := tablewriter.NewWriter(os.Stdout)
+	tw.SetBorder(true)
+	tw.SetAutoWrapText(false)
+	return tw
+}
+
+func getCellValue(value interface{}) string {
+	switch t := value.(type) {
+	case int:
+		return strconv.Itoa(t)
+	case float64:
+		return strconv.FormatFloat(t, 'f', -1, 64)
+	case string:
+		return t
+	case nil:
+		return ""
+	default:
+		v, err := json.Marshal(t)
+		if err != nil {
+			return fmt.Sprintf("%v", value)
+		}
+		return string(v)
+	}
 }

@@ -2,6 +2,7 @@ package root
 
 import (
 	"errors"
+	"os"
 
 	"github.com/MakeNowJust/heredoc"
 	"github.com/airplanedev/cli/pkg/api"
@@ -11,6 +12,7 @@ import (
 	"github.com/airplanedev/cli/pkg/cmd/tasks"
 	"github.com/airplanedev/cli/pkg/conf"
 	"github.com/airplanedev/cli/pkg/print"
+	isatty "github.com/mattn/go-isatty"
 	"github.com/spf13/cobra"
 )
 
@@ -61,7 +63,11 @@ func New() *cobra.Command {
 
 	// Persistent flags, set globally to all commands.
 	cmd.PersistentFlags().StringVarP(&cfg.Client.Host, "host", "", api.Host, "Airplane API Host.")
-	cmd.PersistentFlags().StringVarP(&output, "output", "o", "table", "The format to use for output (json|yaml|table).")
+	defaultFormat := "table"
+	if !isatty.IsTerminal(os.Stdout.Fd()) {
+		defaultFormat = "json"
+	}
+	cmd.PersistentFlags().StringVarP(&output, "output", "o", defaultFormat, "The format to use for output (json|yaml|table).")
 
 	// Sub-commands.
 	cmd.AddCommand(login.New(cfg))

@@ -10,6 +10,7 @@ require (
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/fatih/color v1.10.0
 	github.com/kr/text v0.1.0
+	github.com/mattn/go-isatty v0.0.12
 	github.com/moby/sys/mount v0.2.0 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/olekukonko/tablewriter v0.0.5

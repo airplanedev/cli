@@ -1,6 +1,8 @@
 package print
 
-import "github.com/airplanedev/cli/pkg/api"
+import (
+	"github.com/airplanedev/cli/pkg/api"
+)
 
 var (
 	// DefaultFormatter is the default formatter to use.
@@ -16,6 +18,7 @@ type Formatter interface {
 	task(api.Task)
 	runs([]api.Run)
 	run(api.Run)
+	outputs(api.Outputs)
 }
 
 // Tasks prints the given slice of tasks using the default formatter.
@@ -36,4 +39,8 @@ func Runs(runs []api.Run) {
 // Run prints a single run.
 func Run(run api.Run) {
 	DefaultFormatter.run(run)
+}
+
+func Outputs(outputs api.Outputs) {
+	DefaultFormatter.outputs(outputs)
 }

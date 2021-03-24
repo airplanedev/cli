@@ -10,6 +10,7 @@ import (
 	"github.com/MakeNowJust/heredoc"
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/cli"
+	"github.com/airplanedev/cli/pkg/print"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -94,6 +95,8 @@ func run(ctx context.Context, cfg config) error {
 	if err := state.Err(); err != nil {
 		return err
 	}
+
+	print.Outputs(state.Outputs)
 
 	fmt.Printf("Done: %s\n", state.Status)
 

@@ -49,7 +49,13 @@ type GetLogsResponse struct {
 }
 
 // Outputs represents outputs.
-type Outputs map[string][]json.RawMessage
+type Outputs map[string][]interface{}
+
+// Represents a line of the output
+type OutputRow struct {
+	OutputName string      `json:"outputName" yaml:"outputName"`
+	Value      interface{} `json:"value" yaml:"value"`
+}
 
 // GetOutputsResponse represents a get outputs response.
 type GetOutputsResponse struct {

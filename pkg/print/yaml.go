@@ -31,3 +31,16 @@ func (YAML) runs(runs []api.Run) {
 func (YAML) run(run api.Run) {
 	yaml.NewEncoder(os.Stderr).Encode(run)
 }
+
+func (YAML) outputs(outputs api.Outputs) {
+	var rows []api.OutputRow
+	for key, values := range outputs {
+		for _, value := range values {
+			rows = append(rows, api.OutputRow{
+				OutputName: key,
+				Value:      value,
+			})
+		}
+	}
+	yaml.NewEncoder(os.Stdout).Encode(rows)
+}

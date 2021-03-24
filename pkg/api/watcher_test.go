@@ -37,6 +37,12 @@ func TestWatcher(t *testing.T) {
 			{Logs: []LogItem{a, b}},
 		}
 
+		outputs := GetOutputsResponse{
+			Outputs: map[string][]interface{}{"output": []interface{}{
+				map[string]string{"test key": "test value"},
+			}},
+		}
+
 		var reqs int64
 		lcm.getLogs = func(string, time.Time) (GetLogsResponse, error) {
 			var n int
@@ -57,6 +63,11 @@ func TestWatcher(t *testing.T) {
 			}
 
 			return GetRunResponse{run}, nil
+		}
+
+		lcm.getOutputs = func(string) (GetOutputsResponse, error) {
+			fmt.Println("get outputs", outputs)
+			return outputs, nil
 		}
 
 		ctx, cancel := context.WithCancel(ctx)
@@ -86,8 +97,9 @@ func TestWatcher(t *testing.T) {
 }
 
 type logsClientMock struct {
-	getLogs func(runID string, s time.Time) (GetLogsResponse, error)
-	getRun  func(runID string) (GetRunResponse, error)
+	getLogs    func(runID string, s time.Time) (GetLogsResponse, error)
+	getRun     func(runID string) (GetRunResponse, error)
+	getOutputs func(runID string) (GetOutputsResponse, error)
 }
 
 func (lcm logsClientMock) GetLogs(ctx context.Context, runID string, since time.Time) (GetLogsResponse, error) {
@@ -96,4 +108,8 @@ func (lcm logsClientMock) GetLogs(ctx context.Context, runID string, since time.
 
 func (lcm logsClientMock) GetRun(ctx context.Context, runID string) (GetRunResponse, error) {
 	return lcm.getRun(runID)
+}
+
+func (lcm logsClientMock) GetOutputs(ctx context.Context, runID string) (GetOutputsResponse, error) {
+	return lcm.getOutputs(runID)
 }
