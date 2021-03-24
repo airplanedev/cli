@@ -1,12 +1,28 @@
-
+slug: deno-echo
 name: Deno Echo
 description: Echo a name using Deno.
-arguments: ["--name", "{{.name}}"]
+image: ""
+command: []
+arguments:
+- --name
+- '{{.name}}'
+parameters:
+- name: Name
+  slug: name
+  type: string
+  desc: ""
+  component: ""
+  default: null
+  constraints:
+    optional: false
+    regex: ""
+constraints:
+  optional: false
+  regex: ""
+env: {}
+resourceLimits: {}
 builder: deno
 builderConfig:
   entrypoint: main.ts
-
-parameters:
-  - name: Name
-    slug: name
-    type: string
+repo: ""
+timeout: 0

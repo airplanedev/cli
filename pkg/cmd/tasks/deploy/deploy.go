@@ -55,10 +55,10 @@ func run(ctx context.Context, cfg config) error {
 	}
 
 	var taskID string
-	var shouldCreate bool
+	// If a slug is not set in the task definition, then we'll create a brand new
+	// task for this definition.
 	if def.Slug == "" {
-		// We should create a new task for this definition.
-		shouldCreate = true
+		fmt.Println("  Creating...")
 		if res, err := client.CreateTask(ctx, api.CreateTaskRequest{
 			Name:           def.Name,
 			Description:    def.Description,
@@ -80,15 +80,15 @@ func run(ctx context.Context, cfg config) error {
 			def.Slug = res.Slug
 		}
 
-		// Update the task definition with the new slug.
+		// Insert the new slug into the task definitions so that future
+		// calls to deploy will reference the task we just created.
 		if err := taskdef.Write(cfg.file, def); err != nil {
 			return errors.Wrap(err, "updating task definition with slug")
 		}
 	} else {
-		// This task already exists, so we update it.
 		task, err := client.GetTask(ctx, def.Slug)
 		if err != nil {
-			return errors.Wrap(err, "get task")
+			return errors.Wrap(err, "getting task")
 		}
 		taskID = task.ID
 	}
@@ -101,7 +101,7 @@ func run(ctx context.Context, cfg config) error {
 
 		root, err := filepath.Abs(filepath.Dir(cfg.file))
 		if err != nil {
-			return err
+			return errors.Wrap(err, "getting root directory")
 		}
 
 		var output io.Writer = ioutil.Discard
@@ -129,7 +129,7 @@ func run(ctx context.Context, cfg config) error {
 			return errors.Wrap(err, "build")
 		}
 
-		fmt.Println("  Pushing...")
+		fmt.Println("  Updating...")
 		if err := b.Push(ctx, img.RepoTags[0]); err != nil {
 			return errors.Wrap(err, "push")
 		}
@@ -154,15 +154,12 @@ func run(ctx context.Context, cfg config) error {
 		return errors.Wrapf(err, "updating task %s", def.Slug)
 	}
 
-	verb := "Updated"
-	if shouldCreate {
-		verb = "Created"
-	}
+	fmt.Println("  Done!")
 	fmt.Printf(`
-%s the task %s. To execute it:
-
-	airplane tasks execute %s
-`, verb, def.Name, def.Slug)
+To execute %s:
+- From the UI: %s
+- From the CLI: airplane tasks execute %s -- [parameters]
+`, def.Name, client.TaskURL(taskID), def.Slug)
 
 	return nil
 }
