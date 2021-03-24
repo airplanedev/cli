@@ -13,3 +13,11 @@ type Config struct {
 	// down to all commands.
 	Client *api.Client
 }
+
+// Must should be used for Cobra initialize commands that can return an error
+// to enforce that they do not produce errors.
+func Must(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
