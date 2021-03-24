@@ -2,7 +2,6 @@ package token
 
 import (
 	"context"
-	"fmt"
 	"net"
 	"net/http"
 	"sync"
@@ -77,13 +76,10 @@ func (srv *Server) Token() <-chan string {
 
 // ServeHTTP implementation.
 func (srv *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("received connection...\n")
 	select {
 	case <-r.Context().Done():
-		fmt.Printf("closing from context...\n")
 	case srv.tokens <- r.URL.Query().Get("token"):
 		http.Redirect(w, r, DocsURL, http.StatusSeeOther)
-		fmt.Printf("closing from token...\n")
 	}
 }
 
