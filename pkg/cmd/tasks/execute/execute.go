@@ -67,14 +67,14 @@ func run(ctx context.Context, cfg config) error {
 		return err
 	}
 
-	fmt.Printf("Running: %s\n", task.Name)
+	fmt.Fprintln(os.Stderr, fmt.Sprintf("Running: %s", task.Name))
 
 	w, err := client.Watcher(ctx, req)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("Queued: %s\n", client.RunURL(w.RunID()))
+	fmt.Fprintln(os.Stderr, fmt.Sprintf("Queued: %s", client.RunURL(w.RunID())))
 
 	var state api.RunState
 
@@ -98,7 +98,7 @@ func run(ctx context.Context, cfg config) error {
 
 	print.Outputs(state.Outputs)
 
-	fmt.Printf("Done: %s\n", state.Status)
+	fmt.Fprintln(os.Stderr, fmt.Sprintf("Done: %s", state.Status))
 
 	if state.Failed() {
 		return errors.New("Run has failed")
