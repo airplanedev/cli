@@ -17,7 +17,7 @@ brew install airplanedev/tap/airplane
 To upgrade to the latest version with Homebrew:
 
 ```sh
-brew upgrade airplane
+brew update && brew upgrade airplane
 ```
 
 Otherwise, you can install with `curl`:
