@@ -2,6 +2,7 @@ package token
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"net/http"
 	"sync"
@@ -56,7 +57,17 @@ func NewServer(ctx context.Context) (*Server, error) {
 		lstn:   l,
 		ctx:    ctx,
 	}
-	srv.server = &http.Server{Handler: srv}
+	srv.server = &http.Server{
+		Handler: srv,
+		// Chrome, unlike FireFox/Safari, will preload a handful of connections as an
+		// optimization, but unfortunately this means that we can't immediately shut down
+		// the token server once we recieve the token, since there will be 1 or more pending
+		// StateNew connections from Chrome. These get ignored after 5s during shutdown,
+		// but that would cause `airplane login` to hang for 5s when logging in through Chrome.
+		//
+		// See: https://github.com/golang/go/issues/22682#issuecomment-343987847
+		ReadHeaderTimeout: 500 * time.Millisecond,
+	}
 	srv.start()
 
 	return srv, nil
@@ -74,10 +85,13 @@ func (srv *Server) Token() <-chan string {
 
 // ServeHTTP implementation.
 func (srv *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	fmt.Printf("received connection...\n")
 	select {
 	case <-r.Context().Done():
+		fmt.Printf("closing from context...\n")
 	case srv.tokens <- r.URL.Query().Get("token"):
 		http.Redirect(w, r, DocsURL, http.StatusSeeOther)
+		fmt.Printf("closing from token...\n")
 	}
 }
 
@@ -92,17 +106,10 @@ func (srv *Server) start() {
 
 // Close closes the server.
 func (srv *Server) Close() error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
 	defer srv.wg.Wait()
 
-	if err := srv.lstn.Close(); err != nil {
-		srv.server.Shutdown(ctx)
-		return errors.Wrap(err, "close listener")
-	}
-
-	if err := srv.server.Shutdown(ctx); err != nil {
+	if err := srv.server.Shutdown(context.Background()); err != nil {
+		fmt.Printf("server shutdown err: %+v", err)
 		return errors.Wrap(err, "close server")
 	}
 

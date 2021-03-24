@@ -28,29 +28,27 @@ func New(c *cli.Config) *cobra.Command {
 // Run runs the login command.
 func run(ctx context.Context, cmd *cobra.Command, c *cli.Config) error {
 	cfg, err := conf.ReadDefault()
-
-	if err != nil {
-		if errors.Is(err, conf.ErrMissing) {
-			srv, err := token.NewServer(ctx)
-			if err != nil {
-				return err
-			}
-			defer srv.Close()
-
-			open(cmd, c.Client.LoginURL(srv.URL()))
-
-			select {
-			case <-ctx.Done():
-				return ctx.Err()
-
-			case token := <-srv.Token():
-				cfg.Token = token
-			}
-
-			if err := conf.WriteDefault(cfg); err != nil {
-				return err
-			}
+	if errors.Is(err, conf.ErrMissing) {
+		srv, err := token.NewServer(ctx)
+		if err != nil {
+			return err
 		}
+		defer srv.Close()
+
+		open(cmd, c.Client.LoginURL(srv.URL()))
+
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+
+		case token := <-srv.Token():
+			cfg.Token = token
+		}
+
+		if err := conf.WriteDefault(cfg); err != nil {
+			return err
+		}
+	} else if err != nil {
 		return err
 	}
 
