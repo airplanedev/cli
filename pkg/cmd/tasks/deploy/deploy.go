@@ -55,9 +55,10 @@ func run(ctx context.Context, cfg config) error {
 	}
 
 	var taskID string
+	slug := def.Slug
 	// If a slug is not set in the task definition, then we'll create a brand new
 	// task for this definition.
-	if def.Slug == "" {
+	if slug == "" {
 		fmt.Println("  Creating...")
 		if res, err := client.CreateTask(ctx, api.CreateTaskRequest{
 			Name:           def.Name,
@@ -74,19 +75,19 @@ func run(ctx context.Context, cfg config) error {
 			Repo:           def.Repo,
 			Timeout:        def.Timeout,
 		}); err != nil {
-			return errors.Wrapf(err, "updating task %s", def.Slug)
+			return errors.Wrapf(err, "updating task %s", slug)
 		} else {
 			taskID = res.TaskID
-			def.Slug = res.Slug
+			slug = res.Slug
 		}
 
 		// Insert the new slug into the task definitions so that future
 		// calls to deploy will reference the task we just created.
-		if err := taskdef.Write(cfg.file, def); err != nil {
+		if err := taskdef.WriteSlug(cfg.file, slug); err != nil {
 			return errors.Wrap(err, "updating task definition with slug")
 		}
 	} else {
-		task, err := client.GetTask(ctx, def.Slug)
+		task, err := client.GetTask(ctx, slug)
 		if err != nil {
 			return errors.Wrap(err, "getting task")
 		}
@@ -136,7 +137,7 @@ func run(ctx context.Context, cfg config) error {
 	}
 
 	if err := client.UpdateTask(ctx, api.UpdateTaskRequest{
-		Slug:           def.Slug,
+		Slug:           slug,
 		Name:           def.Name,
 		Description:    def.Description,
 		Image:          def.Image,
@@ -151,7 +152,7 @@ func run(ctx context.Context, cfg config) error {
 		Repo:           def.Repo,
 		Timeout:        def.Timeout,
 	}); err != nil {
-		return errors.Wrapf(err, "updating task %s", def.Slug)
+		return errors.Wrapf(err, "updating task %s", slug)
 	}
 
 	fmt.Println("  Done!")
@@ -159,7 +160,7 @@ func run(ctx context.Context, cfg config) error {
 To execute %s:
 - From the CLI: airplane tasks execute %s -- [parameters]
 - From the UI: %s
-`, def.Name, def.Slug, client.TaskURL(taskID))
+`, def.Name, slug, client.TaskURL(taskID))
 
 	return nil
 }

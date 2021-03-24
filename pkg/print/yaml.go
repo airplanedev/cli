@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/airplanedev/cli/pkg/api"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 // YAML implements a YAML formatter.

@@ -6,7 +6,7 @@ import (
 
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/pkg/errors"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 // Definition represents a YAML-based task definition that can be used to create
@@ -45,20 +45,48 @@ func Read(path string) (Definition, error) {
 	return def, nil
 }
 
-func Write(path string, def Definition) error {
-	contents, err := yaml.Marshal(def)
-	if err != nil {
-		return errors.Wrap(err, "marshaling task definition")
-	}
-
-	f, err := os.OpenFile(path, os.O_RDWR|os.O_TRUNC, 0)
+// WriteSlug inserts a task definition into a file and attempts to
+// preserve the files existing format as much as possible.
+func WriteSlug(path, slug string) error {
+	f, err := os.OpenFile(path, os.O_RDWR, 0)
 	if err != nil {
 		return errors.Wrap(err, "opening task definition")
 	}
 	defer f.Close()
 
-	if _, err := f.Write(contents); err != nil {
-		return errors.Wrap(err, "overwriting task definition")
+	node := yaml.Node{}
+	if err := yaml.NewDecoder(f).Decode(&node); err != nil {
+		return errors.Wrap(err, "unmarshaling task definition")
+	}
+
+	for _, subnode := range node.Content {
+		// Find the root map, where we'll insert the slug.
+		if subnode.Kind == yaml.MappingNode {
+			subnode.Content = append([]*yaml.Node{
+				&yaml.Node{
+					Kind:  yaml.ScalarNode,
+					Tag:   "!!str",
+					Value: "slug",
+				},
+				&yaml.Node{
+					Kind:  yaml.ScalarNode,
+					Tag:   "!!str",
+					Value: slug,
+				},
+			}, subnode.Content...)
+		}
+	}
+
+	if _, err := f.Seek(0, 0); err != nil {
+		return errors.Wrap(err, "seeking to start of task definition")
+	}
+	if err := f.Truncate(0); err != nil {
+		return errors.Wrap(err, "truncating file")
+	}
+	enc := yaml.NewEncoder(f)
+	enc.SetIndent(2)
+	if err := enc.Encode(&node); err != nil {
+		return errors.Wrap(err, "marshaling task definition")
 	}
 
 	return nil
