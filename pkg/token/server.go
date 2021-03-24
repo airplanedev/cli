@@ -59,14 +59,6 @@ func NewServer(ctx context.Context) (*Server, error) {
 	}
 	srv.server = &http.Server{
 		Handler: srv,
-		// Chrome, unlike FireFox/Safari, will preload a handful of connections as an
-		// optimization, but unfortunately this means that we can't immediately shut down
-		// the token server once we recieve the token, since there will be 1 or more pending
-		// StateNew connections from Chrome. These get ignored after 5s during shutdown,
-		// but that would cause `airplane login` to hang for 5s when logging in through Chrome.
-		//
-		// See: https://github.com/golang/go/issues/22682#issuecomment-343987847
-		ReadHeaderTimeout: 500 * time.Millisecond,
 	}
 	srv.start()
 
@@ -106,10 +98,22 @@ func (srv *Server) start() {
 
 // Close closes the server.
 func (srv *Server) Close() error {
+	// Chrome, unlike FireFox/Safari, will preload a handful of connections as an
+	// optimization. Unfortunately, this means that we can't immediately shut down
+	// the token server once we receive the token since there will be 1 or more pending
+	// StateNew connections from Chrome. These get ignored after 5s during shutdown,
+	// but that would cause `airplane login` to hang for 5s.
+	//
+	// To handle this, we apply a short timeout to our server shutdown to force
+	// it to close those StateNew connections within a short period of time.
+	//
+	// See: https://github.com/golang/go/issues/22682#issuecomment-343987847
+	ctx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
+	defer cancel()
+
 	defer srv.wg.Wait()
 
-	if err := srv.server.Shutdown(context.Background()); err != nil {
-		fmt.Printf("server shutdown err: %+v", err)
+	if err := srv.server.Shutdown(ctx); err != nil && !errors.Is(err, context.DeadlineExceeded) {
 		return errors.Wrap(err, "close server")
 	}
 
