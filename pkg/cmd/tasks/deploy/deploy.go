@@ -157,9 +157,9 @@ func run(ctx context.Context, cfg config) error {
 	fmt.Println("  Done!")
 	fmt.Printf(`
 To execute %s:
-- From the UI: %s
 - From the CLI: airplane tasks execute %s -- [parameters]
-`, def.Name, client.TaskURL(taskID), def.Slug)
+- From the UI: %s
+`, def.Name, def.Slug, client.TaskURL(taskID))
 
 	return nil
 }
