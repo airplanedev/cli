@@ -1,12 +1,12 @@
 # Airplane CLI
 
-Provides CLI access to https://app.airplane.dev
+Provides CLI access to [app.airplane.dev](https://app.airplane.dev).
 
 Once you install the CLI, run `airplane --help` to get started.
 
 ## Installation
 
-### Homebrew
+### Mac/Linux
 
 If you are using [Homebrew](https://brew.sh/):
 
@@ -14,15 +14,13 @@ If you are using [Homebrew](https://brew.sh/):
 brew install airplanedev/tap/airplane
 ```
 
-To upgrade to the latest version:
+To upgrade to the latest version with Homebrew:
 
 ```sh
 brew upgrade airplane
 ```
 
-### Linux
-
-On Linux, you can install with `curl`:
+Otherwise, you can install with `curl`:
 
 ```sh
 curl -L https://github.com/airplanedev/cli/releases/latest/download/install.sh | sh
