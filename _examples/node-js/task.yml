@@ -1,6 +1,7 @@
-slug: node-js-echo-18
+---
+slug: node-js-echo-21
 # Hello this is a test!
-name: Node-JS Echo 18
+name: Node-JS Echo 21
 description: Echo a name using node.js.
 arguments: ["{{.name}}"]
 builder: node

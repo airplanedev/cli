@@ -2,7 +2,7 @@ package taskdef
 
 import (
 	"io/ioutil"
-	"os"
+	"strings"
 
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/pkg/errors"
@@ -48,45 +48,29 @@ func Read(path string) (Definition, error) {
 // WriteSlug inserts a task definition into a file and attempts to
 // preserve the files existing format as much as possible.
 func WriteSlug(path, slug string) error {
-	f, err := os.OpenFile(path, os.O_RDWR, 0)
+	b, err := ioutil.ReadFile(path)
 	if err != nil {
-		return errors.Wrap(err, "opening task definition")
-	}
-	defer f.Close()
-
-	node := yaml.Node{}
-	if err := yaml.NewDecoder(f).Decode(&node); err != nil {
-		return errors.Wrap(err, "unmarshaling task definition")
+		return errors.Wrap(err, "reading task definition")
 	}
 
-	for _, subnode := range node.Content {
-		// Find the root map, where we'll insert the slug.
-		if subnode.Kind == yaml.MappingNode {
-			subnode.Content = append([]*yaml.Node{
-				&yaml.Node{
-					Kind:  yaml.ScalarNode,
-					Tag:   "!!str",
-					Value: "slug",
-				},
-				&yaml.Node{
-					Kind:  yaml.ScalarNode,
-					Tag:   "!!str",
-					Value: slug,
-				},
-			}, subnode.Content...)
+	// Find the first line without a document break. This is where
+	// we'll insert the slug.
+	lines := strings.Split(string(b), "\n")
+	var idx int
+	for idx = range lines {
+		if !strings.HasPrefix(lines[idx], "---") {
+			break
 		}
 	}
 
-	if _, err := f.Seek(0, 0); err != nil {
-		return errors.Wrap(err, "seeking to start of task definition")
-	}
-	if err := f.Truncate(0); err != nil {
-		return errors.Wrap(err, "truncating file")
-	}
-	enc := yaml.NewEncoder(f)
-	enc.SetIndent(2)
-	if err := enc.Encode(&node); err != nil {
-		return errors.Wrap(err, "marshaling task definition")
+	contents := strings.Join([]string{
+		strings.Join(lines[:idx], "\n"),
+		"slug: " + slug,
+		strings.Join(lines[idx:], "\n"),
+	}, "\n")
+
+	if err := ioutil.WriteFile(path, []byte(contents), 0); err != nil {
+		return errors.Wrap(err, "updating task definition")
 	}
 
 	return nil
