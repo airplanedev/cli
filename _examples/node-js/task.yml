@@ -1,7 +1,5 @@
----
-slug: node-js-echo-21
-# Hello this is a test!
-name: Node-JS Echo 21
+
+name: Node-JS Echo
 description: Echo a name using node.js.
 arguments: ["{{.name}}"]
 builder: node
@@ -9,6 +7,7 @@ builderConfig:
   entrypoint: main.js
   language: javascript
   nodeVersion: "15.11.0"
+
 parameters:
   - name: Name
     slug: name
