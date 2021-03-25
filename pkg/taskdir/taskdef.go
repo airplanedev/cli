@@ -1,4 +1,4 @@
-package taskdef
+package taskdir
 
 import (
 	"io/ioutil"
@@ -31,7 +31,7 @@ type Definition struct {
 }
 
 func (this TaskDirectory) ReadDefinition() (Definition, error) {
-	buf, err := ioutil.ReadFile(this.Path)
+	buf, err := ioutil.ReadFile(this.path)
 	if err != nil {
 		return Definition{}, errors.Wrap(err, "reading task definition")
 	}

@@ -11,7 +11,7 @@ import (
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/build"
 	"github.com/airplanedev/cli/pkg/cli"
-	"github.com/airplanedev/cli/pkg/taskdef"
+	"github.com/airplanedev/cli/pkg/taskdir"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -48,11 +48,11 @@ func New(c *cli.Config) *cobra.Command {
 func run(ctx context.Context, cfg config) error {
 	var client = cfg.cli.Client
 
-	td, err := taskdef.Open(cfg.file)
+	td, err := taskdir.Open(cfg.file)
 	if err != nil {
 		return err
 	}
-	// defer td.Close()
+	defer td.Close()
 
 	def, err := td.ReadDefinition()
 	if err != nil {

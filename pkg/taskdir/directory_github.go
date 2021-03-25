@@ -1,4 +1,4 @@
-package taskdef
+package taskdir
 
 import (
 	"fmt"

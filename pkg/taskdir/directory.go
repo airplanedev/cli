@@ -1,4 +1,4 @@
-package taskdef
+package taskdir
 
 import (
 	"io"
@@ -10,7 +10,7 @@ import (
 
 type TaskDirectory struct {
 	Dir  string
-	Path string
+	path string
 
 	closer io.Closer
 }
@@ -23,15 +23,15 @@ func Open(file string) (TaskDirectory, error) {
 	var td TaskDirectory
 	var err error
 	if strings.HasPrefix(file, "github.com") || strings.HasPrefix(file, "https://github.com") {
-		td.Path, td.closer, err = openGitHubDirectory(file)
+		td.path, td.closer, err = openGitHubDirectory(file)
 		if err != nil {
 			return TaskDirectory{}, err
 		}
 	} else {
-		td.Path = file
+		td.path = file
 	}
 
-	td.Dir, err = filepath.Abs(filepath.Dir(td.Path))
+	td.Dir, err = filepath.Abs(filepath.Dir(td.path))
 	if err != nil {
 		return TaskDirectory{}, errors.Wrap(err, "parsing file directory")
 	}
