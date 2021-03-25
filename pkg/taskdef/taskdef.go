@@ -44,34 +44,3 @@ func Read(path string) (Definition, error) {
 
 	return def, nil
 }
-
-// WriteSlug inserts a task definition into a file and attempts to
-// preserve the files existing format as much as possible.
-func WriteSlug(path, slug string) error {
-	b, err := ioutil.ReadFile(path)
-	if err != nil {
-		return errors.Wrap(err, "reading task definition")
-	}
-
-	// Find the first line without a document break. This is where
-	// we'll insert the slug.
-	lines := strings.Split(string(b), "\n")
-	var idx int
-	for idx = range lines {
-		if !strings.HasPrefix(lines[idx], "---") {
-			break
-		}
-	}
-
-	contents := strings.Join([]string{
-		strings.Join(lines[:idx], "\n"),
-		"slug: " + slug,
-		strings.Join(lines[idx:], "\n"),
-	}, "\n")
-
-	if err := ioutil.WriteFile(path, []byte(contents), 0); err != nil {
-		return errors.Wrap(err, "updating task definition")
-	}
-
-	return nil
-}
