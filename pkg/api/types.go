@@ -7,20 +7,21 @@ import (
 
 // CreateTaskRequest creates a new task.
 type CreateTaskRequest struct {
-	Name           string            `json:"name" yaml:"name"`
-	Description    string            `json:"description" yaml:"description"`
-	Image          string            `json:"image" yaml:"image"`
-	Command        []string          `json:"command" yaml:"command"`
-	Arguments      []string          `json:"arguments" yaml:"arguments"`
-	Parameters     Parameters        `json:"parameters" yaml:"parameters"`
-	Constraints    Constraints       `json:"constraints" yaml:"constraints"`
-	Env            map[string]string `json:"env" yaml:"env"`
-	ResourceLimits map[string]string `json:"resourceLimits" yaml:"resourceLimits"`
-	Builder        string            `json:"builder" yaml:"builder"`
-	BuilderConfig  map[string]string `json:"builderConfig" yaml:"builderConfig"`
-	Repo           string            `json:"repo" yaml:"repo"`
+	Slug           string            `json:"slug"`
+	Name           string            `json:"name"`
+	Description    string            `json:"description"`
+	Image          string            `json:"image"`
+	Command        []string          `json:"command"`
+	Arguments      []string          `json:"arguments"`
+	Parameters     Parameters        `json:"parameters"`
+	Constraints    Constraints       `json:"constraints"`
+	Env            map[string]string `json:"env"`
+	ResourceLimits map[string]string `json:"resourceLimits"`
+	Builder        string            `json:"builder"`
+	BuilderConfig  map[string]string `json:"builderConfig"`
+	Repo           string            `json:"repo"`
 	// TODO(amir): friendly type here (120s, 5m ...)
-	Timeout int `json:"timeout" yaml:"timeout"`
+	Timeout int `json:"timeout"`
 }
 
 // UpdateTaskRequest updates a task.
