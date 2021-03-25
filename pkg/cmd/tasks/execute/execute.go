@@ -29,10 +29,10 @@ func New(c *cli.Config) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "execute <slug>",
 		Short: "Execute a task",
-		Long:  "Execute a task by its slug with the provided arguments.",
+		Long:  "Execute a task by its slug with the provided parameters.",
 		Example: heredoc.Doc(`
 			$ airplane tasks execute echo -- --name value
-			$ airplane tasks execute <slug> -- [arguments]
+			$ airplane tasks execute <slug> -- [parameters]
 		`),
 		Args: cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {

@@ -66,13 +66,13 @@ func openGitHubDirectory(file string) (string, io.Closer, error) {
 	}
 
 	// TODO: consider using git 2.19's --filter option
-	// to select just the relevant subdirectory. However this
+	// to select just the relevant subdirectory. However, this
 	// may not work with go-git.
 	//
 	// See: https://stackoverflow.com/questions/600079/how-do-i-clone-a-subdirectory-only-of-a-git-repository/52269934#52269934
 	r, err := git.PlainClone(tmpDir, false, &git.CloneOptions{
-		URL:      fmt.Sprintf("https://github.com/%s/%s.git", fp.Org, fp.Repo),
-		Progress: os.Stdout,
+		URL: fmt.Sprintf("https://github.com/%s/%s.git", fp.Org, fp.Repo),
+		// Progress: os.Stdout,
 	})
 	if err != nil {
 		return "", nil, errors.Wrap(err, "cloning repo")
