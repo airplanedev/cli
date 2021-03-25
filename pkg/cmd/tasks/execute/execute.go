@@ -74,7 +74,7 @@ func run(ctx context.Context, cfg config) error {
 		return err
 	}
 
-	fmt.Fprintln(os.Stderr, fmt.Sprintf("Queued: %s", client.RunURL(w.RunID())))
+	fmt.Fprintf(os.Stderr, "Queued: %s\n", client.RunURL(w.RunID()))
 
 	var state api.RunState
 
@@ -98,7 +98,7 @@ func run(ctx context.Context, cfg config) error {
 
 	print.Outputs(state.Outputs)
 
-	fmt.Fprintln(os.Stderr, fmt.Sprintf("Done: %s", state.Status))
+	fmt.Fprintf(os.Stderr, "Done: %s\n", state.Status)
 
 	if state.Failed() {
 		return errors.New("Run has failed")
