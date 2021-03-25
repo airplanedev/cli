@@ -55,12 +55,14 @@ func run(ctx context.Context, cfg config) error {
 	}
 
 	var taskID string
-	slug := def.Slug
-	// If a slug is not set in the task definition, then we'll create a brand new
-	// task for this definition.
-	if slug == "" {
+	task, err := client.GetTask(ctx, def.Slug)
+	if err == nil {
+		taskID = task.ID
+	} else if aerr, ok := err.(api.Error); ok && aerr.Code == 404 {
+		// A task with this slug does not exist, so we should create one.
 		fmt.Println("  Creating...")
 		if res, err := client.CreateTask(ctx, api.CreateTaskRequest{
+			Slug:           def.Slug,
 			Name:           def.Name,
 			Description:    def.Description,
 			Image:          def.Image,
@@ -75,23 +77,12 @@ func run(ctx context.Context, cfg config) error {
 			Repo:           def.Repo,
 			Timeout:        def.Timeout,
 		}); err != nil {
-			return errors.Wrapf(err, "updating task %s", slug)
+			return errors.Wrapf(err, "creating task %s", def.Slug)
 		} else {
 			taskID = res.TaskID
-			slug = res.Slug
-		}
-
-		// Insert the new slug into the task definitions so that future
-		// calls to deploy will reference the task we just created.
-		if err := taskdef.WriteSlug(cfg.file, slug); err != nil {
-			return errors.Wrap(err, "updating task definition with slug")
 		}
 	} else {
-		task, err := client.GetTask(ctx, slug)
-		if err != nil {
-			return errors.Wrap(err, "getting task")
-		}
-		taskID = task.ID
+		return errors.Wrap(err, "getting task")
 	}
 
 	if def.Builder != "" {
@@ -137,7 +128,7 @@ func run(ctx context.Context, cfg config) error {
 	}
 
 	if err := client.UpdateTask(ctx, api.UpdateTaskRequest{
-		Slug:           slug,
+		Slug:           def.Slug,
 		Name:           def.Name,
 		Description:    def.Description,
 		Image:          def.Image,
@@ -152,7 +143,7 @@ func run(ctx context.Context, cfg config) error {
 		Repo:           def.Repo,
 		Timeout:        def.Timeout,
 	}); err != nil {
-		return errors.Wrapf(err, "updating task %s", slug)
+		return errors.Wrapf(err, "updating task %s", def.Slug)
 	}
 
 	fmt.Println("  Done!")
@@ -160,7 +151,7 @@ func run(ctx context.Context, cfg config) error {
 To execute %s:
 - From the CLI: airplane tasks execute %s -- [parameters]
 - From the UI: %s
-`, def.Name, slug, client.TaskURL(taskID))
+`, def.Name, def.Slug, client.TaskURL(taskID))
 
 	return nil
 }

@@ -1,5 +1,5 @@
-
 name: Deno Echo
+slug: deno_echo
 description: Echo a name using Deno.
 arguments: ["--name", "{{.name}}"]
 builder: deno
