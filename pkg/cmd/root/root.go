@@ -7,7 +7,7 @@ import (
 	"github.com/MakeNowJust/heredoc"
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/cli"
-	"github.com/airplanedev/cli/pkg/cmd/login"
+	"github.com/airplanedev/cli/pkg/cmd/auth"
 	"github.com/airplanedev/cli/pkg/cmd/runs"
 	"github.com/airplanedev/cli/pkg/cmd/tasks"
 	"github.com/airplanedev/cli/pkg/conf"
@@ -72,7 +72,7 @@ func New() *cobra.Command {
 	cmd.PersistentFlags().StringVarP(&output, "output", "o", defaultFormat, "The format to use for output (json|yaml|table).")
 
 	// Sub-commands.
-	cmd.AddCommand(login.New(cfg))
+	cmd.AddCommand(auth.New(cfg))
 	cmd.AddCommand(tasks.New(cfg))
 	cmd.AddCommand(runs.New(cfg))
 
