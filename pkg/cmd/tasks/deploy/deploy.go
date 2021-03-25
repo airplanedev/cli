@@ -48,13 +48,13 @@ func New(c *cli.Config) *cobra.Command {
 func run(ctx context.Context, cfg config) error {
 	var client = cfg.cli.Client
 
-	td, err := taskdir.Open(cfg.file)
+	dir, err := taskdir.Open(cfg.file)
 	if err != nil {
 		return err
 	}
-	defer td.Close()
+	defer dir.Close()
 
-	def, err := td.ReadDefinition()
+	def, err := dir.ReadDefinition()
 	if err != nil {
 		return err
 	}
@@ -106,7 +106,7 @@ func run(ctx context.Context, cfg config) error {
 		}
 
 		b, err := build.New(build.Config{
-			Root:    td.Dir,
+			Root:    dir.Dir,
 			Builder: def.Builder,
 			Args:    build.Args(def.BuilderConfig),
 			Writer:  output,

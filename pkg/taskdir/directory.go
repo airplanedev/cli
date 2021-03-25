@@ -9,9 +9,12 @@ import (
 )
 
 type TaskDirectory struct {
-	Dir  string
-	path string
+	// Dir is the absolute local path to the directory that TaskDirectory represents.
+	Dir string
 
+	// path is the local path, relative to Dir, of the airplane.yml task definition.
+	path string
+	// closer is used to clean up TaskDirectory.
 	closer io.Closer
 }
 

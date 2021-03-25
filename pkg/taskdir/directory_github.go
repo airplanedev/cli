@@ -21,12 +21,12 @@ var (
 	// Specifically, they should specify the organization and repo name
 	// followed by a path from the repo root to an airplane.yml file.
 	// They can be optionally suffixed by a git ref selector, using
-	// `@ref` syntax, where ref can be a branch name, tag or commit.
+	// `@ref` syntax, where ref can be a branch name (and soon, a tag or commit, too).
 	// As of now, refs must be exact matches, not prefix matches.
 	//
 	// This syntax is inspired by go modules' go get syntax.
 	//
-	// https://regex101.com/r/2DXNxz/1
+	// More info on the regex: https://regex101.com/r/2DXNxz/1
 	gitHubRegex = regexp.MustCompile(`^(?:https:\/\/)?github\.com\/([A-Za-z0-9_.\-]+)\/([A-Za-z0-9_.\-]+)\/([\p{L}0-9_.\-\/]+)(@[A-Za-z0-9_.\-]+)?$`)
 )
 
