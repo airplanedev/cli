@@ -6,7 +6,6 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"path/filepath"
 
 	"github.com/MakeNowJust/heredoc"
 	"github.com/airplanedev/cli/pkg/api"
@@ -49,7 +48,13 @@ func New(c *cli.Config) *cobra.Command {
 func run(ctx context.Context, cfg config) error {
 	var client = cfg.cli.Client
 
-	def, err := taskdef.Read(cfg.file)
+	td, err := taskdef.Open(cfg.file)
+	if err != nil {
+		return err
+	}
+	// defer td.Close()
+
+	def, err := td.ReadDefinition()
 	if err != nil {
 		return err
 	}
@@ -91,18 +96,13 @@ func run(ctx context.Context, cfg config) error {
 			return errors.Wrap(err, "getting registry token")
 		}
 
-		root, err := filepath.Abs(filepath.Dir(cfg.file))
-		if err != nil {
-			return errors.Wrap(err, "getting root directory")
-		}
-
 		var output io.Writer = ioutil.Discard
 		if cfg.debug {
 			output = os.Stderr
 		}
 
 		b, err := build.New(build.Config{
-			Root:    root,
+			Root:    td.Dir,
 			Builder: def.Builder,
 			Args:    build.Args(def.BuilderConfig),
 			Writer:  output,

@@ -6,11 +6,11 @@ require (
 	github.com/MakeNowJust/heredoc v1.0.0
 	github.com/Microsoft/hcsshim v0.8.15 // indirect
 	github.com/containerd/continuity v0.0.0-20210313171317-968621f0704d // indirect
-	github.com/davecgh/go-spew v1.1.1
 	github.com/docker/docker v20.10.5+incompatible
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/fatih/color v1.10.0
-	github.com/kr/text v0.1.0
+	github.com/go-git/go-git/v5 v5.2.0
+	github.com/kr/text v0.2.0
 	github.com/mattn/go-isatty v0.0.12
 	github.com/moby/sys/mount v0.2.0 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
