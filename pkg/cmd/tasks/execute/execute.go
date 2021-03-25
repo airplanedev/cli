@@ -67,7 +67,7 @@ func run(ctx context.Context, cfg config) error {
 		return err
 	}
 
-	fmt.Fprintln(os.Stderr, fmt.Sprintf("Running: %s", task.Name))
+	fmt.Fprintf(os.Stderr, "Running: %s\n", task.Name)
 
 	w, err := client.Watcher(ctx, req)
 	if err != nil {
