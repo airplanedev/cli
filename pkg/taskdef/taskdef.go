@@ -2,7 +2,6 @@ package taskdef
 
 import (
 	"io/ioutil"
-	"strings"
 
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/pkg/errors"
