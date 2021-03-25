@@ -59,6 +59,11 @@ func run(ctx context.Context, cfg config) error {
 		return err
 	}
 
+	// TODO: decide if airplanedev/examples should include slugs or not
+	// Pro: remote file paths "just work" if they include slugs; for examples, we leave them out
+	// Con: if you pull an example, it won't work b/c you need a slug.
+	//
+	// Thought: maybe if you try to locally deploy, it'll prompt you through picking a slug?
 	var taskID string
 	task, err := client.GetTask(ctx, def.Slug)
 	if err == nil {
