@@ -28,10 +28,10 @@ func New() *cobra.Command {
 		Short: "Airplane CLI",
 		Example: heredoc.Doc(`
 		$ airplane tasks deploy -f ./task.yml
-		$ airplane tasks execute my-task
+		$ airplane tasks execute my_task
 
 		$ airplane tasks deploy -f github.com/airplanedev/examples/node/hello-world-javascript/airplane.yml
-		$ airplane tasks execute hello-world
+		$ airplane tasks execute hello_world
 		`),
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			if c, err := conf.ReadDefault(); err == nil {

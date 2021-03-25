@@ -15,9 +15,9 @@ func New(c *cli.Config) *cobra.Command {
 		Use:   "get",
 		Short: "Get information about a task",
 		Example: heredoc.Doc(`
-			$ airplane tasks get my-task
-			$ airplane tasks get my-task -o yaml
-			$ airplane tasks get my-task -o json
+			$ airplane tasks get my_task
+			$ airplane tasks get my_task -o yaml
+			$ airplane tasks get my_task -o json
 		`),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
