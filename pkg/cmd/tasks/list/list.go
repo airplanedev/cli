@@ -37,8 +37,8 @@ func run(ctx context.Context, c *cli.Config) error {
 	}
 
 	if len(res.Tasks) == 0 {
-		fmt.Printf("\n  There are no tasks yet, create a task:\n")
-		fmt.Printf("\n    $ airplane create -f echo.yml\n")
+		fmt.Printf("\n  There are no tasks yet. To create a sample task:\n")
+		fmt.Printf("\n    $ airplane tasks deploy -f github.com/airplanedev/examples/node/hello-world-javascript/airplane.yml\n")
 		return nil
 	}
 
