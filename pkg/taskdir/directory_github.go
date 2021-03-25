@@ -72,9 +72,10 @@ func openGitHubDirectory(file string) (string, io.Closer, error) {
 	// See: https://stackoverflow.com/questions/600079/how-do-i-clone-a-subdirectory-only-of-a-git-repository/52269934#52269934
 	r, err := git.PlainClone(tmpDir, false, &git.CloneOptions{
 		URL: fmt.Sprintf("https://github.com/%s/%s.git", fp.Org, fp.Repo),
-		// Progress: os.Stdout,
 	})
 	if err != nil {
+		// TODO: provide better errors for common edge cases, f.e. lacking auth
+		// or a typo in the org/repo, or the configured file not existing.
 		return "", nil, errors.Wrap(err, "cloning repo")
 	}
 	if fp.Ref != "" {
