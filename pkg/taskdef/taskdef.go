@@ -1,6 +1,7 @@
 package taskdef
 
 import (
+	"io"
 	"io/ioutil"
 	"strings"
 
@@ -32,9 +33,18 @@ type Definition struct {
 }
 
 func Read(path string) (Definition, error) {
-	buf, err := ioutil.ReadFile(path)
+	var r io.Reader
+	if strings.HasPrefix(path, "http://") {
+		return Definition{}, errors.New("http:// paths are not supported, use https:// instead")
+	} else if gitHubRegex.MatchString(path) {
+		r = github{path}
+	} else {
+		r = file{path}
+	}
+
+	buf, err := ioutil.ReadAll(r)
 	if err != nil {
-		return Definition{}, errors.Wrapf(err, "reading task definition from %s", path)
+		return Definition{}, err
 	}
 
 	var def Definition
