@@ -1,5 +1,5 @@
-
 name: Node-JS Echo
+slug: nodejs-echo
 description: Echo a name using node.js.
 arguments: ["{{.name}}"]
 builder: node
