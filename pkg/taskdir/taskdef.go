@@ -18,20 +18,20 @@ import (
 // Note this is the subset of fields that can be represented with a revision,
 // and therefore isolated to a specific environment.
 type Definition struct {
-	Slug           string            `yaml:"slug"`
-	Name           string            `yaml:"name"`
-	Description    string            `yaml:"description"`
-	Image          string            `yaml:"image"`
-	Command        []string          `yaml:"command"`
-	Arguments      []string          `yaml:"arguments"`
-	Parameters     api.Parameters    `yaml:"parameters"`
-	Constraints    api.Constraints   `yaml:"constraints"`
-	Env            map[string]string `yaml:"env"`
-	ResourceLimits map[string]string `yaml:"resourceLimits"`
-	Builder        string            `yaml:"builder"`
-	BuilderConfig  map[string]string `yaml:"builderConfig"`
-	Repo           string            `yaml:"repo"`
-	Timeout        int               `yaml:"timeout"`
+	Slug           string             `yaml:"slug"`
+	Name           string             `yaml:"name"`
+	Description    string             `yaml:"description,omitempty"`
+	Image          string             `yaml:"image,omitempty"`
+	Command        []string           `yaml:"command,omitempty"`
+	Arguments      []string           `yaml:"arguments,omitempty"`
+	Parameters     api.Parameters     `yaml:"parameters,omitempty"`
+	Constraints    api.Constraints    `yaml:"constraints,omitempty"`
+	Env            map[string]string  `yaml:"env,omitempty"`
+	ResourceLimits api.ResourceLimits `yaml:"resourceLimits,omitempty"`
+	Builder        string             `yaml:"builder,omitempty"`
+	BuilderConfig  api.BuilderConfig  `yaml:"builderConfig,omitempty"`
+	Repo           string             `yaml:"repo,omitempty"`
+	Timeout        int                `yaml:"timeout"`
 }
 
 func (this Definition) Validate() (Definition, error) {
@@ -78,4 +78,17 @@ func (this TaskDirectory) ReadDefinition() (Definition, error) {
 	}
 
 	return def, nil
+}
+
+func (this TaskDirectory) WriteDefinition(def Definition) error {
+	data, err := yaml.Marshal(def)
+	if err != nil {
+		return errors.Wrap(err, "marshalling definition")
+	}
+
+	if err := ioutil.WriteFile(this.path, data, 0775); err != nil {
+		return errors.Wrap(err, "writing file")
+	}
+
+	return nil
 }

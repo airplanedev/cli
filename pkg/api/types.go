@@ -123,16 +123,16 @@ type Parameter struct {
 	Name        string      `json:"name" yaml:"name"`
 	Slug        string      `json:"slug" yaml:"slug"`
 	Type        Type        `json:"type" yaml:"type"`
-	Desc        string      `json:"desc" yaml:"desc"`
-	Component   Component   `json:"component" yaml:"component"`
+	Desc        string      `json:"desc" yaml:"desc,omitempty"`
+	Component   Component   `json:"component" yaml:"component,omitempty"`
 	Default     Value       `json:"default" yaml:"default"`
-	Constraints Constraints `json:"constraints" yaml:"constraints"`
+	Constraints Constraints `json:"constraints" yaml:"constraints,omitempty"`
 }
 
 // Constraints represent constraints.
 type Constraints struct {
-	Optional bool   `json:"optional" yaml:"optional"`
-	Regex    string `json:"regex" yaml:"regex"`
+	Optional bool   `json:"optional" yaml:"optional,omitempty"`
+	Regex    string `json:"regex" yaml:"regex,omitempty"`
 }
 
 // Value represents a value.
@@ -171,23 +171,27 @@ type ListTasksResponse struct {
 }
 
 // Task represents a task.
-//
-// Even though the task object contains many other fields
-// we don't add them here unless we need them for presenting tasks.
 type Task struct {
-	ID          string            `json:"taskID" yaml:"id"`
-	Name        string            `json:"name" yaml:"name"`
-	Slug        string            `json:"slug" yaml:"slug"`
-	Description string            `json:"description" yaml:"description"`
-	Image       string            `json:"image" yaml:"image"`
-	Command     []string          `json:"command" yaml:"command"`
-	Arguments   []string          `json:"arguments" yaml:"arguments"`
-	Parameters  Parameters        `json:"parameters" yaml:"parameters"`
-	Constraints Constraints       `json:"constraints" yaml:"constraints"`
-	Env         map[string]string `json:"env" yaml:"env"`
-	Timeout     int               `json:"timeout" yaml:"timeout"`
-	Builder     string            `json:"builder" yaml:"builder"`
+	ID             string            `json:"taskID" yaml:"id"`
+	Name           string            `json:"name" yaml:"name"`
+	Slug           string            `json:"slug" yaml:"slug"`
+	Description    string            `json:"description" yaml:"description"`
+	Image          string            `json:"image" yaml:"image"`
+	Command        []string          `json:"command" yaml:"command"`
+	Arguments      []string          `json:"arguments" yaml:"arguments"`
+	Parameters     Parameters        `json:"parameters" yaml:"parameters"`
+	Constraints    Constraints       `json:"constraints" yaml:"constraints"`
+	Env            map[string]string `json:"env" yaml:"env"`
+	ResourceLimits ResourceLimits    `json:"resourceLimits" yaml:"resourceLimits"`
+	Builder        string            `json:"builder" yaml:"builder"`
+	BuilderConfig  BuilderConfig     `json:"builderConfig" yaml:"builderConfig"`
+	Repo           string            `json:"repo" yaml:"repo"`
+	Timeout        int               `json:"timeout" yaml:"timeout"`
 }
+
+type BuilderConfig map[string]string
+
+type ResourceLimits map[string]string
 
 // Values represent parameters values.
 //

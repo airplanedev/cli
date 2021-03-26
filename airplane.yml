@@ -1,0 +1,15 @@
+slug: hello_world
+name: Hello World
+description: Greets you by name!
+image: us-central1-docker.pkg.dev/airplane-prod/team-1jq9ndetctmyqqxajesk7v0wxav/task-1qj8tthudkulgrcxurh7zdlfj1a:latest
+arguments:
+    - '{{.name}}'
+parameters:
+    - name: Name
+      slug: name
+      type: string
+      default: World
+builder: docker
+builderConfig:
+    dockerfile: Dockerfile
+timeout: 3600

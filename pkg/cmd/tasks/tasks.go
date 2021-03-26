@@ -9,6 +9,7 @@ import (
 	"github.com/airplanedev/cli/pkg/cmd/tasks/deploy"
 	"github.com/airplanedev/cli/pkg/cmd/tasks/execute"
 	"github.com/airplanedev/cli/pkg/cmd/tasks/get"
+	initcmd "github.com/airplanedev/cli/pkg/cmd/tasks/init"
 	"github.com/airplanedev/cli/pkg/cmd/tasks/list"
 	"github.com/airplanedev/cli/pkg/utils"
 	"github.com/spf13/cobra"
@@ -21,6 +22,7 @@ func New(c *cli.Config) *cobra.Command {
 		Short: "Manage tasks",
 		Long:  "Manage tasks",
 		Example: heredoc.Doc(`
+			$ airplane tasks init
 			$ airplane tasks deploy -f mytask.yml
 			$ airplane tasks get my_task
 			$ airplane tasks execute my_task
@@ -34,6 +36,7 @@ func New(c *cli.Config) *cobra.Command {
 	cmd.AddCommand(list.New(c))
 	cmd.AddCommand(execute.New(c))
 	cmd.AddCommand(get.New(c))
+	cmd.AddCommand(initcmd.New(c))
 
 	return cmd
 }
