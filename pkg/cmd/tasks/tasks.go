@@ -9,7 +9,7 @@ import (
 	"github.com/airplanedev/cli/pkg/cmd/tasks/deploy"
 	"github.com/airplanedev/cli/pkg/cmd/tasks/execute"
 	"github.com/airplanedev/cli/pkg/cmd/tasks/get"
-	initcmd "github.com/airplanedev/cli/pkg/cmd/tasks/init"
+	"github.com/airplanedev/cli/pkg/cmd/tasks/initcmd"
 	"github.com/airplanedev/cli/pkg/cmd/tasks/list"
 	"github.com/airplanedev/cli/pkg/utils"
 	"github.com/spf13/cobra"

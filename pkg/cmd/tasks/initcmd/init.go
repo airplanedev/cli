@@ -1,4 +1,8 @@
-package init
+// initcmd defines the implementation of the `airplane tasks init` command.
+//
+// Even though the command is called "init", we can't name the package "init"
+// since that conflicts with the Go init function.
+package initcmd
 
 import (
 	"context"
