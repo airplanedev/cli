@@ -2,15 +2,11 @@ package login
 
 import (
 	"context"
-	"fmt"
-	"os"
 
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/conf"
 	"github.com/airplanedev/cli/pkg/token"
 	"github.com/airplanedev/cli/pkg/utils"
-	"github.com/mattn/go-isatty"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -28,8 +24,6 @@ func New(c *cli.Config) *cobra.Command {
 
 // Run runs the login command.
 func run(ctx context.Context, cmd *cobra.Command, c *cli.Config) error {
-	fmt.Printf("ensuring login\n")
-
 	if err := EnsureLoggedIn(ctx, cmd, c); err != nil {
 		return err
 	}
@@ -41,10 +35,6 @@ func run(ctx context.Context, cmd *cobra.Command, c *cli.Config) error {
 func EnsureLoggedIn(ctx context.Context, cmd *cobra.Command, c *cli.Config) error {
 	if c.Client.Token != "" {
 		return nil
-	}
-
-	if !isatty.IsTerminal(os.Stdout.Fd()) {
-		return errors.New("Unable to login")
 	}
 
 	srv, err := token.NewServer(ctx)
