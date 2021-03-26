@@ -120,13 +120,13 @@ func run(ctx context.Context, cfg config) error {
 		}
 
 		fmt.Println("  Building...")
-		img, err := b.Build(ctx, taskID, "latest")
+		bo, err := b.Build(ctx, taskID, "latest")
 		if err != nil {
 			return errors.Wrap(err, "build")
 		}
 
 		fmt.Println("  Updating...")
-		if err := b.Push(ctx, img.RepoTags[0]); err != nil {
+		if err := b.Push(ctx, bo.Tag); err != nil {
 			return errors.Wrap(err, "push")
 		}
 	}
