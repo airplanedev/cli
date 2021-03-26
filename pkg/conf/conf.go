@@ -2,7 +2,6 @@ package conf
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -17,7 +16,7 @@ var (
 
 // Config represents the configuration.
 type Config struct {
-	Token string `json:"token"`
+	Token string `json:"token,omitempty"`
 }
 
 // Path returns the default config path.
@@ -25,7 +24,7 @@ func path() string {
 	homedir, err := os.UserHomeDir()
 	if err != nil {
 		// TODO(amir): friendly output.
-		panic(fmt.Sprintf("$HOME environment variable must be set"))
+		panic("$HOME environment variable must be set")
 	}
 	return filepath.Join(
 		homedir,

@@ -2,13 +2,14 @@ package login
 
 import (
 	"context"
+	"fmt"
 	"os"
-	"runtime"
 
-	"github.com/airplanedev/cli/pkg/browser"
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/conf"
 	"github.com/airplanedev/cli/pkg/token"
+	"github.com/airplanedev/cli/pkg/utils"
+	"github.com/mattn/go-isatty"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -27,28 +28,9 @@ func New(c *cli.Config) *cobra.Command {
 
 // Run runs the login command.
 func run(ctx context.Context, cmd *cobra.Command, c *cli.Config) error {
-	cfg, err := conf.ReadDefault()
-	if errors.Is(err, conf.ErrMissing) {
-		srv, err := token.NewServer(ctx)
-		if err != nil {
-			return err
-		}
-		defer srv.Close()
+	fmt.Printf("ensuring login\n")
 
-		open(cmd, c.Client.LoginURL(srv.URL()))
-
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-
-		case token := <-srv.Token():
-			cfg.Token = token
-		}
-
-		if err := conf.WriteDefault(cfg); err != nil {
-			return err
-		}
-	} else if err != nil {
+	if err := EnsureLoggedIn(ctx, cmd, c); err != nil {
 		return err
 	}
 
@@ -56,16 +38,41 @@ func run(ctx context.Context, cmd *cobra.Command, c *cli.Config) error {
 	return nil
 }
 
-// Open attempts to open the URL in the browser.
-//
-// As a special case, if `AP_BROWSER` env var is set to `none`
-// the command will always print the URL.
-func open(cmd *cobra.Command, url string) {
-	if os.Getenv("AP_BROWSER") != "none" {
-		if err := browser.Open(runtime.GOOS, url); err == nil {
-			return
+func EnsureLoggedIn(ctx context.Context, cmd *cobra.Command, c *cli.Config) error {
+	if c.Client.Token != "" {
+		return nil
+	}
+
+	if !isatty.IsTerminal(os.Stdout.Fd()) {
+		return errors.New("Unable to login")
+	}
+
+	srv, err := token.NewServer(ctx)
+	if err != nil {
+		return err
+	}
+	defer srv.Close()
+
+	url := c.Client.LoginURL(srv.URL())
+	if ok := utils.Open(url); !ok {
+		cmd.Printf("Visit %s to complete logging in\n", url)
+	}
+
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+
+	case token := <-srv.Token():
+		c.Client.Token = token
+		cfg, err := conf.ReadDefault()
+		if err != nil {
+			return err
+		}
+		cfg.Token = token
+		if err := conf.WriteDefault(cfg); err != nil {
+			return err
 		}
 	}
 
-	cmd.Printf("Visit %s to complete logging in\n", url)
+	return nil
 }

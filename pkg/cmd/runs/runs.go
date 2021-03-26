@@ -1,10 +1,14 @@
 package runs
 
 import (
+	"context"
+
 	"github.com/MakeNowJust/heredoc"
 	"github.com/airplanedev/cli/pkg/cli"
+	"github.com/airplanedev/cli/pkg/cmd/auth/login"
 	"github.com/airplanedev/cli/pkg/cmd/runs/get"
 	"github.com/airplanedev/cli/pkg/cmd/runs/list"
+	"github.com/airplanedev/cli/pkg/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -18,6 +22,9 @@ func New(c *cli.Config) *cobra.Command {
 			$ airplane runs list --task my-task
 			$ airplane runs get <id>
 		`),
+		PersistentPreRunE: utils.WithParentPersistentPreRunE(func(cmd *cobra.Command, args []string) error {
+			return login.EnsureLoggedIn(context.TODO(), cmd, c)
+		}),
 	}
 
 	cmd.AddCommand(list.New(c))
