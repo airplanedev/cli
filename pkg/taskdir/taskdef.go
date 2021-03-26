@@ -86,7 +86,7 @@ func (this TaskDirectory) WriteDefinition(def Definition) error {
 		return errors.Wrap(err, "marshalling definition")
 	}
 
-	if err := ioutil.WriteFile(this.path, data, 0775); err != nil {
+	if err := ioutil.WriteFile(this.path, data, 0664); err != nil {
 		return errors.Wrap(err, "writing file")
 	}
 
