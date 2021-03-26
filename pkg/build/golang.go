@@ -1,10 +1,7 @@
 package build
 
 import (
-	"fmt"
 	"html/template"
-	"os"
-	"path"
 	"path/filepath"
 	"strings"
 
@@ -18,14 +15,14 @@ func golang(root string, args Args) (string, error) {
 	var entrypoint = args["entrypoint"]
 	var main = filepath.Join(root, entrypoint)
 
-	if err := exist(gomod, gosum, main); err != nil {
+	if err := exist(gomod, main); err != nil {
 		return "", err
 	}
 
 	t, err := template.New("golang").Parse(`
 FROM golang:1.16.0-alpine3.13 as builder
 WORKDIR /airplane
-COPY go.mod go.sum ./
+COPY go.mod {{ if .HasGoSum -}} go.sum {{ end -}} ./
 RUN go mod download
 COPY . .
 ENTRYPOINT ["go", "run", "/airplane/{{ .Main }}"]
@@ -35,13 +32,11 @@ ENTRYPOINT ["go", "run", "/airplane/{{ .Main }}"]
 	}
 
 	var data struct {
-		Root  string
-		Main  string
-		Gomod string
-		Gosum string
+		Main     string
+		HasGoSum bool
 	}
-	data.Root = root
 	data.Main = entrypoint
+	data.HasGoSum = exist(gosum) == nil
 
 	var buf strings.Builder
 	if err := t.Execute(&buf, data); err != nil {
@@ -49,14 +44,4 @@ ENTRYPOINT ["go", "run", "/airplane/{{ .Main }}"]
 	}
 
 	return buf.String(), nil
-}
-
-// Exist ensures that all paths exists or returns an error.
-func exist(paths ...string) error {
-	for _, p := range paths {
-		if _, err := os.Stat(p); os.IsNotExist(err) {
-			return fmt.Errorf("build: the file %s is required", path.Base(p))
-		}
-	}
-	return nil
 }

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"unicode"
@@ -218,10 +219,6 @@ func (b *Builder) Push(ctx context.Context, tag string) error {
 
 // Dockerfile returns the dockerfile for the builder.
 func (b *Builder) dockerfile() (string, error) {
-	if b.args["entrypoint"] == "" {
-		return "", fmt.Errorf("build: .entrypoint is required")
-	}
-
 	switch b.name {
 	case "go":
 		return golang(b.root, b.args)
@@ -231,6 +228,8 @@ func (b *Builder) dockerfile() (string, error) {
 		return python(b.root, b.args)
 	case "node":
 		return node(b.root, b.args)
+	case "docker":
+		return docker(b.root, b.args)
 	default:
 		return "", errors.Errorf("build: unknown builder type %q", b.name)
 	}
@@ -267,4 +266,14 @@ func sanitizeTaskID(s string) string {
 		s = s[:len(s)-1] + "a"
 	}
 	return s
+}
+
+// exist ensures that all paths exists or returns an error.
+func exist(paths ...string) error {
+	for _, p := range paths {
+		if _, err := os.Stat(p); os.IsNotExist(err) {
+			return fmt.Errorf("build: the file %s is required", path.Base(p))
+		}
+	}
+	return nil
 }
