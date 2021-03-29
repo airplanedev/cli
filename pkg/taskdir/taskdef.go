@@ -79,3 +79,16 @@ func (this TaskDirectory) ReadDefinition() (Definition, error) {
 
 	return def, nil
 }
+
+func (this TaskDirectory) WriteDefinition(def Definition) error {
+	data, err := yaml.Marshal(def)
+	if err != nil {
+		return errors.Wrap(err, "marshalling definition")
+	}
+
+	if err := ioutil.WriteFile(this.path, data, 0664); err != nil {
+		return errors.Wrap(err, "writing file")
+	}
+
+	return nil
+}
