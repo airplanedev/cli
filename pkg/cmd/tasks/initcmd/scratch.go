@@ -46,7 +46,7 @@ func initFromScratch(cmd *cobra.Command, cfg config) error {
 	}
 
 	if runtime == runtimeKindManual {
-		// TODO: let folks select an image
+		// TODO: let folks enter an image
 		def.Image = "alpine:3"
 		def.Command = []string{"echo", `"Hello World"`}
 	} else {
@@ -59,7 +59,8 @@ func initFromScratch(cmd *cobra.Command, cfg config) error {
 		return err
 	}
 
-	cmd.Printf(`An Airplane task definition for '%s' has been created in %s!
+	cmd.Printf(`
+An Airplane task definition for '%s' has been created in %s!
 
 Once you implement your task, deploy it to Airplane with:
   airplane tasks deploy -f %s
@@ -69,7 +70,7 @@ Once you implement your task, deploy it to Airplane with:
 }
 
 func defaultRuntimeConfig(runtime runtimeKind) (string, api.BuilderConfig, error) {
-	// TODO: let folks pick the following configuration
+	// TODO: let folks configure the following configuration
 	switch runtime {
 	case runtimeKindDeno:
 		return "deno", api.BuilderConfig{
@@ -142,7 +143,7 @@ func pickString(msg string) (string, error) {
 		&str,
 		survey.WithStdio(os.Stdin, os.Stderr, os.Stderr),
 	); err != nil {
-		return "", errors.Wrap(err, "")
+		return "", errors.Wrap(err, "prompting")
 	}
 
 	return str, nil

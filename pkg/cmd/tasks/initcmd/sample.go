@@ -64,7 +64,8 @@ func initFromSample(cmd *cobra.Command, cfg config) error {
 	}
 
 	file := path.Join(outputdir, path.Base(dir.DefinitionPath()))
-	cmd.Printf(`An Airplane task definition for '%s' has been created!
+	cmd.Printf(`
+An Airplane task definition for '%s' has been created!
 
 To deploy it to Airplane, run:
 	airplane tasks deploy -f %s

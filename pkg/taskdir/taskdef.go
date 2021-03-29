@@ -30,7 +30,7 @@ type Definition struct {
 	Builder        string             `yaml:"builder,omitempty"`
 	BuilderConfig  api.BuilderConfig  `yaml:"builderConfig,omitempty"`
 	Repo           string             `yaml:"repo,omitempty"`
-	Timeout        int                `yaml:"timeout"`
+	Timeout        int                `yaml:"timeout,omitempty"`
 }
 
 func (this Definition) Validate() (Definition, error) {

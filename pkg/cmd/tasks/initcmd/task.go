@@ -56,7 +56,8 @@ func initFromTask(ctx context.Context, cmd *cobra.Command, cfg config) error {
 		return errors.Wrap(err, "writing task definition")
 	}
 
-	cmd.Printf(`An Airplane task definition for '%s' has been created!
+	cmd.Printf(`
+An Airplane task definition for '%s' has been created!
 
 To deploy it to Airplane, run:
   airplane tasks deploy -f %s
