@@ -10,6 +10,7 @@ import (
 	"github.com/MakeNowJust/heredoc"
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/cli"
+	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/print"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -112,11 +113,11 @@ func flagset(task api.Task, args api.Values) *flag.FlagSet {
 	var set = flag.NewFlagSet(task.Name, flag.ContinueOnError)
 
 	set.Usage = func() {
-		fmt.Printf("\n%s Usage:\n", task.Name)
+		logger.Log("\n%s Usage:\n", task.Name)
 		set.VisitAll(func(f *flag.Flag) {
-			fmt.Printf("  --%s %s (default: %q)\n", f.Name, f.Usage, f.DefValue)
+			logger.Log("  --%s %s (default: %q)\n", f.Name, f.Usage, f.DefValue)
 		})
-		fmt.Println()
+		logger.Log("\n")
 	}
 
 	for _, p := range task.Parameters {

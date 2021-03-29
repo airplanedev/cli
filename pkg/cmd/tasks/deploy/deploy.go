@@ -11,6 +11,7 @@ import (
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/build"
 	"github.com/airplanedev/cli/pkg/cli"
+	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/taskdir"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -67,7 +68,7 @@ func run(ctx context.Context, cfg config) error {
 		taskID = task.ID
 	} else if aerr, ok := err.(api.Error); ok && aerr.Code == 404 {
 		// A task with this slug does not exist, so we should create one.
-		fmt.Println("  Creating...")
+		logger.Log("  Creating...\n")
 		if res, err := client.CreateTask(ctx, api.CreateTaskRequest{
 			Slug:           def.Slug,
 			Name:           def.Name,
@@ -117,13 +118,13 @@ func run(ctx context.Context, cfg config) error {
 			return errors.Wrap(err, "new build")
 		}
 
-		fmt.Println("  Building...")
+		logger.Log("  Building...\n")
 		bo, err := b.Build(ctx, taskID, "latest")
 		if err != nil {
 			return errors.Wrap(err, "build")
 		}
 
-		fmt.Println("  Updating...")
+		logger.Log("  Updating...\n")
 		if err := b.Push(ctx, bo.Tag); err != nil {
 			return errors.Wrap(err, "push")
 		}
@@ -148,12 +149,12 @@ func run(ctx context.Context, cfg config) error {
 		return errors.Wrapf(err, "updating task %s", def.Slug)
 	}
 
-	fmt.Println("  Done!")
+	logger.Log("  Done!\n")
 	cmd := fmt.Sprintf("airplane tasks execute %s", def.Slug)
 	if len(def.Parameters) > 0 {
 		cmd += " -- [parameters]"
 	}
-	fmt.Printf(`
+	logger.Log(`
 To execute %s:
 - From the CLI: %s
 - From the UI: %s
