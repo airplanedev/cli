@@ -95,11 +95,11 @@ func pickSample(runtime runtimeKind) (string, error) {
 			"Hello World": "github.com/airplanedev/examples/docker/hello-world/airplane.yml",
 		},
 		runtimeKindGo: {
-			"Hello World": "github.com/airplanedev/examples/deno/hello-world/airplane.yml",
+			"Hello World": "github.com/airplanedev/examples/go/hello-world/airplane.yml",
 		},
 		runtimeKindManual: {
-			"Hello World": "github.com/airplanedev/examples/deno/hello-world/airplane.yml",
-			"Print Env":   "github.com/airplanedev/examples/deno/env/airplane.yml",
+			"Hello World": "github.com/airplanedev/examples/manual/hello-world/airplane.yml",
+			"Print Env":   "github.com/airplanedev/examples/manual/env/airplane.yml",
 		},
 		runtimeKindNode: {
 			"Hello World":              "github.com/airplanedev/examples/node/hello-world-javascript/airplane.yml",
