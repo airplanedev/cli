@@ -56,7 +56,11 @@ func initFromExisting(ctx context.Context, cmd *cobra.Command, cfg config) error
 		return errors.Wrap(err, "writing task definition")
 	}
 
-	cmd.Printf("\nAn Airplane task definition for '%s' has been created!\n\nTo deploy it to Airplane, run:\n  airplane tasks deploy -f %s", task.Name, file)
+	cmd.Printf(`An Airplane task definition for '%s' has been created!
+
+To deploy it to Airplane, run:
+  airplane tasks deploy -f %s
+`, task.Name, file)
 
 	return nil
 }

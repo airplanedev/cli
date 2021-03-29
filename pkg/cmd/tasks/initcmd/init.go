@@ -55,6 +55,8 @@ func run(ctx context.Context, cmd *cobra.Command, cfg config) error {
 		if kind, err = pickInitKind(); err != nil {
 			return err
 		}
+	} else {
+		kind = initKindExisting
 	}
 
 	switch kind {

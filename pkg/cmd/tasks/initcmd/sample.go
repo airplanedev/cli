@@ -50,10 +50,11 @@ func initFromSample(cmd *cobra.Command, cfg config) error {
 		return errors.Wrap(err, "copying sample directory")
 	}
 
-	cmd.Printf(`An Airplane task definition for '%s' has been created from %s!
+	cmd.Printf(`An Airplane task definition for '%s' has been created!
 
 To deploy it to Airplane, run:
-	airplane tasks deploy -f %s`, def.Name, samplepath, file)
+	airplane tasks deploy -f %s
+`, def.Name, file)
 
 	return nil
 }

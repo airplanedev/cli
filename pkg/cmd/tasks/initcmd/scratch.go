@@ -62,7 +62,8 @@ func initFromScratch(cmd *cobra.Command, cfg config) error {
 	cmd.Printf(`An Airplane task definition for '%s' has been created in %s!
 
 Once you implement your task, deploy it to Airplane with:
-  airplane tasks deploy -f %s`, name, file, file)
+  airplane tasks deploy -f %s
+`, name, file, file)
 
 	return nil
 }
