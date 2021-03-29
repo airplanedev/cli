@@ -25,7 +25,7 @@ func Open(file string) (TaskDirectory, error) {
 
 	var td TaskDirectory
 	var err error
-	if strings.HasPrefix(file, "github.com") || strings.HasPrefix(file, "https://github.com") {
+	if strings.HasPrefix(file, "github.com/") || strings.HasPrefix(file, "https://github.com/") {
 		td.path, td.closer, err = openGitHubDirectory(file)
 		if err != nil {
 			return TaskDirectory{}, err
