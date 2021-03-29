@@ -48,7 +48,7 @@ func initFromSample(cmd *cobra.Command, cfg config) error {
 	// This is done to maintain semantic consistency with the other kinds of
 	// init, but is not strictly necessary.
 	defname := path.Base(cfg.file)
-	if defname != path.Base(dir.DefinitionPath()) {
+	if cfg.file != "" && defname != path.Base(dir.DefinitionPath()) {
 		if err := os.Rename(
 			dir.DefinitionPath(),
 			path.Join(path.Dir(dir.DefinitionPath()), defname),
