@@ -22,10 +22,10 @@ func New(c *cli.Config) *cobra.Command {
 		Short: "Manage tasks",
 		Long:  "Manage tasks",
 		Example: heredoc.Doc(`
-			$ airplane tasks init
-			$ airplane tasks deploy -f mytask.yml
-			$ airplane tasks get my_task
-			$ airplane tasks execute my_task
+		  airplane tasks init
+			airplane tasks deploy -f mytask.yml
+			airplane tasks get my_task
+			airplane tasks execute my_task
 		`),
 		PersistentPreRunE: utils.WithParentPersistentPreRunE(func(cmd *cobra.Command, args []string) error {
 			return login.EnsureLoggedIn(context.TODO(), cmd, c)

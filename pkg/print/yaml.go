@@ -14,22 +14,22 @@ type YAML struct{}
 
 // Tasks implementation.
 func (YAML) tasks(tasks []api.Task) {
-	yaml.NewEncoder(os.Stderr).Encode(tasks)
+	yaml.NewEncoder(os.Stdout).Encode(tasks)
 }
 
 // Task implementation.
 func (YAML) task(task api.Task) {
-	yaml.NewEncoder(os.Stderr).Encode(task)
+	yaml.NewEncoder(os.Stdout).Encode(task)
 }
 
 // Runs implementation.
 func (YAML) runs(runs []api.Run) {
-	yaml.NewEncoder(os.Stderr).Encode(runs)
+	yaml.NewEncoder(os.Stdout).Encode(runs)
 }
 
 // Run implementation.
 func (YAML) run(run api.Run) {
-	yaml.NewEncoder(os.Stderr).Encode(run)
+	yaml.NewEncoder(os.Stdout).Encode(run)
 }
 
 func (YAML) outputs(outputs api.Outputs) {

@@ -12,7 +12,7 @@ import (
 func New(c *cli.Config) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "logout",
-		Short: "Logout of Airplane",
+		Short: "Log out of Airplane",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return run(cmd.Context(), cmd, c)
 		},
