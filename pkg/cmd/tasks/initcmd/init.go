@@ -36,8 +36,8 @@ func New(c *cli.Config) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&cfg.file, "file", "f", "airplane.yml", "Path to file to store task definition")
-	cmd.Flags().StringVar(&cfg.from, "from", "", "Task slug to generate task definition from")
+	cmd.Flags().StringVarP(&cfg.file, "file", "f", "airplane.yml", "Path to a file to store task definition")
+	cmd.Flags().StringVar(&cfg.from, "from", "", "Slug of an existing task to generate from")
 
 	// --from is the only way to use `init` for now. We'll soon add
 	// a way to be prompted through the creation of a task def.
