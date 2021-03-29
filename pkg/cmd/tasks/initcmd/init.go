@@ -62,6 +62,7 @@ func run(ctx context.Context, cmd *cobra.Command, cfg config) error {
 		}
 	}
 
+	var taskName string
 	switch kind {
 	case initKindSample:
 		// TODO
@@ -104,12 +105,12 @@ func run(ctx context.Context, cmd *cobra.Command, cfg config) error {
 			return errors.Wrap(err, "writing task definition")
 		}
 
-		cmd.Printf("Created an Airplane task definition for %s in %s\n", task.Name, cfg.file)
+		taskName = task.Name
 	default:
 		return errors.Errorf("Unexpected unknown initKind choice: %s", kind)
 	}
 
-	cmd.Printf("picked: %s\n", kind)
+	cmd.Printf("\nAn Airplane task definition for '%s' has been created in %s!\n\nTo deploy it to Airplane, run:\n  airplane tasks deploy -f %s", taskName, cfg.file, cfg.file)
 
 	return nil
 }
@@ -154,10 +155,10 @@ func pickTask(ctx context.Context, client *api.Client) (api.Task, error) {
 
 	options := []string{}
 	optionsToTask := map[string]*api.Task{}
-	for _, task := range tasks.Tasks {
+	for i, task := range tasks.Tasks {
 		option := fmt.Sprintf("%s (%s)", task.Name, task.Slug)
 		options = append(options, option)
-		optionsToTask[option] = &task
+		optionsToTask[option] = &tasks.Tasks[i]
 	}
 
 	var selected string
