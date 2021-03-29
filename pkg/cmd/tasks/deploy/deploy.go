@@ -17,13 +17,12 @@ import (
 )
 
 type config struct {
-	cli   *cli.Config
-	debug bool
-	file  string
+	root *cli.Config
+	file string
 }
 
 func New(c *cli.Config) *cobra.Command {
-	var cfg = config{cli: c}
+	var cfg = config{root: c}
 
 	cmd := &cobra.Command{
 		Use:   "deploy",
@@ -37,7 +36,6 @@ func New(c *cli.Config) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().BoolVar(&cfg.debug, "debug", false, "Print extra debug logging while building images.")
 	cmd.Flags().StringVarP(&cfg.file, "file", "f", "", "Path to a task definition file.")
 
 	cli.Must(cmd.MarkFlagRequired("file"))
@@ -46,7 +44,7 @@ func New(c *cli.Config) *cobra.Command {
 }
 
 func run(ctx context.Context, cfg config) error {
-	var client = cfg.cli.Client
+	var client = cfg.root.Client
 
 	dir, err := taskdir.Open(cfg.file)
 	if err != nil {
@@ -101,7 +99,7 @@ func run(ctx context.Context, cfg config) error {
 		}
 
 		var output io.Writer = ioutil.Discard
-		if cfg.debug {
+		if cfg.root.DebugMode {
 			output = os.Stderr
 		}
 

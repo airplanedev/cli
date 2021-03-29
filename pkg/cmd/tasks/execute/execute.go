@@ -17,14 +17,14 @@ import (
 
 // Config are the execute config.
 type config struct {
-	cli  *cli.Config
+	root *cli.Config
 	slug string
 	args []string
 }
 
 // New returns a new execute cobra command.
 func New(c *cli.Config) *cobra.Command {
-	var cfg = config{cli: c}
+	var cfg = config{root: c}
 
 	cmd := &cobra.Command{
 		Use:   "execute <slug>",
@@ -47,7 +47,7 @@ func New(c *cli.Config) *cobra.Command {
 
 // Run runs the execute command.
 func run(ctx context.Context, cfg config) error {
-	var client = cfg.cli.Client
+	var client = cfg.root.Client
 
 	task, err := client.GetTask(ctx, cfg.slug)
 	if err != nil {

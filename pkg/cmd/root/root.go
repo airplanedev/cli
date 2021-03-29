@@ -11,7 +11,9 @@ import (
 	"github.com/airplanedev/cli/pkg/cmd/runs"
 	"github.com/airplanedev/cli/pkg/cmd/tasks"
 	"github.com/airplanedev/cli/pkg/conf"
+	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/print"
+	"github.com/airplanedev/cli/pkg/trap"
 	isatty "github.com/mattn/go-isatty"
 	"github.com/spf13/cobra"
 )
@@ -49,6 +51,9 @@ func New() *cobra.Command {
 				return errors.New("--output must be (json|yaml|table)")
 			}
 
+			logger.EnableDebug = cfg.DebugMode
+			trap.Printf = logger.Log
+
 			return nil
 		},
 	}
@@ -70,6 +75,7 @@ func New() *cobra.Command {
 		defaultFormat = "json"
 	}
 	cmd.PersistentFlags().StringVarP(&output, "output", "o", defaultFormat, "The format to use for output (json|yaml|table).")
+	cmd.PersistentFlags().BoolVar(&cfg.DebugMode, "debug", false, "Whether to produce debugging output.")
 
 	// Sub-commands.
 	cmd.AddCommand(auth.New(cfg))
