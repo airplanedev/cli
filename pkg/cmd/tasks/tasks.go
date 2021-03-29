@@ -17,9 +17,9 @@ func New(c *cli.Config) *cobra.Command {
 		Short: "Manage tasks",
 		Long:  "Manage tasks",
 		Example: heredoc.Doc(`
-			$ airplane tasks deploy -f mytask.yml
-			$ airplane tasks get my_task
-			$ airplane tasks execute my_task
+			airplane tasks deploy -f mytask.yml
+			airplane tasks get my_task
+			airplane tasks execute my_task
 		`),
 	}
 

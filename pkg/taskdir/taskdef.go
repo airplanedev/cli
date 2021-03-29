@@ -44,7 +44,7 @@ func (this Definition) Validate() (Definition, error) {
 
 		if err := survey.AskOne(
 			&survey.Input{
-				Message: "Pick a slug to identify this task",
+				Message: "Pick a unique identifier (slug) for this task",
 				Default: utils.MakeSlug(this.Name),
 			},
 			&this.Slug,

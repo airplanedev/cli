@@ -15,8 +15,8 @@ func New(c *cli.Config) *cobra.Command {
 		Short: "Manage runs",
 		Long:  "Manage runs",
 		Example: heredoc.Doc(`
-			$ airplane runs list --task my-task
-			$ airplane runs get <id>
+			airplane runs list --task my-task
+			airplane runs get <id>
 		`),
 	}
 
