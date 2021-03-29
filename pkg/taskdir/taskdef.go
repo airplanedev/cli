@@ -2,6 +2,7 @@ package taskdir
 
 import (
 	"io/ioutil"
+	"os"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/airplanedev/cli/pkg/api"
@@ -46,6 +47,7 @@ func (this Definition) Validate() (Definition, error) {
 				Default: utils.MakeSlug(this.Name),
 			},
 			&this.Slug,
+			survey.WithStdio(os.Stdin, os.Stderr, os.Stderr),
 			survey.WithValidator(func(val interface{}) error {
 				if str, ok := val.(string); !ok || !utils.IsSlug(str) {
 					return errors.New("Slugs can only contain lowercase letters, underscores, and numbers.")
