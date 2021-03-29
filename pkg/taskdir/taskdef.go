@@ -7,7 +7,6 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/utils"
-	"github.com/mattn/go-isatty"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v3"
 )
@@ -35,7 +34,7 @@ type Definition struct {
 }
 
 func (this Definition) Validate() (Definition, error) {
-	canPrompt := isatty.IsTerminal(os.Stdout.Fd())
+	canPrompt := utils.CanPrompt()
 
 	if this.Slug == "" {
 		if !canPrompt {
@@ -44,10 +43,11 @@ func (this Definition) Validate() (Definition, error) {
 
 		if err := survey.AskOne(
 			&survey.Input{
-				Message: "Pick a slug to identify this task",
+				Message: "Pick a unique identifier (slug) for this task",
 				Default: utils.MakeSlug(this.Name),
 			},
 			&this.Slug,
+			survey.WithStdio(os.Stdin, os.Stderr, os.Stderr),
 			survey.WithValidator(func(val interface{}) error {
 				if str, ok := val.(string); !ok || !utils.IsSlug(str) {
 					return errors.New("Slugs can only contain lowercase letters, underscores, and numbers.")

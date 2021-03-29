@@ -15,9 +15,9 @@ func New(c *cli.Config) *cobra.Command {
 		Use:   "get",
 		Short: "Get information about a run",
 		Example: heredoc.Doc(`
-			$ airplane runs get <id>
-			$ airplane runs get <id> -o yaml
-			$ airplane runs get <id> -o json
+			airplane runs get <id>
+			airplane runs get <id> -o yaml
+			airplane runs get <id> -o json
 		`),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {

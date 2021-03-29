@@ -30,7 +30,7 @@ func New(c *cli.Config) *cobra.Command {
 		Short: "Deploy a task",
 		Long:  "Deploy a task from a YAML-based task definition",
 		Example: heredoc.Doc(`
-			$ airplane tasks deploy -f my-task.yml
+			airplane tasks deploy -f my-task.yml
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return run(cmd.Context(), cfg)

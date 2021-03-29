@@ -18,8 +18,8 @@ func New(c *cli.Config) *cobra.Command {
 		Use:   "list",
 		Short: "Lists runs for a task",
 		Example: heredoc.Doc(`
-			$ airplane runs list --task <slug>
-			$ airplane runs list --task my-task -o json
+			airplane runs list --task <slug>
+			airplane runs list --task my-task -o json
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return run(cmd.Context(), c, slug)

@@ -17,8 +17,8 @@ func New(c *cli.Config) *cobra.Command {
 		Use:   "list",
 		Short: "Lists all tasks",
 		Example: heredoc.Doc(`
-			$ airplane tasks list
-			$ airplane tasks list -o json
+			airplane tasks list
+			airplane tasks list -o json
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return run(cmd.Context(), c)
@@ -38,7 +38,7 @@ func run(ctx context.Context, c *cli.Config) error {
 
 	if len(res.Tasks) == 0 {
 		fmt.Printf("\n  There are no tasks yet. To create a sample task:\n")
-		fmt.Printf("\n    $ airplane tasks deploy -f github.com/airplanedev/examples/node/hello-world-javascript/airplane.yml\n")
+		fmt.Printf("\n    airplane tasks deploy -f github.com/airplanedev/examples/node/hello-world-javascript/airplane.yml\n")
 		return nil
 	}
 
