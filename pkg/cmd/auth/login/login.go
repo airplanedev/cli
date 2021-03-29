@@ -2,6 +2,7 @@ package login
 
 import (
 	"context"
+	"errors"
 
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/conf"
@@ -24,19 +25,49 @@ func New(c *cli.Config) *cobra.Command {
 
 // Run runs the login command.
 func run(ctx context.Context, cmd *cobra.Command, c *cli.Config) error {
-	if err := EnsureLoggedIn(ctx, cmd, c); err != nil {
-		return err
+	if !isLoggedIn(c) {
+		if err := login(ctx, cmd, c); err != nil {
+			return err
+		}
 	}
 
 	cmd.Printf("You're all set!\n\nTo see what tasks you can run, try:\n    airplane tasks list\n")
 	return nil
 }
 
+var (
+	ErrLoggedOut = errors.New("You are not logged in. To login, run:\n    airplane auth login")
+)
+
 func EnsureLoggedIn(ctx context.Context, cmd *cobra.Command, c *cli.Config) error {
-	if c.Client.Token != "" {
+	if isLoggedIn(c) {
 		return nil
 	}
 
+	if !utils.CanPrompt() {
+		return ErrLoggedOut
+	}
+
+	if ok, err := utils.Confirm("You are not logged in. Do you want to login now?"); err != nil {
+		return err
+	} else if !ok {
+		return ErrLoggedOut
+	}
+
+	cmd.Printf("\n  Logging in...\n\n")
+
+	if err := login(ctx, cmd, c); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func isLoggedIn(c *cli.Config) bool {
+	return c.Client.Token != ""
+}
+
+func login(ctx context.Context, cmd *cobra.Command, c *cli.Config) error {
 	srv, err := token.NewServer(ctx)
 	if err != nil {
 		return err

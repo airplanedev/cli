@@ -2,12 +2,10 @@ package taskdir
 
 import (
 	"io/ioutil"
-	"os"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/utils"
-	"github.com/mattn/go-isatty"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v3"
 )
@@ -35,7 +33,7 @@ type Definition struct {
 }
 
 func (this Definition) Validate() (Definition, error) {
-	canPrompt := isatty.IsTerminal(os.Stdout.Fd())
+	canPrompt := utils.CanPrompt()
 
 	if this.Slug == "" {
 		if !canPrompt {

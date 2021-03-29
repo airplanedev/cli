@@ -27,22 +27,22 @@ func NewJSONFormatter() *JSON {
 
 // Tasks implementation.
 func (j *JSON) tasks(tasks []api.Task) {
-	j.encErr.Encode(tasks)
+	j.encOut.Encode(tasks)
 }
 
 // Task implementation.
 func (j *JSON) task(task api.Task) {
-	j.encErr.Encode(task)
+	j.encOut.Encode(task)
 }
 
 // Runs implementation.
 func (j *JSON) runs(runs []api.Run) {
-	j.encErr.Encode(runs)
+	j.encOut.Encode(runs)
 }
 
 // Run implementation.
 func (j *JSON) run(run api.Run) {
-	j.encErr.Encode(run)
+	j.encOut.Encode(run)
 }
 
 func (j *JSON) outputs(outputs api.Outputs) {

@@ -21,7 +21,7 @@ type JsonObject map[string]interface{}
 
 // Tasks implementation.
 func (t Table) tasks(tasks []api.Task) {
-	tw := tablewriter.NewWriter(os.Stderr)
+	tw := tablewriter.NewWriter(os.Stdout)
 	tw.SetBorder(false)
 	tw.SetHeader([]string{"name", "slug", "builder", "arguments"})
 
@@ -50,7 +50,7 @@ func (t Table) task(task api.Task) {
 
 // Runs implementation.
 func (t Table) runs(runs []api.Run) {
-	tw := tablewriter.NewWriter(os.Stderr)
+	tw := tablewriter.NewWriter(os.Stdout)
 	tw.SetBorder(false)
 	tw.SetHeader([]string{"id", "status", "created at", "ended at"})
 
