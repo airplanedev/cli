@@ -33,23 +33,37 @@ func initFromSample(cmd *cobra.Command, cfg config) error {
 		return err
 	}
 
-	var filedir string
-	if cfg.file == "" {
+	var outputdir string
+	if cfg.file != "" {
+		// If a user passed a file path, store the sample in the user-provided directory.
+		// In the case of `-f airplane.yml`, that would be the current directory.
+		outputdir = path.Dir(cfg.file)
+	} else {
 		// By default, store the sample in a directory with the same name
 		// as the containing directory in GitHub.
-		filedir = path.Base(path.Dir(dir.DefinitionPath()))
-	} else {
-		// Otherwise, store it in the user-provided directory.
-		// In the case of `-f airplane.yml`, that would be the current directory.
-		filedir = path.Dir(cfg.file)
+		outputdir = path.Base(path.Dir(dir.DefinitionPath()))
 	}
-	// TODO: consider renaming the task definition to match what a user provided with `-f`.
-	file := path.Join(filedir, path.Base(dir.DefinitionPath()))
 
-	if err := copy.Copy(dir.Dir, filedir); err != nil {
+	// Rename the sample definition to match the filename in the `-f` argument.
+	// This is done to maintain semantic consistency with the other kinds of
+	// init, but is not strictly necessary.
+	defname := path.Base(cfg.file)
+	if defname != path.Base(dir.DefinitionPath()) {
+		if err := os.Rename(
+			dir.DefinitionPath(),
+			path.Join(path.Dir(dir.DefinitionPath()), defname),
+		); err != nil {
+			return errors.Wrap(err, "renaming task definitino")
+		}
+	}
+
+	// Copy the sample code from the temporary directory into the user's
+	// local directory.
+	if err := copy.Copy(dir.Dir, outputdir); err != nil {
 		return errors.Wrap(err, "copying sample directory")
 	}
 
+	file := path.Join(outputdir, path.Base(dir.DefinitionPath()))
 	cmd.Printf(`An Airplane task definition for '%s' has been created!
 
 To deploy it to Airplane, run:

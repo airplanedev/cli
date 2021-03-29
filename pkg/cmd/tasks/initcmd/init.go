@@ -92,14 +92,14 @@ func pickInitKind() (initKind, error) {
 	if err := survey.AskOne(
 		&survey.Select{
 			Message: "How do you want to get started?",
-			// TODO: upstream the ability to disable Survey's search filter
+			// TODO: disable the search filter on this Select. Will require an upstream
+			// change to the survey repo.
 			Options: []string{
 				string(initKindSample),
 				string(initKindScratch),
 				string(initKindTask),
 			},
 			Default: string(initKindSample),
-			// Help:    "todo",
 		},
 		&kind,
 		survey.WithStdio(os.Stdin, os.Stderr, os.Stderr),
