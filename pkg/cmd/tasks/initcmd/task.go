@@ -12,7 +12,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func initFromExisting(ctx context.Context, cmd *cobra.Command, cfg config) error {
+func initFromTask(ctx context.Context, cmd *cobra.Command, cfg config) error {
 	client := cfg.cli.Client
 
 	var task api.Task

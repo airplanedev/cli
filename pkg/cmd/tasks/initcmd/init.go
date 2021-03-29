@@ -56,7 +56,7 @@ func run(ctx context.Context, cmd *cobra.Command, cfg config) error {
 			return err
 		}
 	} else {
-		kind = initKindExisting
+		kind = initKindTask
 	}
 
 	switch kind {
@@ -68,8 +68,8 @@ func run(ctx context.Context, cmd *cobra.Command, cfg config) error {
 		if err := initFromScratch(cmd, cfg); err != nil {
 			return err
 		}
-	case initKindExisting:
-		if err := initFromExisting(ctx, cmd, cfg); err != nil {
+	case initKindTask:
+		if err := initFromTask(ctx, cmd, cfg); err != nil {
 			return err
 		}
 	default:
@@ -82,9 +82,9 @@ func run(ctx context.Context, cmd *cobra.Command, cfg config) error {
 type initKind string
 
 var (
-	initKindSample   initKind = "Create from an Airplane-provided sample"
-	initKindScratch  initKind = "Create from scratch"
-	initKindExisting initKind = "Create from an existing Airplane task"
+	initKindSample  initKind = "Create from an Airplane-provided sample"
+	initKindScratch initKind = "Create from scratch"
+	initKindTask    initKind = "Create from an existing Airplane task"
 )
 
 func pickInitKind() (initKind, error) {
@@ -96,7 +96,7 @@ func pickInitKind() (initKind, error) {
 			Options: []string{
 				string(initKindSample),
 				string(initKindScratch),
-				string(initKindExisting),
+				string(initKindTask),
 			},
 			Default: string(initKindSample),
 			// Help:    "todo",
