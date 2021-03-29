@@ -66,6 +66,10 @@ func (this Definition) Validate() (Definition, error) {
 	return this, nil
 }
 
+func (this TaskDirectory) DefinitionPath() string {
+	return this.path
+}
+
 func (this TaskDirectory) ReadDefinition() (Definition, error) {
 	buf, err := ioutil.ReadFile(this.path)
 	if err != nil {
