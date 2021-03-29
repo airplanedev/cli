@@ -1,0 +1,12 @@
+{
+  "name": "hello-world-typescript",
+  "version": "1.0.0",
+  "main": "main.ts",
+  "dependencies": {
+    "yargs": "^16.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^14.14.35",
+    "@types/yargs": "^16.0.0"
+  }
+}

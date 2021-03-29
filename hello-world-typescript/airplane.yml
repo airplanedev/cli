@@ -1,0 +1,15 @@
+name: Hello World
+description: Greets you by name!
+
+builder: node
+builderConfig:
+  entrypoint: main.ts
+  language: typescript
+  nodeVersion: "15.11.0"
+
+arguments: ["--name", "{{.name}}"]
+parameters:
+  - name: Name
+    slug: name
+    type: string
+    default: World
