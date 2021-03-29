@@ -46,55 +46,54 @@ func initFromScratch(cmd *cobra.Command, cfg config) error {
 	}
 
 	if runtime == runtimeKindManual {
-		// TODO: select an image + entrypoint
+		// TODO: let folks select an image
+		def.Image = "alpine:3"
+		def.Command = []string{"echo", `"Hello World"`}
 	} else {
-		def.Builder, def.BuilderConfig = defaultRuntimeConfig(runtime)
+		if def.Builder, def.BuilderConfig, err = defaultRuntimeConfig(runtime); err != nil {
+			return err
+		}
 	}
 
 	if err := dir.WriteDefinition(def); err != nil {
 		return err
 	}
 
-	// TODO: maybe ask for a parameter?
-
 	cmd.Printf(`An Airplane task definition for '%s' has been created in %s!
 
-(TODO: instructions)
-
-Then, deploy it to Airplane with:
-	airplane tasks deploy -f %s`, name, file, file)
+Once you implement your task, deploy it to Airplane with:
+  airplane tasks deploy -f %s`, name, file, file)
 
 	return nil
 }
 
-func defaultRuntimeConfig(runtime runtimeKind) (string, api.BuilderConfig) {
+func defaultRuntimeConfig(runtime runtimeKind) (string, api.BuilderConfig, error) {
+	// TODO: let folks pick the following configuration
 	switch runtime {
 	case runtimeKindDeno:
 		return "deno", api.BuilderConfig{
 			"entrypoint": "main.ts",
-		}
+		}, nil
 	case runtimeKindDockerfile:
 		return "docker", api.BuilderConfig{
 			"dockerfile": "Dockerfile",
-		}
+		}, nil
 	case runtimeKindGo:
-		return "docker", api.BuilderConfig{
-			"dockerfile": "Dockerfile",
-		}
-	case runtimeKindManual:
-		return "docker", api.BuilderConfig{
-			"dockerfile": "Dockerfile",
-		}
+		return "go", api.BuilderConfig{
+			"entrypoint": "main.go",
+		}, nil
 	case runtimeKindNode:
-		return "docker", api.BuilderConfig{
-			"dockerfile": "Dockerfile",
-		}
+		return "node", api.BuilderConfig{
+			"entrypoint":  "main.js",
+			"language":    "javascript",
+			"nodeVersion": "15",
+		}, nil
 	case runtimeKindPython:
-		return "docker", api.BuilderConfig{
-			"dockerfile": "Dockerfile",
-		}
+		return "python", api.BuilderConfig{
+			"entrypoint": "main.py",
+		}, nil
 	default:
-		return "", nil
+		return "", nil, errors.Errorf("unknown runtime: %s", runtime)
 	}
 }
 

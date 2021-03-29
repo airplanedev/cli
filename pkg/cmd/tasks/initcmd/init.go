@@ -63,7 +63,9 @@ func run(ctx context.Context, cmd *cobra.Command, cfg config) error {
 			return err
 		}
 	case initKindScratch:
-		// TODO
+		if err := initFromScratch(cmd, cfg); err != nil {
+			return err
+		}
 	case initKindExisting:
 		if err := initFromExisting(ctx, cmd, cfg); err != nil {
 			return err
