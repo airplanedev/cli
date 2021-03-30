@@ -6,11 +6,12 @@ package initcmd
 
 import (
 	"context"
+	"os"
 
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/MakeNowJust/heredoc"
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/logger"
-	"github.com/airplanedev/cli/pkg/taskdir"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -37,50 +38,75 @@ func New(c *cli.Config) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&cfg.file, "file", "f", "airplane.yml", "Path to a file to store task definition")
+	cmd.Flags().StringVarP(&cfg.file, "file", "f", "", "Path to a file to store task definition")
 	cmd.Flags().StringVar(&cfg.from, "from", "", "Slug of an existing task to generate from")
-
-	// --from is the only way to use `init` for now. We'll soon add
-	// a way to be prompted through the creation of a task def.
-	cli.Must(cmd.MarkFlagRequired("from"))
 
 	return cmd
 }
 
 func run(ctx context.Context, cfg config) error {
-	var client = cfg.root.Client
+	var kind initKind
+	var err error
+	// If --from is provided, we already know the user wants to create
+	// from an existing task, so we don't need to prompt the user here.
+	if cfg.from == "" {
+		logger.Log("Airplane is a development platform for engineers building internal tools.\n")
+		logger.Log("This command will configure a task definition which Airplane uses to deploy your task.\n")
 
-	res, err := client.GetTask(ctx, cfg.from)
-	if err != nil {
-		return errors.Wrap(err, "get task")
+		if kind, err = pickInitKind(); err != nil {
+			return err
+		}
+	} else {
+		kind = initKindTask
 	}
 
-	dir, err := taskdir.Open(cfg.file)
-	if err != nil {
-		return errors.Wrap(err, "opening task directory")
+	switch kind {
+	case initKindSample:
+		if err := initFromSample(cfg); err != nil {
+			return err
+		}
+	case initKindScratch:
+		if err := initFromScratch(cfg); err != nil {
+			return err
+		}
+	case initKindTask:
+		if err := initFromTask(ctx, cfg); err != nil {
+			return err
+		}
+	default:
+		return errors.Errorf("Unexpected unknown initKind choice: %s", kind)
 	}
-	defer dir.Close()
-
-	if err := dir.WriteDefinition(taskdir.Definition{
-		Slug:           res.Slug,
-		Name:           res.Name,
-		Description:    res.Description,
-		Image:          res.Image,
-		Command:        res.Command,
-		Arguments:      res.Arguments,
-		Parameters:     res.Parameters,
-		Constraints:    res.Constraints,
-		Env:            res.Env,
-		ResourceLimits: res.ResourceLimits,
-		Builder:        res.Builder,
-		BuilderConfig:  res.BuilderConfig,
-		Repo:           res.Repo,
-		Timeout:        res.Timeout,
-	}); err != nil {
-		return errors.Wrap(err, "writing task definition")
-	}
-
-	logger.Log("Created an Airplane task definition for %s in %s", res.Name, cfg.file)
 
 	return nil
+}
+
+type initKind string
+
+const (
+	initKindSample  initKind = "Create from an Airplane-provided sample"
+	initKindScratch initKind = "Create from scratch"
+	initKindTask    initKind = "Import from an existing Airplane task"
+)
+
+func pickInitKind() (initKind, error) {
+	var kind string
+	if err := survey.AskOne(
+		&survey.Select{
+			Message: "How do you want to get started?",
+			// TODO: disable the search filter on this Select. Will require an upstream
+			// change to the survey repo.
+			Options: []string{
+				string(initKindSample),
+				string(initKindScratch),
+				string(initKindTask),
+			},
+			Default: string(initKindSample),
+		},
+		&kind,
+		survey.WithStdio(os.Stdin, os.Stderr, os.Stderr),
+	); err != nil {
+		return initKind(""), errors.Wrap(err, "selecting kind of init")
+	}
+
+	return initKind(kind), nil
 }
