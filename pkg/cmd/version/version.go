@@ -18,8 +18,8 @@ var (
 func New(c *cli.Config) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "version",
-		Short: "Prints the CLI version",
-		Long:  "Prints the CLI version",
+		Short: "Print the CLI version",
+		Long:  "Print the CLI version",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return run(cmd.Context())
 		},
