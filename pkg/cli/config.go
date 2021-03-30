@@ -1,6 +1,8 @@
 package cli
 
-import "github.com/airplanedev/cli/pkg/api"
+import (
+	"github.com/airplanedev/cli/pkg/api"
+)
 
 // Config represents command configuration.
 //
@@ -12,6 +14,10 @@ type Config struct {
 	// It is initialized in the root command and passed
 	// down to all commands.
 	Client *api.Client
+
+	// DebugMode indicates if the CLI should produce additional
+	// debug output to guide end-users through issues.
+	DebugMode bool
 
 	// Version indicates if the CLI version should be printed.
 	Version bool

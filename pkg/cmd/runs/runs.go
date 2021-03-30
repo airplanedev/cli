@@ -23,7 +23,7 @@ func New(c *cli.Config) *cobra.Command {
 			airplane runs get <id>
 		`),
 		PersistentPreRunE: utils.WithParentPersistentPreRunE(func(cmd *cobra.Command, args []string) error {
-			return login.EnsureLoggedIn(context.TODO(), cmd, c)
+			return login.EnsureLoggedIn(context.TODO(), c)
 		}),
 	}
 

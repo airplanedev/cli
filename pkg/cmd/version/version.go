@@ -3,9 +3,9 @@ package version
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/airplanedev/cli/pkg/cli"
+	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/spf13/cobra"
 )
 
@@ -29,11 +29,11 @@ func New(c *cli.Config) *cobra.Command {
 }
 
 func Version() string {
-	return fmt.Sprintf("Version: %s (%s)\n", version, compileDate)
+	return fmt.Sprintf("Version: %s (%s)", version, compileDate)
 }
 
 func run(ctx context.Context) error {
-	fmt.Fprint(os.Stderr, Version())
+	logger.Log(Version())
 
 	return nil
 }

@@ -5,6 +5,7 @@ import (
 
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/conf"
+	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -14,13 +15,13 @@ func New(c *cli.Config) *cobra.Command {
 		Use:   "logout",
 		Short: "Log out of Airplane",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return run(cmd.Context(), cmd, c)
+			return run(cmd.Context(), c)
 		},
 	}
 	return cmd
 }
 
-func run(ctx context.Context, cmd *cobra.Command, c *cli.Config) error {
+func run(ctx context.Context, c *cli.Config) error {
 	cfg, err := conf.ReadDefault()
 	if !errors.Is(err, conf.ErrMissing) {
 		cfg.Token = ""
@@ -30,7 +31,7 @@ func run(ctx context.Context, cmd *cobra.Command, c *cli.Config) error {
 		}
 	}
 
-	cmd.Printf("Logged out.\n")
+	logger.Log("Logged out.")
 
 	return nil
 }

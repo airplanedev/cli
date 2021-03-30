@@ -9,19 +9,20 @@ import (
 
 	"github.com/MakeNowJust/heredoc"
 	"github.com/airplanedev/cli/pkg/cli"
+	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/taskdir"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
 type config struct {
-	cli  *cli.Config
+	root *cli.Config
 	file string
 	from string
 }
 
 func New(c *cli.Config) *cobra.Command {
-	var cfg = config{cli: c}
+	var cfg = config{root: c}
 
 	cmd := &cobra.Command{
 		Use:   "init",
@@ -32,7 +33,7 @@ func New(c *cli.Config) *cobra.Command {
 			$ airplane tasks init --from hello_world
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return run(cmd.Context(), cmd, cfg)
+			return run(cmd.Context(), cfg)
 		},
 	}
 
@@ -46,8 +47,8 @@ func New(c *cli.Config) *cobra.Command {
 	return cmd
 }
 
-func run(ctx context.Context, cmd *cobra.Command, cfg config) error {
-	var client = cfg.cli.Client
+func run(ctx context.Context, cfg config) error {
+	var client = cfg.root.Client
 
 	res, err := client.GetTask(ctx, cfg.from)
 	if err != nil {
@@ -79,7 +80,7 @@ func run(ctx context.Context, cmd *cobra.Command, cfg config) error {
 		return errors.Wrap(err, "writing task definition")
 	}
 
-	cmd.Printf("Created an Airplane task definition for %s in %s\n", res.Name, cfg.file)
+	logger.Log("Created an Airplane task definition for %s in %s", res.Name, cfg.file)
 
 	return nil
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/fatih/color"
 	"github.com/kr/text"
 	"github.com/spf13/cobra"
@@ -20,33 +21,33 @@ func usage(cmd *cobra.Command) error {
 
 // Help prints the help for a command.
 func help(cmd *cobra.Command, args []string) {
-	cmd.Println()
-	cmd.Printf("%s\n", bold("Usage:"))
-	cmd.Printf("  %s\n", cmd.UseLine())
+	logger.Log("")
+	logger.Log("%s", bold("Usage:"))
+	logger.Log("  %s", cmd.UseLine())
 
 	if cmd.HasSubCommands() {
-		cmd.Printf("\n%s\n", bold("Commands:"))
+		logger.Log("\n%s", bold("Commands:"))
 		for _, cmd := range cmd.Commands() {
 			if !cmd.Hidden {
 				name := rpad(cmd.Name(), cmd.NamePadding())
-				cmd.Printf("  %s\n", name+cmd.Short)
+				logger.Log("  %s", name+cmd.Short)
 			}
 		}
 	}
 
 	if flags := cmd.LocalFlags().FlagUsages(); flags != "" {
-		s := trim(dedent(flags))
-		cmd.Printf("\n%s\n", bold("Flags:"))
-		cmd.Printf("%s\n", text.Indent(s, "  "))
+		s := dedent(flags)
+		logger.Log("\n%s", bold("Flags:"))
+		logger.Log("%s", text.Indent(s, "  "))
 	}
 
 	if cmd.HasExample() {
 		s := trim(cmd.Example)
-		cmd.Printf("\n%s\n", bold("Examples:"))
-		cmd.Printf("%s\n", text.Indent(s, "  "))
+		logger.Log("\n%s", bold("Examples:"))
+		logger.Log("%s", text.Indent(s, "  "))
 	}
 
-	cmd.Println()
+	logger.Log("")
 }
 
 // Trim trims all spaces.

@@ -2,10 +2,10 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"os"
 
 	"github.com/airplanedev/cli/pkg/cmd/root"
+	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/trap"
 	"github.com/pkg/errors"
 	_ "github.com/segmentio/events/v2/text"
@@ -26,9 +26,15 @@ func main() {
 			// TODO(amir): output operation canceled?
 			return
 		}
-		fmt.Println("")
-		fmt.Printf("  Error: %s\n", errors.Cause(err).Error())
-		fmt.Println("")
+
+		logger.Log("")
+		if logger.EnableDebug {
+			logger.Debug("  Error: %+v", err)
+		} else {
+			logger.Log("  Error: %s", errors.Cause(err).Error())
+		}
+		logger.Log("")
+
 		os.Exit(1)
 	}
 }

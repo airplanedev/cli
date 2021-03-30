@@ -2,10 +2,10 @@ package list
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/MakeNowJust/heredoc"
 	"github.com/airplanedev/cli/pkg/cli"
+	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/print"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -37,8 +37,9 @@ func run(ctx context.Context, c *cli.Config) error {
 	}
 
 	if len(res.Tasks) == 0 {
-		fmt.Printf("\n  There are no tasks yet. To create a sample task:\n")
-		fmt.Printf("\n    airplane tasks deploy -f github.com/airplanedev/examples/node/hello-world-javascript/airplane.yml\n")
+		logger.Log(`
+  There are no tasks yet. To create a sample task:
+    airplane tasks deploy -f github.com/airplanedev/examples/node/hello-world-javascript/airplane.yml`)
 		return nil
 	}
 
