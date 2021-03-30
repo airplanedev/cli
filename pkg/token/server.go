@@ -13,7 +13,7 @@ import (
 var (
 	// DocsURL is the URL to redirect to after the token
 	// has been sent on the channel.
-	DocsURL = "https://github.com/airplanedev/cli"
+	DocsURL = "https://docs.airplane.dev/misc/cli-login-successful"
 )
 
 // Server implements a local token server.
