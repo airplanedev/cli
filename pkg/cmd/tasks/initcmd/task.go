@@ -9,6 +9,7 @@ import (
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/taskdir"
+	"github.com/airplanedev/cli/pkg/utils"
 	"github.com/pkg/errors"
 )
 
@@ -27,6 +28,18 @@ func initFromTask(ctx context.Context, cfg config) error {
 		}
 	}
 
+	slug, err := utils.PickSlug(task.Slug, survey.WithValidator(func(val interface{}) error {
+		// For convenience, we default the slug to the cloned task's slug. But make sure they change it.
+		if str, ok := val.(string); ok && str == task.Slug {
+			return errors.New("You must pick a new slug.")
+		}
+
+		return nil
+	}))
+	if err != nil {
+		return err
+	}
+
 	file := cfg.file
 	if file == "" {
 		file = "airplane.yml"
@@ -38,7 +51,7 @@ func initFromTask(ctx context.Context, cfg config) error {
 	defer dir.Close()
 
 	if err := dir.WriteDefinition(taskdir.Definition{
-		Slug:           task.Slug,
+		Slug:           slug,
 		Name:           task.Name,
 		Description:    task.Description,
 		Image:          task.Image,
