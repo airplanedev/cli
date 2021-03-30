@@ -21,11 +21,6 @@ func node(root string, args Args) (string, error) {
 	var lang = args["language"]
 	var cmds []string
 
-	// Default version.
-	if version == "" {
-		version = "15"
-	}
-
 	// Make sure that entrypoint and `package.json` exist.
 	if err := exist(main, deps); err != nil {
 		return "", err
@@ -87,9 +82,12 @@ ENTRYPOINT ["node", "{{ .Main }}"]
 	return buf.String(), nil
 }
 
-// expandVersion returns a pinned minor version of Node to use
-func expandVersion(version string) string {
+// expandNodeVersion returns a pinned minor version of Node to use
+func expandNodeVersion(version string) string {
 	switch version {
+	case "":
+		// If empty, use default of 15
+		fallthrough
 	case "15":
 		return "15.12"
 	case "14":
