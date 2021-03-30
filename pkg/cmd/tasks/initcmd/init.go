@@ -82,10 +82,10 @@ func run(ctx context.Context, cfg config) error {
 
 type initKind string
 
-var (
+const (
 	initKindSample  initKind = "Create from an Airplane-provided sample"
 	initKindScratch initKind = "Create from scratch"
-	initKindTask    initKind = "Create from an existing Airplane task"
+	initKindTask    initKind = "Clone from an existing Airplane task"
 )
 
 func pickInitKind() (initKind, error) {

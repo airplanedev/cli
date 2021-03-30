@@ -100,7 +100,7 @@ func defaultRuntimeConfig(runtime runtimeKind) (string, api.BuilderConfig, error
 
 type runtimeKind string
 
-var (
+const (
 	runtimeKindNode       runtimeKind = "Node.js"
 	runtimeKindPython     runtimeKind = "Python"
 	runtimeKindDeno       runtimeKind = "Deno"

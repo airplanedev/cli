@@ -47,8 +47,9 @@ func initFromSample(cfg config) error {
 	// Rename the sample definition to match the filename in the `-f` argument.
 	// This is done to maintain semantic consistency with the other kinds of
 	// init, but is not strictly necessary.
-	defname := path.Base(cfg.file)
-	if cfg.file != "" && defname != path.Base(dir.DefinitionPath()) {
+	defname := path.Base(dir.DefinitionPath())
+	if cfg.file != "" && defname != path.Base(cfg.file) {
+		defname = path.Base(cfg.file)
 		if err := os.Rename(
 			dir.DefinitionPath(),
 			path.Join(path.Dir(dir.DefinitionPath()), defname),
@@ -63,7 +64,7 @@ func initFromSample(cfg config) error {
 		return errors.Wrap(err, "copying sample directory")
 	}
 
-	file := path.Join(outputdir, path.Base(dir.DefinitionPath()))
+	file := path.Join(outputdir, defname)
 	logger.Log(`
 An Airplane task definition for '%s' has been created!
 
