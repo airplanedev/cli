@@ -80,7 +80,7 @@ func run(ctx context.Context, cfg config) error {
 		return errors.Wrap(err, "writing task definition")
 	}
 
-	logger.Log("Created an Airplane task definition for %s in %s\n", res.Name, cfg.file)
+	logger.Log("Created an Airplane task definition for %s in %s", res.Name, cfg.file)
 
 	return nil
 }

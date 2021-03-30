@@ -31,7 +31,7 @@ func run(ctx context.Context, c *cli.Config) error {
 		}
 	}
 
-	logger.Log("Logged out.\n")
+	logger.Log("Logged out.")
 
 	return nil
 }

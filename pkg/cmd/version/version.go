@@ -33,7 +33,7 @@ func Version() string {
 }
 
 func run(ctx context.Context) error {
-	logger.Log(Version() + "\n")
+	logger.Log(Version())
 
 	return nil
 }

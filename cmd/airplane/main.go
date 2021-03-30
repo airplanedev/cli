@@ -27,13 +27,13 @@ func main() {
 			return
 		}
 
-		logger.Log("\n")
+		logger.Log("")
 		if logger.EnableDebug {
-			logger.Debug("  Error: %+v\n", err)
+			logger.Debug("  Error: %+v", err)
 		} else {
-			logger.Log("  Error: %s\n", errors.Cause(err).Error())
+			logger.Log("  Error: %s", errors.Cause(err).Error())
 		}
-		logger.Log("\n")
+		logger.Log("")
 
 		os.Exit(1)
 	}

@@ -32,7 +32,7 @@ func run(ctx context.Context, c *cli.Config) error {
 		}
 	}
 
-	logger.Log("You're all set!\n\nTo see what tasks you can run, try:\n    airplane tasks list\n")
+	logger.Log("You're all set!\n\nTo see what tasks you can run, try:\n    airplane tasks list")
 	return nil
 }
 
@@ -55,7 +55,7 @@ func EnsureLoggedIn(ctx context.Context, c *cli.Config) error {
 		return ErrLoggedOut
 	}
 
-	logger.Log("\n  Logging in...\n\n")
+	logger.Log("\n  Logging in...\n")
 
 	if err := login(ctx, c); err != nil {
 		return err
@@ -77,7 +77,7 @@ func login(ctx context.Context, c *cli.Config) error {
 
 	url := c.Client.LoginURL(srv.URL())
 	if ok := utils.Open(url); !ok {
-		logger.Log("Visit %s to complete logging in\n", url)
+		logger.Log("Visit %s to complete logging in", url)
 	}
 
 	select {

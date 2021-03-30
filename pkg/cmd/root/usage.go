@@ -21,33 +21,33 @@ func usage(cmd *cobra.Command) error {
 
 // Help prints the help for a command.
 func help(cmd *cobra.Command, args []string) {
-	logger.Log("\n")
-	logger.Log("%s\n", bold("Usage:"))
-	logger.Log("  %s\n", cmd.UseLine())
+	logger.Log("")
+	logger.Log("%s", bold("Usage:"))
+	logger.Log("  %s", cmd.UseLine())
 
 	if cmd.HasSubCommands() {
-		logger.Log("\n%s\n", bold("Commands:"))
+		logger.Log("\n%s", bold("Commands:"))
 		for _, cmd := range cmd.Commands() {
 			if !cmd.Hidden {
 				name := rpad(cmd.Name(), cmd.NamePadding())
-				logger.Log("  %s\n", name+cmd.Short)
+				logger.Log("  %s", name+cmd.Short)
 			}
 		}
 	}
 
 	if flags := cmd.LocalFlags().FlagUsages(); flags != "" {
 		s := dedent(flags)
-		logger.Log("\n%s\n", bold("Flags:"))
-		logger.Log("%s\n", text.Indent(s, "  "))
+		logger.Log("\n%s", bold("Flags:"))
+		logger.Log("%s", text.Indent(s, "  "))
 	}
 
 	if cmd.HasExample() {
 		s := trim(cmd.Example)
-		logger.Log("\n%s\n", bold("Examples:"))
-		logger.Log("%s\n", text.Indent(s, "  "))
+		logger.Log("\n%s", bold("Examples:"))
+		logger.Log("%s", text.Indent(s, "  "))
 	}
 
-	logger.Log("\n")
+	logger.Log("")
 }
 
 // Trim trims all spaces.

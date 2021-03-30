@@ -68,7 +68,7 @@ func run(ctx context.Context, cfg config) error {
 		taskID = task.ID
 	} else if aerr, ok := err.(api.Error); ok && aerr.Code == 404 {
 		// A task with this slug does not exist, so we should create one.
-		logger.Log("  Creating...\n")
+		logger.Log("  Creating...")
 		if res, err := client.CreateTask(ctx, api.CreateTaskRequest{
 			Slug:           def.Slug,
 			Name:           def.Name,
@@ -118,13 +118,13 @@ func run(ctx context.Context, cfg config) error {
 			return errors.Wrap(err, "new build")
 		}
 
-		logger.Log("  Building...\n")
+		logger.Log("  Building...")
 		bo, err := b.Build(ctx, taskID, "latest")
 		if err != nil {
 			return errors.Wrap(err, "build")
 		}
 
-		logger.Log("  Updating...\n")
+		logger.Log("  Updating...")
 		if err := b.Push(ctx, bo.Tag); err != nil {
 			return errors.Wrap(err, "push")
 		}
@@ -149,7 +149,7 @@ func run(ctx context.Context, cfg config) error {
 		return errors.Wrapf(err, "updating task %s", def.Slug)
 	}
 
-	logger.Log("  Done!\n")
+	logger.Log("  Done!")
 	cmd := fmt.Sprintf("airplane tasks execute %s", def.Slug)
 	if len(def.Parameters) > 0 {
 		cmd += " -- [parameters]"
@@ -157,8 +157,7 @@ func run(ctx context.Context, cfg config) error {
 	logger.Log(`
 To execute %s:
 - From the CLI: %s
-- From the UI: %s
-`, def.Name, cmd, client.TaskURL(taskID))
+- From the UI: %s`, def.Name, cmd, client.TaskURL(taskID))
 
 	return nil
 }
