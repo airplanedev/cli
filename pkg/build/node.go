@@ -23,7 +23,7 @@ func node(root string, args Args) (string, error) {
 
 	// Default version.
 	if version == "" {
-		version = "15.8"
+		version = "15"
 	}
 
 	// Make sure that entrypoint and `package.json` exist.
@@ -75,7 +75,7 @@ ENTRYPOINT ["node", "{{ .Main }}"]
 		Commands    []string
 		Main        string
 	}
-	data.NodeVersion = version
+	data.NodeVersion = expandVersion(version)
 	data.Commands = cmds
 	data.Main = entrypoint
 
@@ -85,4 +85,19 @@ ENTRYPOINT ["node", "{{ .Main }}"]
 	}
 
 	return buf.String(), nil
+}
+
+// expandVersion returns a pinned minor version of Node to use
+func expandVersion(version string) string {
+	switch version {
+	case "15":
+		return "15.12"
+	case "14":
+		return "14.16"
+	case "12":
+		return "12.22"
+	default:
+		// Assume the version is already a more-specific version - default to just returning it back
+		return version
+	}
 }
