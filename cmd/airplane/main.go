@@ -26,9 +26,15 @@ func main() {
 			// TODO(amir): output operation canceled?
 			return
 		}
+
 		logger.Log("\n")
-		logger.Log("  Error: %s\n", errors.Cause(err).Error())
+		if logger.EnableDebug {
+			logger.Debug("  Error: %+v\n", err)
+		} else {
+			logger.Log("  Error: %s\n", errors.Cause(err).Error())
+		}
 		logger.Log("\n")
+
 		os.Exit(1)
 	}
 }
