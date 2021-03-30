@@ -81,31 +81,6 @@ func (this TaskDirectory) WriteSlug(slug string) error {
 	return nil
 }
 
-func (this TaskDirectory) SetSlug(slug string) error {
-	if def, err := this.ReadDefinition(); err != nil {
-		return err
-	} else if def.Slug != "" {
-		return errors.New("SetSlug does not support updating slugs")
-	}
-
-	buf, err := ioutil.ReadFile(this.path)
-	if err != nil {
-		return errors.Wrap(err, "reading task definition")
-	}
-
-	// We want to preserve the contents of the task definition. Therefore, we
-	// avoid marshalling to make this change.
-	//
-	//
-	contents := "slug: " + slug + "\n" + string(buf)
-
-	if err := ioutil.WriteFile(this.path, []byte(contents), 0664); err != nil {
-		return errors.Wrap(err, "writing file")
-	}
-
-	return nil
-}
-
 func (this TaskDirectory) WriteDefinition(def Definition) error {
 	data, err := yaml.Marshal(def)
 	if err != nil {
