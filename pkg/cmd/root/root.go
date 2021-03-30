@@ -72,7 +72,7 @@ func New() *cobra.Command {
 		defaultFormat = "json"
 	}
 	cmd.PersistentFlags().StringVarP(&output, "output", "o", defaultFormat, "The format to use for output (json|yaml|table).")
-	cmd.PersistentFlags().BoolVarP(&cfg.Version, "version", "v", false, "Show the CLI version.")
+	cmd.PersistentFlags().BoolVarP(&cfg.Version, "version", "v", false, "Print the CLI version.")
 
 	// Sub-commands.
 	cmd.AddCommand(auth.New(cfg))
