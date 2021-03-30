@@ -18,6 +18,9 @@ type Config struct {
 	// DebugMode indicates if the CLI should produce additional
 	// debug output to guide end-users through issues.
 	DebugMode bool
+
+	// Version indicates if the CLI version should be printed.
+	Version bool
 }
 
 // Must should be used for Cobra initialize commands that can return an error
