@@ -70,7 +70,7 @@ ENTRYPOINT ["node", "{{ .Main }}"]
 		Commands    []string
 		Main        string
 	}
-	data.NodeVersion = expandVersion(version)
+	data.NodeVersion = expandNodeVersion(version)
 	data.Commands = cmds
 	data.Main = entrypoint
 
