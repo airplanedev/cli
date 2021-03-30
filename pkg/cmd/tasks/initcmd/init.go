@@ -50,8 +50,8 @@ func run(ctx context.Context, cfg config) error {
 	// If --from is provided, we already know the user wants to create
 	// from an existing task, so we don't need to prompt the user here.
 	if cfg.from == "" {
-		logger.Log("Airplane is the code-first solution for engineers building internal tools.\n")
-		logger.Log("This command will configure a task definition which specifies how to deploy your task to Airplane.\n")
+		logger.Log("Airplane is a development platform for engineers building internal tools.\n")
+		logger.Log("This command will configure a task definition which Airplane uses to deploy your task.\n")
 
 		if kind, err = pickInitKind(); err != nil {
 			return err
