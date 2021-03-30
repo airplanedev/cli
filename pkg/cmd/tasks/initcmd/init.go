@@ -85,7 +85,7 @@ type initKind string
 const (
 	initKindSample  initKind = "Create from an Airplane-provided sample"
 	initKindScratch initKind = "Create from scratch"
-	initKindTask    initKind = "Clone from an existing Airplane task"
+	initKindTask    initKind = "Import from an existing Airplane task"
 )
 
 func pickInitKind() (initKind, error) {
