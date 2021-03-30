@@ -85,7 +85,7 @@ func SetYAMLField(path, field, value string) error {
 	}
 	enc := yaml.NewEncoder(f)
 	enc.SetIndent(2)
-	if err := enc.Encode(&node); err != nil {
+	if err := enc.Encode(&root); err != nil {
 		return errors.Wrap(err, "marshaling task definition")
 	}
 
