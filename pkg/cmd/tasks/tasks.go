@@ -28,7 +28,7 @@ func New(c *cli.Config) *cobra.Command {
 			airplane tasks execute my_task
 		`),
 		PersistentPreRunE: utils.WithParentPersistentPreRunE(func(cmd *cobra.Command, args []string) error {
-			return login.EnsureLoggedIn(context.TODO(), cmd, c)
+			return login.EnsureLoggedIn(context.TODO(), c)
 		}),
 	}
 
