@@ -5,13 +5,13 @@ import (
 	"path"
 
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/taskdir"
 	"github.com/otiai10/copy"
 	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
 )
 
-func initFromSample(cmd *cobra.Command, cfg config) error {
+func initFromSample(cfg config) error {
 	runtime, err := pickRuntime()
 	if err != nil {
 		return err
@@ -64,12 +64,11 @@ func initFromSample(cmd *cobra.Command, cfg config) error {
 	}
 
 	file := path.Join(outputdir, path.Base(dir.DefinitionPath()))
-	cmd.Printf(`
+	logger.Log(`
 An Airplane task definition for '%s' has been created!
 
 To deploy it to Airplane, run:
-	airplane tasks deploy -f %s
-`, def.Name, file)
+	airplane tasks deploy -f %s`, def.Name, file)
 
 	return nil
 }

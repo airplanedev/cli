@@ -11,18 +11,19 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/MakeNowJust/heredoc"
 	"github.com/airplanedev/cli/pkg/cli"
+	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
 type config struct {
-	cli  *cli.Config
+	root *cli.Config
 	file string
 	from string
 }
 
 func New(c *cli.Config) *cobra.Command {
-	var cfg = config{cli: c}
+	var cfg = config{root: c}
 
 	cmd := &cobra.Command{
 		Use:   "init",
@@ -33,7 +34,7 @@ func New(c *cli.Config) *cobra.Command {
 			$ airplane tasks init --from hello_world
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return run(cmd.Context(), cmd, cfg)
+			return run(cmd.Context(), cfg)
 		},
 	}
 
@@ -43,14 +44,14 @@ func New(c *cli.Config) *cobra.Command {
 	return cmd
 }
 
-func run(ctx context.Context, cmd *cobra.Command, cfg config) error {
+func run(ctx context.Context, cfg config) error {
 	var kind initKind
 	var err error
 	// If --from is provided, we already know the user wants to create
 	// from an existing task, so we don't need to prompt the user here.
 	if cfg.from == "" {
-		cmd.Printf("Airplane is the code-first solution for engineers building internal tools.\n\n")
-		cmd.Printf("This command will configure a task definition which specifies how to deploy your task to Airplane.\n\n")
+		logger.Log("Airplane is the code-first solution for engineers building internal tools.\n")
+		logger.Log("This command will configure a task definition which specifies how to deploy your task to Airplane.\n")
 
 		if kind, err = pickInitKind(); err != nil {
 			return err
@@ -61,15 +62,15 @@ func run(ctx context.Context, cmd *cobra.Command, cfg config) error {
 
 	switch kind {
 	case initKindSample:
-		if err := initFromSample(cmd, cfg); err != nil {
+		if err := initFromSample(cfg); err != nil {
 			return err
 		}
 	case initKindScratch:
-		if err := initFromScratch(cmd, cfg); err != nil {
+		if err := initFromScratch(cfg); err != nil {
 			return err
 		}
 	case initKindTask:
-		if err := initFromTask(ctx, cmd, cfg); err != nil {
+		if err := initFromTask(ctx, cfg); err != nil {
 			return err
 		}
 	default:

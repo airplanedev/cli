@@ -7,13 +7,13 @@ import (
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/airplanedev/cli/pkg/api"
+	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/taskdir"
 	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
 )
 
-func initFromTask(ctx context.Context, cmd *cobra.Command, cfg config) error {
-	client := cfg.cli.Client
+func initFromTask(ctx context.Context, cfg config) error {
+	client := cfg.root.Client
 
 	var task api.Task
 	var err error
@@ -56,12 +56,11 @@ func initFromTask(ctx context.Context, cmd *cobra.Command, cfg config) error {
 		return errors.Wrap(err, "writing task definition")
 	}
 
-	cmd.Printf(`
+	logger.Log(`
 An Airplane task definition for '%s' has been created!
 
 To deploy it to Airplane, run:
-  airplane tasks deploy -f %s
-`, task.Name, file)
+  airplane tasks deploy -f %s`, task.Name, file)
 
 	return nil
 }

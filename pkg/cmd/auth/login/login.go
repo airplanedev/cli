@@ -6,6 +6,7 @@ import (
 
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/conf"
+	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/token"
 	"github.com/airplanedev/cli/pkg/utils"
 	"github.com/spf13/cobra"
@@ -17,21 +18,21 @@ func New(c *cli.Config) *cobra.Command {
 		Use:   "login",
 		Short: "Login to Airplane",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return run(cmd.Context(), cmd, c)
+			return run(cmd.Context(), c)
 		},
 	}
 	return cmd
 }
 
 // Run runs the login command.
-func run(ctx context.Context, cmd *cobra.Command, c *cli.Config) error {
+func run(ctx context.Context, c *cli.Config) error {
 	if !isLoggedIn(c) {
-		if err := login(ctx, cmd, c); err != nil {
+		if err := login(ctx, c); err != nil {
 			return err
 		}
 	}
 
-	cmd.Printf("You're all set!\n\nTo see what tasks you can run, try:\n    airplane tasks list\n")
+	logger.Log("You're all set!\n\nTo see what tasks you can run, try:\n    airplane tasks list")
 	return nil
 }
 
@@ -39,7 +40,7 @@ var (
 	ErrLoggedOut = errors.New("You are not logged in. To login, run:\n    airplane auth login")
 )
 
-func EnsureLoggedIn(ctx context.Context, cmd *cobra.Command, c *cli.Config) error {
+func EnsureLoggedIn(ctx context.Context, c *cli.Config) error {
 	if isLoggedIn(c) {
 		return nil
 	}
@@ -54,9 +55,9 @@ func EnsureLoggedIn(ctx context.Context, cmd *cobra.Command, c *cli.Config) erro
 		return ErrLoggedOut
 	}
 
-	cmd.Printf("\n  Logging in...\n\n")
+	logger.Log("\n  Logging in...\n")
 
-	if err := login(ctx, cmd, c); err != nil {
+	if err := login(ctx, c); err != nil {
 		return err
 	}
 
@@ -67,7 +68,7 @@ func isLoggedIn(c *cli.Config) bool {
 	return c.Client.Token != ""
 }
 
-func login(ctx context.Context, cmd *cobra.Command, c *cli.Config) error {
+func login(ctx context.Context, c *cli.Config) error {
 	srv, err := token.NewServer(ctx)
 	if err != nil {
 		return err
@@ -76,7 +77,7 @@ func login(ctx context.Context, cmd *cobra.Command, c *cli.Config) error {
 
 	url := c.Client.LoginURL(srv.URL())
 	if ok := utils.Open(url); !ok {
-		cmd.Printf("Visit %s to complete logging in\n", url)
+		logger.Log("Visit %s to complete logging in", url)
 	}
 
 	select {

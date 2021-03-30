@@ -10,8 +10,11 @@ import (
 	"github.com/airplanedev/cli/pkg/cmd/auth"
 	"github.com/airplanedev/cli/pkg/cmd/runs"
 	"github.com/airplanedev/cli/pkg/cmd/tasks"
+	"github.com/airplanedev/cli/pkg/cmd/version"
 	"github.com/airplanedev/cli/pkg/conf"
+	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/print"
+	"github.com/airplanedev/cli/pkg/trap"
 	isatty "github.com/mattn/go-isatty"
 	"github.com/spf13/cobra"
 )
@@ -49,6 +52,9 @@ func New() *cobra.Command {
 				return errors.New("--output must be (json|yaml|table)")
 			}
 
+			logger.EnableDebug = cfg.DebugMode
+			trap.Printf = logger.Log
+
 			return nil
 		},
 	}
@@ -62,6 +68,7 @@ func New() *cobra.Command {
 	// Set usage, help functions.
 	cmd.SetUsageFunc(usage)
 	cmd.SetHelpFunc(help)
+	cmd.SetVersionTemplate(version.Version() + "\n")
 
 	// Persistent flags, set globally to all commands.
 	cmd.PersistentFlags().StringVarP(&cfg.Client.Host, "host", "", api.Host, "Airplane API Host.")
@@ -70,11 +77,14 @@ func New() *cobra.Command {
 		defaultFormat = "json"
 	}
 	cmd.PersistentFlags().StringVarP(&output, "output", "o", defaultFormat, "The format to use for output (json|yaml|table).")
+	cmd.PersistentFlags().BoolVar(&cfg.DebugMode, "debug", false, "Whether to produce debugging output.")
+	cmd.PersistentFlags().BoolVarP(&cfg.Version, "version", "v", false, "Print the CLI version.")
 
 	// Sub-commands.
 	cmd.AddCommand(auth.New(cfg))
 	cmd.AddCommand(tasks.New(cfg))
 	cmd.AddCommand(runs.New(cfg))
+	cmd.AddCommand(version.New(cfg))
 
 	return cmd
 }

@@ -9,46 +9,40 @@ import (
 
 // JSON implements a JSON formatter.
 type JSON struct {
-	encErr *json.Encoder
-	encOut *json.Encoder
+	enc *json.Encoder
 }
 
 // NewJSONFormatter returns a new json formatter.
 func NewJSONFormatter() *JSON {
-	encErr := json.NewEncoder(os.Stderr)
-	encErr.SetIndent("", "  ")
-
-	encOut := json.NewEncoder(os.Stdout)
 	return &JSON{
-		encErr,
-		encOut,
+		enc: json.NewEncoder(os.Stdout),
 	}
 }
 
 // Tasks implementation.
 func (j *JSON) tasks(tasks []api.Task) {
-	j.encOut.Encode(tasks)
+	j.enc.Encode(tasks)
 }
 
 // Task implementation.
 func (j *JSON) task(task api.Task) {
-	j.encOut.Encode(task)
+	j.enc.Encode(task)
 }
 
 // Runs implementation.
 func (j *JSON) runs(runs []api.Run) {
-	j.encOut.Encode(runs)
+	j.enc.Encode(runs)
 }
 
 // Run implementation.
 func (j *JSON) run(run api.Run) {
-	j.encOut.Encode(run)
+	j.enc.Encode(run)
 }
 
 func (j *JSON) outputs(outputs api.Outputs) {
 	for key, values := range outputs {
 		for _, value := range values {
-			j.encOut.Encode(api.OutputRow{
+			j.enc.Encode(api.OutputRow{
 				OutputName: key,
 				Value:      value,
 			})

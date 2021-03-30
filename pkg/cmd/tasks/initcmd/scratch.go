@@ -5,13 +5,13 @@ import (
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/airplanedev/cli/pkg/api"
+	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/taskdir"
 	"github.com/airplanedev/cli/pkg/utils"
 	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
 )
 
-func initFromScratch(cmd *cobra.Command, cfg config) error {
+func initFromScratch(cfg config) error {
 	runtime, err := pickRuntime()
 	if err != nil {
 		return err
@@ -59,12 +59,11 @@ func initFromScratch(cmd *cobra.Command, cfg config) error {
 		return err
 	}
 
-	cmd.Printf(`
+	logger.Log(`
 An Airplane task definition for '%s' has been created in %s!
 
 Once you implement your task, deploy it to Airplane with:
-  airplane tasks deploy -f %s
-`, name, file, file)
+  airplane tasks deploy -f %s`, name, file, file)
 
 	return nil
 }

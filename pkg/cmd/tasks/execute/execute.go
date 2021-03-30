@@ -3,13 +3,12 @@ package execute
 import (
 	"context"
 	"flag"
-	"fmt"
-	"os"
 	"strconv"
 
 	"github.com/MakeNowJust/heredoc"
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/cli"
+	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/print"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -17,14 +16,14 @@ import (
 
 // Config are the execute config.
 type config struct {
-	cli  *cli.Config
+	root *cli.Config
 	slug string
 	args []string
 }
 
 // New returns a new execute cobra command.
 func New(c *cli.Config) *cobra.Command {
-	var cfg = config{cli: c}
+	var cfg = config{root: c}
 
 	cmd := &cobra.Command{
 		Use:   "execute <slug>",
@@ -47,7 +46,7 @@ func New(c *cli.Config) *cobra.Command {
 
 // Run runs the execute command.
 func run(ctx context.Context, cfg config) error {
-	var client = cfg.cli.Client
+	var client = cfg.root.Client
 
 	task, err := client.GetTask(ctx, cfg.slug)
 	if err != nil {
@@ -67,14 +66,14 @@ func run(ctx context.Context, cfg config) error {
 		return err
 	}
 
-	fmt.Fprintf(os.Stderr, "Running: %s\n", task.Name)
+	logger.Log("Running: %s", task.Name)
 
 	w, err := client.Watcher(ctx, req)
 	if err != nil {
 		return err
 	}
 
-	fmt.Fprintf(os.Stderr, "Queued: %s\n", client.RunURL(w.RunID()))
+	logger.Log("Queued: %s", client.RunURL(w.RunID()))
 
 	var state api.RunState
 
@@ -84,7 +83,7 @@ func run(ctx context.Context, cfg config) error {
 		}
 
 		for _, l := range state.Logs {
-			fmt.Fprintln(os.Stderr, l.Timestamp, l.Text)
+			logger.Log("%s %s", l.Timestamp, l.Text)
 		}
 
 		if state.Stopped() {
@@ -98,7 +97,7 @@ func run(ctx context.Context, cfg config) error {
 
 	print.Outputs(state.Outputs)
 
-	fmt.Fprintf(os.Stderr, "Done: %s\n", state.Status)
+	logger.Log("Done: %s", state.Status)
 
 	if state.Failed() {
 		return errors.New("Run has failed")
@@ -112,11 +111,11 @@ func flagset(task api.Task, args api.Values) *flag.FlagSet {
 	var set = flag.NewFlagSet(task.Name, flag.ContinueOnError)
 
 	set.Usage = func() {
-		fmt.Printf("\n%s Usage:\n", task.Name)
+		logger.Log("\n%s Usage:", task.Name)
 		set.VisitAll(func(f *flag.Flag) {
-			fmt.Printf("  --%s %s (default: %q)\n", f.Name, f.Usage, f.DefValue)
+			logger.Log("  --%s %s (default: %q)", f.Name, f.Usage, f.DefValue)
 		})
-		fmt.Println()
+		logger.Log("")
 	}
 
 	for _, p := range task.Parameters {
