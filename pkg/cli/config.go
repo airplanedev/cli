@@ -12,6 +12,9 @@ type Config struct {
 	// It is initialized in the root command and passed
 	// down to all commands.
 	Client *api.Client
+
+	// Version indicates if the CLI version should be printed.
+	Version bool
 }
 
 // Must should be used for Cobra initialize commands that can return an error
