@@ -2,9 +2,7 @@ package taskdir
 
 import (
 	"io/ioutil"
-	"os"
 
-	"github.com/AlecAivazis/survey/v2"
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/utils"
 	"github.com/pkg/errors"
@@ -35,28 +33,16 @@ type Definition struct {
 
 func (this Definition) Validate() (Definition, error) {
 	canPrompt := utils.CanPrompt()
+	var err error
 
 	if this.Slug == "" {
 		if !canPrompt {
 			return this, errors.New("Expected a slug")
 		}
 
-		if err := survey.AskOne(
-			&survey.Input{
-				Message: "Pick a unique identifier (slug) for this task",
-				Default: utils.MakeSlug(this.Name),
-			},
-			&this.Slug,
-			survey.WithStdio(os.Stdin, os.Stderr, os.Stderr),
-			survey.WithValidator(func(val interface{}) error {
-				if str, ok := val.(string); !ok || !utils.IsSlug(str) {
-					return errors.New("Slugs can only contain lowercase letters, underscores, and numbers.")
-				}
-
-				return nil
-			}),
-		); err != nil {
-			return this, errors.Wrap(err, "prompting for slug")
+		defaultSlug := utils.MakeSlug(this.Name)
+		if this.Slug, err = utils.PickSlug(defaultSlug); err != nil {
+			return this, err
 		}
 	}
 
@@ -82,6 +68,42 @@ func (this TaskDirectory) ReadDefinition() (Definition, error) {
 	}
 
 	return def, nil
+}
+
+// WriteSlug updates the slug of a task definition and persists this to disk.
+//
+// It attempts to retain the existing file's formatting (comments, etc.) where possible.
+func (this TaskDirectory) WriteSlug(slug string) error {
+	if err := utils.SetYAMLField(this.path, "slug", slug); err != nil {
+		return errors.Wrap(err, "setting slug")
+	}
+
+	return nil
+}
+
+func (this TaskDirectory) SetSlug(slug string) error {
+	if def, err := this.ReadDefinition(); err != nil {
+		return err
+	} else if def.Slug != "" {
+		return errors.New("SetSlug does not support updating slugs")
+	}
+
+	buf, err := ioutil.ReadFile(this.path)
+	if err != nil {
+		return errors.Wrap(err, "reading task definition")
+	}
+
+	// We want to preserve the contents of the task definition. Therefore, we
+	// avoid marshalling to make this change.
+	//
+	//
+	contents := "slug: " + slug + "\n" + string(buf)
+
+	if err := ioutil.WriteFile(this.path, []byte(contents), 0664); err != nil {
+		return errors.Wrap(err, "writing file")
+	}
+
+	return nil
 }
 
 func (this TaskDirectory) WriteDefinition(def Definition) error {

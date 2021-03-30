@@ -7,6 +7,7 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/taskdir"
+	"github.com/airplanedev/cli/pkg/utils"
 	"github.com/otiai10/copy"
 	"github.com/pkg/errors"
 )
@@ -31,6 +32,21 @@ func initFromSample(cfg config) error {
 	def, err := dir.ReadDefinition()
 	if err != nil {
 		return err
+	}
+
+	// TODO: Only prompt the user for a slug if the default slug is not unique.
+	defaultSlug := def.Slug
+	if defaultSlug == "" {
+		defaultSlug = utils.MakeSlug(def.Name)
+	}
+	slug, err := utils.PickSlug(defaultSlug)
+	if err != nil {
+		return err
+	}
+	if slug != def.Slug {
+		if err := dir.WriteSlug(slug); err != nil {
+			return err
+		}
 	}
 
 	var outputdir string
