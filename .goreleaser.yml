@@ -9,7 +9,7 @@ builds:
     env:
       - CGO_ENABLED=0
     ldflags:
-      - -s -w -X github.com/airplanedev/cli/pkg/cmd/version.version={{.Version}} -X github.com/airplanedev/cli/pkg/cmd/version.commitDate={{.Date}}
+      - -s -w -X github.com/airplanedev/cli/pkg/cmd/version.version={{.Version}} -X github.com/airplanedev/cli/pkg/cmd/version.compileDate={{.Date}}
     goos:
       - linux
       - windows
