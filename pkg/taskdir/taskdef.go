@@ -2,7 +2,9 @@ package taskdir
 
 import (
 	"io/ioutil"
+	"os"
 
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/utils"
 	"github.com/pkg/errors"
@@ -33,16 +35,28 @@ type Definition struct {
 
 func (this Definition) Validate() (Definition, error) {
 	canPrompt := utils.CanPrompt()
-	var err error
 
 	if this.Slug == "" {
 		if !canPrompt {
 			return this, errors.New("Expected a slug")
 		}
 
-		defaultSlug := utils.MakeSlug(this.Name)
-		if this.Slug, err = utils.PickSlug(defaultSlug); err != nil {
-			return this, err
+		if err := survey.AskOne(
+			&survey.Input{
+				Message: "Pick a unique identifier (slug) for this task",
+				Default: utils.MakeSlug(this.Name),
+			},
+			&this.Slug,
+			survey.WithStdio(os.Stdin, os.Stderr, os.Stderr),
+			survey.WithValidator(func(val interface{}) error {
+				if str, ok := val.(string); !ok || !utils.IsSlug(str) {
+					return errors.New("Slugs can only contain lowercase letters, underscores, and numbers.")
+				}
+
+				return nil
+			}),
+		); err != nil {
+			return this, errors.Wrap(err, "prompting for slug")
 		}
 	}
 

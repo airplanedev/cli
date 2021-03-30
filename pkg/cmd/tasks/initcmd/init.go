@@ -20,7 +20,6 @@ type config struct {
 	root *cli.Config
 	file string
 	from string
-	slug string
 }
 
 func New(c *cli.Config) *cobra.Command {
