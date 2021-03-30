@@ -36,7 +36,7 @@ func help(cmd *cobra.Command, args []string) {
 	}
 
 	if flags := cmd.LocalFlags().FlagUsages(); flags != "" {
-		s := trim(dedent(flags))
+		s := dedent(flags)
 		logger.Log("\n%s\n", bold("Flags:"))
 		logger.Log("%s\n", text.Indent(s, "  "))
 	}
