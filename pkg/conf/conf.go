@@ -64,7 +64,7 @@ func Write(path string, cfg Config) error {
 		return errors.Wrap(err, "mkdir")
 	}
 
-	buf, err := json.Marshal(cfg)
+	buf, err := json.MarshalIndent(cfg, "", "	")
 	if err != nil {
 		return errors.Wrap(err, "marshal config")
 	}

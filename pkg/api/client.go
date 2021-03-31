@@ -54,7 +54,9 @@ type Client struct {
 
 // AppURL returns the app URL.
 func (c Client) appURL() *url.URL {
-	apphost := strings.ReplaceAll(c.host(), "api", "app")
+	apphost := c.host()
+	apphost = strings.ReplaceAll(apphost, "api.airstage.app", "web.airstage.app")
+	apphost = strings.ReplaceAll(apphost, "api", "app")
 	u, _ := url.Parse("https://" + apphost)
 	return u
 }

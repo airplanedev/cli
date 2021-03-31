@@ -90,6 +90,9 @@ func login(ctx context.Context, c *cli.Config) error {
 		if err != nil {
 			return err
 		}
+		if cfg.Tokens == nil {
+			cfg.Tokens = map[string]string{}
+		}
 		cfg.Tokens[c.Client.Host] = token
 		if err := conf.WriteDefault(cfg); err != nil {
 			return err
