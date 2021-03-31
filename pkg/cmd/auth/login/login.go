@@ -87,7 +87,7 @@ func login(ctx context.Context, c *cli.Config) error {
 	case token := <-srv.Token():
 		c.Client.Token = token
 		cfg, err := conf.ReadDefault()
-		if err != nil {
+		if err != nil && !errors.Is(err, conf.ErrMissing) {
 			return err
 		}
 		if cfg.Tokens == nil {
