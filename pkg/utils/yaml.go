@@ -47,6 +47,7 @@ func SetYAMLField(path, field, value string) error {
 	for _, subnode := range root.Content {
 		if subnode.Kind == yaml.MappingNode {
 			mapnode = subnode
+			break
 		}
 	}
 	if mapnode == nil {
