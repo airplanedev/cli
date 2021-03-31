@@ -23,14 +23,16 @@ func New(c *cli.Config) *cobra.Command {
 
 func run(ctx context.Context, c *cli.Config) error {
 	cfg, err := conf.ReadDefault()
-	if err == nil || !errors.Is(err, conf.ErrMissing) {
+	if !errors.Is(err, conf.ErrMissing) {
+		if err != nil {
+			return err
+		}
+
 		delete(cfg.Tokens, c.Client.Host)
 
 		if err := conf.WriteDefault(cfg); err != nil {
 			return err
 		}
-	} else if err != nil {
-		return err
 	}
 
 	logger.Log("Logged out.")
