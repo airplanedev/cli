@@ -90,7 +90,7 @@ func login(ctx context.Context, c *cli.Config) error {
 		if err != nil {
 			return err
 		}
-		cfg.Token = token
+		cfg.Tokens[c.Client.Host] = token
 		if err := conf.WriteDefault(cfg); err != nil {
 			return err
 		}
