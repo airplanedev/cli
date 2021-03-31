@@ -79,7 +79,7 @@ func (this TaskDirectory) ReadDefinition() (Definition, error) {
 //
 // It attempts to retain the existing file's formatting (comments, etc.) where possible.
 func (this TaskDirectory) WriteSlug(slug string) error {
-	if err := utils.SetYAMLField(this.path, "slug", slug); err != nil {
+	if err := utils.SetYAMLField(this.defPath, "slug", slug); err != nil {
 		return errors.Wrap(err, "setting slug")
 	}
 
