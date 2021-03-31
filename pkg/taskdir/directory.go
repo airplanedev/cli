@@ -43,6 +43,10 @@ func Open(file string) (TaskDirectory, error) {
 	}
 	td.rootPath = path.Join(filepath.Dir(td.defPath), def.Root)
 
+	if !strings.HasPrefix(td.defPath, td.rootPath+string(filepath.Separator)) {
+		return TaskDirectory{}, errors.Errorf("%s must be inside of the task's root directory: %s", path.Base(td.defPath), td.rootPath)
+	}
+
 	return td, nil
 }
 
