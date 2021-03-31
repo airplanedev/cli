@@ -41,21 +41,10 @@ type Definition struct {
 }
 
 func (this Definition) Validate() (Definition, error) {
-	canPrompt := utils.CanPrompt()
-	var err error
-
 	if this.Slug == "" {
-		if !canPrompt {
-			return this, errors.New("Expected a slug")
-		}
-
-		defaultSlug := utils.MakeSlug(this.Name)
-		if this.Slug, err = utils.PickSlug(defaultSlug); err != nil {
-			return this, err
-		}
+		return this, errors.New("Expected a task slug")
 	}
 
-	// TODO: persist validation changes, if any, back to the local file.
 	// TODO: validate the rest of the fields!
 
 	return this, nil
