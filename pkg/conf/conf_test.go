@@ -28,13 +28,13 @@ func TestConfig(t *testing.T) {
 		var path = filepath.Join(homedir, ".airplane", "config")
 
 		err := Write(path, Config{
-			Token: "foo",
+			Tokens: map[string]string{"airplane.dev": "foo"},
 		})
 		assert.NoError(err)
 
 		cfg, err := Read(path)
 		assert.NoError(err)
-		assert.Equal("foo", cfg.Token)
+		assert.Equal("foo", cfg.Tokens["airplane.dev"])
 	})
 
 	t.Run("overwrite", func(t *testing.T) {
@@ -44,24 +44,24 @@ func TestConfig(t *testing.T) {
 
 		{
 			err := Write(path, Config{
-				Token: "foo",
+				Tokens: map[string]string{"airplane.dev": "foo"},
 			})
 			assert.NoError(err)
 
 			cfg, err := Read(path)
 			assert.NoError(err)
-			assert.Equal("foo", cfg.Token)
+			assert.Equal("foo", cfg.Tokens["airplane.dev"])
 		}
 
 		{
 			err := Write(path, Config{
-				Token: "baz",
+				Tokens: map[string]string{"airplane.dev": "baz"},
 			})
 			assert.NoError(err)
 
 			cfg, err := Read(path)
 			assert.NoError(err)
-			assert.Equal("baz", cfg.Token)
+			assert.Equal("baz", cfg.Tokens["airplane.dev"])
 		}
 	})
 }

@@ -24,7 +24,11 @@ func New(c *cli.Config) *cobra.Command {
 func run(ctx context.Context, c *cli.Config) error {
 	cfg, err := conf.ReadDefault()
 	if !errors.Is(err, conf.ErrMissing) {
-		cfg.Token = ""
+		if err != nil {
+			return err
+		}
+
+		delete(cfg.Tokens, c.Client.Host)
 
 		if err := conf.WriteDefault(cfg); err != nil {
 			return err

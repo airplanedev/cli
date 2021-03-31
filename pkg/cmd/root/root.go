@@ -38,7 +38,7 @@ func New() *cobra.Command {
 		`),
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			if c, err := conf.ReadDefault(); err == nil {
-				cfg.Client.Token = c.Token
+				cfg.Client.Token = c.Tokens[cfg.Client.Host]
 			}
 
 			switch output {

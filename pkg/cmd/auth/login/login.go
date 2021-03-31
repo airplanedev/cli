@@ -87,10 +87,13 @@ func login(ctx context.Context, c *cli.Config) error {
 	case token := <-srv.Token():
 		c.Client.Token = token
 		cfg, err := conf.ReadDefault()
-		if err != nil {
+		if err != nil && !errors.Is(err, conf.ErrMissing) {
 			return err
 		}
-		cfg.Token = token
+		if cfg.Tokens == nil {
+			cfg.Tokens = map[string]string{}
+		}
+		cfg.Tokens[c.Client.Host] = token
 		if err := conf.WriteDefault(cfg); err != nil {
 			return err
 		}
