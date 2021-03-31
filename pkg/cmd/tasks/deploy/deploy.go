@@ -105,7 +105,7 @@ func run(ctx context.Context, cfg config) error {
 		}
 
 		b, err := build.New(build.Config{
-			Root:    dir.Dir,
+			Root:    dir.DefinitionRootPath(),
 			Builder: def.Builder,
 			Args:    build.Args(def.BuilderConfig),
 			Writer:  output,

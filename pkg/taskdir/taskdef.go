@@ -31,6 +31,15 @@ type Definition struct {
 	BuilderConfig  api.BuilderConfig  `yaml:"builderConfig,omitempty"`
 	Repo           string             `yaml:"repo,omitempty"`
 	Timeout        int                `yaml:"timeout,omitempty"`
+
+	// Root is a directory path relative to the parent directory of this
+	// task definition which defines what directory should be included
+	// in the task's Docker image.
+	//
+	// If not set, defaults to "." (in other words, the parent directory of this task definition).
+	//
+	// This field is ignored when using the pre-built image builder (aka "manual").
+	Root string `yaml:"root,omitempty"`
 }
 
 func (this Definition) Validate() (Definition, error) {
@@ -66,12 +75,8 @@ func (this Definition) Validate() (Definition, error) {
 	return this, nil
 }
 
-func (this TaskDirectory) DefinitionPath() string {
-	return this.path
-}
-
 func (this TaskDirectory) ReadDefinition() (Definition, error) {
-	buf, err := ioutil.ReadFile(this.path)
+	buf, err := ioutil.ReadFile(this.defPath)
 	if err != nil {
 		return Definition{}, errors.Wrap(err, "reading task definition")
 	}
@@ -90,7 +95,7 @@ func (this TaskDirectory) WriteDefinition(def Definition) error {
 		return errors.Wrap(err, "marshalling definition")
 	}
 
-	if err := ioutil.WriteFile(this.path, data, 0664); err != nil {
+	if err := ioutil.WriteFile(this.defPath, data, 0664); err != nil {
 		return errors.Wrap(err, "writing file")
 	}
 
