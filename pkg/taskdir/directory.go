@@ -2,6 +2,7 @@ package taskdir
 
 import (
 	"io"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -9,11 +10,10 @@ import (
 )
 
 type TaskDirectory struct {
-	// Dir is the absolute local path to the directory that TaskDirectory represents.
-	Dir string
-
-	// path is the local path, relative to Dir, of the airplane.yml task definition.
-	path string
+	// rootPath is the absolute path to the task's root directory.
+	rootPath string
+	// path is the absolute path of the airplane.yml task definition.
+	defPath string
 	// closer is used to clean up TaskDirectory.
 	closer io.Closer
 }
@@ -26,20 +26,36 @@ func Open(file string) (TaskDirectory, error) {
 	var td TaskDirectory
 	var err error
 	if strings.HasPrefix(file, "github.com/") || strings.HasPrefix(file, "https://github.com/") {
-		td.path, td.closer, err = openGitHubDirectory(file)
+		td.defPath, td.closer, err = openGitHubDirectory(file)
 		if err != nil {
 			return TaskDirectory{}, err
 		}
 	} else {
-		td.path = file
+		td.defPath, err = filepath.Abs(file)
+		if err != nil {
+			return TaskDirectory{}, errors.Wrap(err, "converting local file path to absolute path")
+		}
 	}
 
-	td.Dir, err = filepath.Abs(filepath.Dir(td.path))
+	def, err := td.ReadDefinition()
 	if err != nil {
-		return TaskDirectory{}, errors.Wrap(err, "parsing file directory")
+		return TaskDirectory{}, err
+	}
+	td.rootPath = path.Join(filepath.Dir(td.defPath), def.Root)
+
+	if !strings.HasPrefix(td.defPath, td.rootPath+string(filepath.Separator)) {
+		return TaskDirectory{}, errors.Errorf("%s must be inside of the task's root directory: %s", path.Base(td.defPath), td.rootPath)
 	}
 
 	return td, nil
+}
+
+func (this TaskDirectory) DefinitionPath() string {
+	return this.defPath
+}
+
+func (this TaskDirectory) DefinitionRootPath() string {
+	return this.rootPath
 }
 
 func (this TaskDirectory) Close() error {

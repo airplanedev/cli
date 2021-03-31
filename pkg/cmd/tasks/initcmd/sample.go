@@ -60,7 +60,7 @@ func initFromSample(cfg config) error {
 
 	// Copy the sample code from the temporary directory into the user's
 	// local directory.
-	if err := copy.Copy(dir.Dir, outputdir); err != nil {
+	if err := copy.Copy(dir.DefinitionRootPath(), outputdir); err != nil {
 		return errors.Wrap(err, "copying sample directory")
 	}
 
