@@ -218,22 +218,11 @@ func (b *Builder) Push(ctx context.Context, tag string) error {
 
 // Dockerfile returns the dockerfile for the builder.
 func (b *Builder) dockerfile() (string, error) {
-	if b.args["entrypoint"] == "" {
-		return "", fmt.Errorf("build: .entrypoint is required")
-	}
-
-	switch b.name {
-	case "go":
-		return golang(b.root, b.args)
-	case "deno":
-		return deno(b.root, b.args)
-	case "python":
-		return python(b.root, b.args)
-	case "node":
-		return node(b.root, b.args)
-	default:
-		return "", errors.Errorf("build: unknown builder type %q", b.name)
-	}
+	return BuildDockerfile(Config{
+		Builder: b.name,
+		Root:    b.root,
+		Args:    b.args,
+	})
 }
 
 // RegistryAuth returns the registry auth.
@@ -267,4 +256,23 @@ func sanitizeTaskID(s string) string {
 		s = s[:len(s)-1] + "a"
 	}
 	return s
+}
+
+func BuildDockerfile(c Config) (string, error) {
+	if c.Args["entrypoint"] == "" {
+		return "", fmt.Errorf("build: .entrypoint is required")
+	}
+
+	switch c.Builder {
+	case "go":
+		return golang(c.Root, c.Args)
+	case "deno":
+		return deno(c.Root, c.Args)
+	case "python":
+		return python(c.Root, c.Args)
+	case "node":
+		return node(c.Root, c.Args)
+	default:
+		return "", errors.Errorf("build: unknown builder type %q", c.Builder)
+	}
 }
