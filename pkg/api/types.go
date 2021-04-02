@@ -3,6 +3,8 @@ package api
 import (
 	"encoding/json"
 	"time"
+
+	"gopkg.in/yaml.v3"
 )
 
 // CreateTaskRequest creates a new task.
@@ -175,6 +177,41 @@ type TaskEnv map[string]EnvVarValue
 type EnvVarValue struct {
 	Value  string `json:"value" yaml:"value"`
 	Config string `json:"config" yaml:"config"`
+}
+
+var _ yaml.Unmarshaler = &EnvVarValue{}
+
+// UnmarshalJSON allows you set an env var's `value` using either
+// of these notations:
+//
+//   AIRPLANE_DSN: "foobar"
+//
+//   AIRPLANE_DSN:
+//     value: "foobar"
+//
+func (this *EnvVarValue) UnmarshalYAML(node *yaml.Node) error {
+	// First, try to unmarshal as a string.
+	// This would be the first case above.
+	var value string
+	if err := node.Decode(&value); err == nil {
+		// Success!
+		this.Value = value
+		return nil
+	}
+
+	// Otherwise, perform a normal unmarshal operation.
+	// This would be the second case above.
+	//
+	// Note we need a new type, otherwise we recursively call this
+	// method and end up stack overflowing.
+	type envVarValue EnvVarValue
+	var v envVarValue
+	if err := node.Decode(&v); err != nil {
+		return err
+	}
+	*this = EnvVarValue(v)
+
+	return nil
 }
 
 // Task represents a task.
