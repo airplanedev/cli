@@ -15,7 +15,7 @@ type CreateTaskRequest struct {
 	Arguments      []string          `json:"arguments"`
 	Parameters     Parameters        `json:"parameters"`
 	Constraints    Constraints       `json:"constraints"`
-	Env            map[string]string `json:"env"`
+	Env            TaskEnv           `json:"env"`
 	ResourceLimits map[string]string `json:"resourceLimits"`
 	Builder        string            `json:"builder"`
 	BuilderConfig  map[string]string `json:"builderConfig"`
@@ -34,7 +34,7 @@ type UpdateTaskRequest struct {
 	Arguments      []string          `json:"arguments" yaml:"arguments"`
 	Parameters     Parameters        `json:"parameters" yaml:"parameters"`
 	Constraints    Constraints       `json:"constraints" yaml:"constraints"`
-	Env            map[string]string `json:"env" yaml:"env"`
+	Env            TaskEnv           `json:"env" yaml:"env"`
 	ResourceLimits map[string]string `json:"resourceLimits" yaml:"resourceLimits"`
 	Builder        string            `json:"builder" yaml:"builder"`
 	BuilderConfig  map[string]string `json:"builderConfig" yaml:"builderConfig"`
@@ -170,23 +170,30 @@ type ListTasksResponse struct {
 	Tasks []Task `json:"tasks"`
 }
 
+type TaskEnv map[string]EnvVarValue
+
+type EnvVarValue struct {
+	Value  string `json:"value" yaml:"value"`
+	Config string `json:"config" yaml:"config"`
+}
+
 // Task represents a task.
 type Task struct {
-	ID             string            `json:"taskID" yaml:"id"`
-	Name           string            `json:"name" yaml:"name"`
-	Slug           string            `json:"slug" yaml:"slug"`
-	Description    string            `json:"description" yaml:"description"`
-	Image          string            `json:"image" yaml:"image"`
-	Command        []string          `json:"command" yaml:"command"`
-	Arguments      []string          `json:"arguments" yaml:"arguments"`
-	Parameters     Parameters        `json:"parameters" yaml:"parameters"`
-	Constraints    Constraints       `json:"constraints" yaml:"constraints"`
-	Env            map[string]string `json:"env" yaml:"env"`
-	ResourceLimits ResourceLimits    `json:"resourceLimits" yaml:"resourceLimits"`
-	Builder        string            `json:"builder" yaml:"builder"`
-	BuilderConfig  BuilderConfig     `json:"builderConfig" yaml:"builderConfig"`
-	Repo           string            `json:"repo" yaml:"repo"`
-	Timeout        int               `json:"timeout" yaml:"timeout"`
+	ID             string         `json:"taskID" yaml:"id"`
+	Name           string         `json:"name" yaml:"name"`
+	Slug           string         `json:"slug" yaml:"slug"`
+	Description    string         `json:"description" yaml:"description"`
+	Image          string         `json:"image" yaml:"image"`
+	Command        []string       `json:"command" yaml:"command"`
+	Arguments      []string       `json:"arguments" yaml:"arguments"`
+	Parameters     Parameters     `json:"parameters" yaml:"parameters"`
+	Constraints    Constraints    `json:"constraints" yaml:"constraints"`
+	Env            TaskEnv        `json:"env" yaml:"env"`
+	ResourceLimits ResourceLimits `json:"resourceLimits" yaml:"resourceLimits"`
+	Builder        string         `json:"builder" yaml:"builder"`
+	BuilderConfig  BuilderConfig  `json:"builderConfig" yaml:"builderConfig"`
+	Repo           string         `json:"repo" yaml:"repo"`
+	Timeout        int            `json:"timeout" yaml:"timeout"`
 }
 
 type BuilderConfig map[string]string

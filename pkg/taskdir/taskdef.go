@@ -23,7 +23,7 @@ type Definition struct {
 	Arguments      []string           `yaml:"arguments,omitempty"`
 	Parameters     api.Parameters     `yaml:"parameters,omitempty"`
 	Constraints    api.Constraints    `yaml:"constraints,omitempty"`
-	Env            map[string]string  `yaml:"env,omitempty"`
+	Env            api.TaskEnv        `yaml:"env,omitempty"`
 	ResourceLimits api.ResourceLimits `yaml:"resourceLimits,omitempty"`
 	Builder        string             `yaml:"builder,omitempty"`
 	BuilderConfig  api.BuilderConfig  `yaml:"builderConfig,omitempty"`
