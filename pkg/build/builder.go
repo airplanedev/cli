@@ -70,6 +70,12 @@ type Config struct {
 	Writer io.Writer
 }
 
+type DockerfileConfig struct {
+	Builder string
+	Root    string
+	Args    Args
+}
+
 // Builder implements an image builder.
 type Builder struct {
 	root   string
@@ -139,7 +145,11 @@ func (b *Builder) Build(ctx context.Context, taskID, version string) (*types.Ima
 	}
 	defer tree.Close()
 
-	buf, err := b.dockerfile()
+	buf, err := BuildDockerfile(DockerfileConfig{
+		Builder: b.name,
+		Root:    b.root,
+		Args:    b.args,
+	})
 	if err != nil {
 		return nil, errors.Wrap(err, "creating dockerfile")
 	}
@@ -216,15 +226,6 @@ func (b *Builder) Push(ctx context.Context, tag string) error {
 	return nil
 }
 
-// Dockerfile returns the dockerfile for the builder.
-func (b *Builder) dockerfile() (string, error) {
-	return BuildDockerfile(Config{
-		Builder: b.name,
-		Root:    b.root,
-		Args:    b.args,
-	})
-}
-
 // RegistryAuth returns the registry auth.
 func (b *Builder) registryAuth() types.AuthConfig {
 	return types.AuthConfig{
@@ -258,7 +259,7 @@ func sanitizeTaskID(s string) string {
 	return s
 }
 
-func BuildDockerfile(c Config) (string, error) {
+func BuildDockerfile(c DockerfileConfig) (string, error) {
 	if c.Args["entrypoint"] == "" {
 		return "", fmt.Errorf("build: .entrypoint is required")
 	}
