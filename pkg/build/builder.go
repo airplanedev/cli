@@ -71,6 +71,12 @@ type Config struct {
 	Writer io.Writer
 }
 
+type DockerfileConfig struct {
+	Builder string
+	Root    string
+	Args    Args
+}
+
 // Builder implements an image builder.
 type Builder struct {
 	root   string
@@ -144,7 +150,11 @@ func (b *Builder) Build(ctx context.Context, taskID, version string) (BuildOutpu
 	}
 	defer tree.Close()
 
-	buf, err := b.dockerfile()
+	buf, err := BuildDockerfile(DockerfileConfig{
+		Builder: b.name,
+		Root:    b.root,
+		Args:    b.args,
+	})
 	if err != nil {
 		return BuildOutput{}, errors.Wrap(err, "creating dockerfile")
 	}
@@ -223,24 +233,6 @@ func (b *Builder) Push(ctx context.Context, tag string) error {
 	return nil
 }
 
-// Dockerfile returns the dockerfile for the builder.
-func (b *Builder) dockerfile() (string, error) {
-	switch b.name {
-	case "go":
-		return golang(b.root, b.args)
-	case "deno":
-		return deno(b.root, b.args)
-	case "python":
-		return python(b.root, b.args)
-	case "node":
-		return node(b.root, b.args)
-	case "docker":
-		return docker(b.root, b.args)
-	default:
-		return "", errors.Errorf("build: unknown builder type %q", b.name)
-	}
-}
-
 // RegistryAuth returns the registry auth.
 func (b *Builder) registryAuth() types.AuthConfig {
 	return types.AuthConfig{
@@ -282,4 +274,23 @@ func exist(paths ...string) error {
 		}
 	}
 	return nil
+}
+
+func BuildDockerfile(c DockerfileConfig) (string, error) {
+	if c.Args["entrypoint"] == "" {
+		return "", fmt.Errorf("build: .entrypoint is required")
+	}
+
+	switch c.Builder {
+	case "go":
+		return golang(c.Root, c.Args)
+	case "deno":
+		return deno(c.Root, c.Args)
+	case "python":
+		return python(c.Root, c.Args)
+	case "node":
+		return node(c.Root, c.Args)
+	default:
+		return "", errors.Errorf("build: unknown builder type %q", c.Builder)
+	}
 }
