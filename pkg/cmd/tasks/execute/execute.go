@@ -4,14 +4,21 @@ import (
 	"context"
 	"flag"
 	"strconv"
+	"strings"
 
 	"github.com/MakeNowJust/heredoc"
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/print"
+	"github.com/fatih/color"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+)
+
+var (
+	bold = color.New(color.Bold).SprintfFunc()
+	gray = color.New(color.FgHiBlack).SprintfFunc()
 )
 
 // Config are the execute config.
@@ -66,16 +73,18 @@ func run(ctx context.Context, cfg config) error {
 		return err
 	}
 
-	logger.Log("Running: %s", task.Name)
+	logger.Log(gray("Running: %s", task.Name))
 
 	w, err := client.Watcher(ctx, req)
 	if err != nil {
 		return err
 	}
 
-	logger.Log("Queued: %s", client.RunURL(w.RunID()))
+	logger.Log(gray("Queued: %s", client.RunURL(w.RunID())))
 
 	var state api.RunState
+	agentPrefix := "[agent]"
+	outputPrefix := "airplane_output"
 
 	for {
 		if state = w.Next(); state.Err() != nil {
@@ -83,7 +92,18 @@ func run(ctx context.Context, cfg config) error {
 		}
 
 		for _, l := range state.Logs {
-			logger.Log("%s %s", l.Timestamp, l.Text)
+			var loggedText string
+			if strings.HasPrefix(l.Text, agentPrefix) {
+				// De-emphasize agent logs and remove prefix
+				loggedText = gray(strings.TrimLeft(strings.TrimPrefix(l.Text, agentPrefix), " "))
+			} else if strings.HasPrefix(l.Text, outputPrefix) {
+				// De-emphasize outputs appearing in logs
+				loggedText = gray(l.Text)
+			} else {
+				// Try to leave user logs alone, so they can apply their own colors
+				loggedText = l.Text
+			}
+			logger.Log(loggedText)
 		}
 
 		if state.Stopped() {
@@ -97,7 +117,14 @@ func run(ctx context.Context, cfg config) error {
 
 	print.Outputs(state.Outputs)
 
-	logger.Log("Done: %s", state.Status)
+	status := string(state.Status)
+	switch state.Status {
+	case api.RunSucceeded:
+		status = color.GreenString(status)
+	case api.RunFailed, api.RunCancelled:
+		status = color.RedString(status)
+	}
+	logger.Log(bold(status))
 
 	if state.Failed() {
 		return errors.New("Run has failed")

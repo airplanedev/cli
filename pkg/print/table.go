@@ -86,6 +86,7 @@ func (t Table) run(run api.Run) {
 func (t Table) outputs(outputs api.Outputs) {
 	i := 0
 	for key, values := range outputs {
+		fmt.Fprintln(os.Stdout, "")
 		fmt.Fprintln(os.Stdout, key)
 
 		ok, jsonObjects := parseArrayOfJsonObject(values)
@@ -94,12 +95,9 @@ func (t Table) outputs(outputs api.Outputs) {
 		} else {
 			printOutputArray(values)
 		}
-
-		if i < len(outputs)-1 {
-			fmt.Fprintln(os.Stdout, "")
-		}
 		i++
 	}
+	fmt.Fprintln(os.Stdout, "")
 }
 
 func parseArrayOfJsonObject(values []interface{}) (bool, []JsonObject) {
