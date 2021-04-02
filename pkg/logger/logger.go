@@ -25,7 +25,12 @@ func Log(msg string, args ...interface{}) {
 // is executing in debug mode. Printf-style formatting is applied to msg
 // using args.
 func Debug(msg string, args ...interface{}) {
-	if EnableDebug {
+	if !EnableDebug {
+		return
+	}
+	if len(args) == 0 {
+		fmt.Fprint(os.Stderr, msg+"\n")
+	} else {
 		fmt.Fprintf(os.Stderr, msg+"\n", args...)
 	}
 }
