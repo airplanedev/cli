@@ -112,6 +112,7 @@ func pickSample(runtime runtimeKind) (string, error) {
 		},
 		runtimeKindGo: {
 			"Hello World": "github.com/airplanedev/examples/go/hello-world/airplane.yml",
+			"Run SQL":     "github.com/airplanedev/examples/go/sql/airplane.yml",
 		},
 		runtimeKindManual: {
 			"Hello World": "github.com/airplanedev/examples/manual/hello-world/airplane.yml",
