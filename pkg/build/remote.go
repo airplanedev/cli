@@ -57,7 +57,7 @@ func Remote(ctx context.Context, dir taskdir.TaskDirectory, client *api.Client) 
 	}
 
 	// Upload the archive to Airplane:
-	upload, err := client.UploadBuild(ctx, api.UploadBuildRequest{
+	upload, err := client.CreateBuildUpload(ctx, api.CreateBuildUploadRequest{
 		FileName:  archiveName,
 		SizeBytes: sizeBytes,
 	})

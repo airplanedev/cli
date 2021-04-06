@@ -296,12 +296,12 @@ type ListRunsResponse struct {
 	Runs []Run `json:"runs"`
 }
 
-type UploadBuildRequest struct {
+type CreateBuildUploadRequest struct {
 	FileName  string `json:"fileName"`
 	SizeBytes int    `json:"sizeBytes"`
 }
 
-type UploadBuildResponse struct {
+type CreateBuildUploadResponse struct {
 	Upload       Upload `json:"upload"`
 	WriteOnlyURL string `json:"writeOnlyURL"`
 }
