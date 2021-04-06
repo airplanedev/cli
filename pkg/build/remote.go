@@ -21,7 +21,7 @@ func Remote(ctx context.Context, dir taskdir.TaskDirectory, client *api.Client) 
 		return errors.Wrap(err, "creating temporary directory for remote build")
 	}
 	logger.Debug("tmpdir: %s", tmpdir)
-	// defer os.RemoveAll(tmpdir)
+	defer os.RemoveAll(tmpdir)
 
 	// Archive the root task directory:
 	// TODO: filter out files/directories that match .dockerignore
