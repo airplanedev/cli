@@ -2,7 +2,9 @@ package build
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path"
 
@@ -42,30 +44,41 @@ func Remote(ctx context.Context, dir taskdir.TaskDirectory, client *api.Client) 
 		return errors.Wrap(err, "building archive")
 	}
 
-	req := api.UploadBuildRequest{
-		FileName: archiveName,
-	}
-
 	// Compute the size of this archive:
-	f, err := os.OpenFile(archivePath, os.O_RDONLY, 0)
+	var sizeBytes int
+	archive, err := os.OpenFile(archivePath, os.O_RDONLY, 0)
 	if err != nil {
 		return errors.Wrap(err, "opening archive file")
 	}
-	defer f.Close()
-	if info, err := f.Stat(); err != nil {
+	defer archive.Close()
+	if info, err := archive.Stat(); err != nil {
 		return errors.Wrap(err, "stat on archive file")
 	} else {
-		req.SizeBytes = int(info.Size())
+		sizeBytes = int(info.Size())
 	}
 
 	// Upload the archive to Airplane:
-	resp, err := client.UploadBuild(ctx, req)
+	upload, err := client.UploadBuild(ctx, api.UploadBuildRequest{
+		FileName:  archiveName,
+		SizeBytes: sizeBytes,
+	})
 	if err != nil {
 		return errors.Wrap(err, "creating upload")
 	}
-	logger.Debug("Uploaded archive to id=%s at %s", resp.Upload.ID, resp.Upload.URL)
+	logger.Debug("Uploaded archive to id=%s at %s", upload.Upload.ID, upload.Upload.URL)
 
-	// TODO: GCS write to that URL
+	req, err := http.NewRequestWithContext(ctx, "PUT", upload.WriteOnlyURL, archive)
+	if err != nil {
+		return errors.Wrap(err, "creating GCS upload request")
+	}
+	req.Header.Add("X-Goog-Content-Length-Range", fmt.Sprintf("0,%d", sizeBytes))
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return errors.Wrap(err, "uploading to GCS")
+	}
+	defer resp.Body.Close()
+
+	logger.Debug("Upload completed successfully!")
 
 	// TODO: create the build, referencing this upload
 	// TODO: poll the build until it finishes
