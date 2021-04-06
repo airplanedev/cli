@@ -106,39 +106,12 @@ func run(ctx context.Context, cfg config) error {
 	if def.Builder != "" {
 		switch builder {
 		case build.BuilderKindLocal:
-			registry, err := client.GetRegistryToken(ctx)
-			if err != nil {
-				return errors.Wrap(err, "getting registry token")
-			}
-
 			var output io.Writer = ioutil.Discard
 			if cfg.root.DebugMode {
 				output = os.Stderr
 			}
-
-			b, err := build.New(build.Config{
-				Root:    dir.DefinitionRootPath(),
-				Builder: def.Builder,
-				Args:    build.Args(def.BuilderConfig),
-				Writer:  output,
-				Auth: &build.RegistryAuth{
-					Token: registry.Token,
-					Repo:  registry.Repo,
-				},
-			})
-			if err != nil {
-				return errors.Wrap(err, "new build")
-			}
-
-			logger.Log("  Building...")
-			bo, err := b.Build(ctx, taskID, "latest")
-			if err != nil {
-				return errors.Wrap(err, "build")
-			}
-
-			logger.Log("  Updating...")
-			if err := b.Push(ctx, bo.Tag); err != nil {
-				return errors.Wrap(err, "push")
+			if err := build.Local(ctx, client, dir, def, taskID, output); err != nil {
+				return err
 			}
 		case build.BuilderKindRemote:
 			if err := build.Remote(ctx, dir, client); err != nil {

@@ -27,11 +27,10 @@ func Remote(ctx context.Context, dir taskdir.TaskDirectory, client *api.Client) 
 	// TODO: filter out files/directories that match .dockerignore
 	archiveName := "airplane-build.tar.gz"
 	archivePath := path.Join(tmpdir, archiveName)
-	// We want to produce an archive where the contents of the archive
-	// are the files inside of `dir.DefinitionRootPath()`, rather than
-	// a directory containing those files. Therefore, we need to produce
-	// a list of files/directories within the root directory instead of
-	// directly providing mholt/archiver with `dir.DefinitionRootPath()`.
+	// mholt/archiver takes a list of "sources" (files/directories) that will
+	// be included in the root of the archive. In our case, we want the root of
+	// the archive to be the contents of the task directory, rather than the
+	// task directory itself.
 	var sources []string
 	if files, err := ioutil.ReadDir(dir.DefinitionRootPath()); err != nil {
 		return errors.Wrap(err, "inspecting files in task root")
