@@ -194,12 +194,16 @@ func buildRemote(ctx context.Context, dir taskdir.TaskDirectory, client *api.Cli
 	// Upload the task directory to Airplane.
 	upload, err := client.UploadBuild(ctx, api.UploadBuildRequest{
 		FileName: archiveName,
+		// TODO: compute this
+		SizeBytes: 0,
 	})
 	if err != nil {
 		return errors.Wrap(err, "creating upload")
 	}
 
-	logger.Debug("Uploaded archive to: %+v", upload)
+	// TODO: GCS write to that URL
+
+	logger.Debug("Uploaded archive to id=%s at %s", upload.ID, upload.URL)
 
 	// TODO: create the build, referencing this upload
 	// TODO: poll the build until it finishes

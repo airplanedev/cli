@@ -297,14 +297,16 @@ type ListRunsResponse struct {
 }
 
 type UploadBuildRequest struct {
-	FileName string `json:"fileName"`
-	// TODO
+	FileName  string `json:"fileName"`
+	SizeBytes int    `json:"sizeBytes"`
 }
 
 type UploadBuildResponse struct {
-	Upload Upload `json:"upload"`
+	Upload       Upload `json:"upload"`
+	WriteOnlyURL string `json:"writeOnlyURL"`
 }
 
 type Upload struct {
-	// TODO
+	ID  string `json:"id"`
+	URL string `json:"url"`
 }
