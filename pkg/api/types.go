@@ -16,7 +16,7 @@ type CreateTaskRequest struct {
 	Command        []string          `json:"command"`
 	Arguments      []string          `json:"arguments"`
 	Parameters     Parameters        `json:"parameters"`
-	Constraints    Constraints       `json:"constraints"`
+	Constraints    RunConstraints    `json:"constraints"`
 	Env            TaskEnv           `json:"env"`
 	ResourceLimits map[string]string `json:"resourceLimits"`
 	Builder        string            `json:"builder"`
@@ -35,7 +35,7 @@ type UpdateTaskRequest struct {
 	Command        []string          `json:"command" yaml:"command"`
 	Arguments      []string          `json:"arguments" yaml:"arguments"`
 	Parameters     Parameters        `json:"parameters" yaml:"parameters"`
-	Constraints    Constraints       `json:"constraints" yaml:"constraints"`
+	Constraints    RunConstraints    `json:"constraints" yaml:"constraints"`
 	Env            TaskEnv           `json:"env" yaml:"env"`
 	ResourceLimits map[string]string `json:"resourceLimits" yaml:"resourceLimits"`
 	Builder        string            `json:"builder" yaml:"builder"`
@@ -224,7 +224,7 @@ type Task struct {
 	Command        []string       `json:"command" yaml:"command"`
 	Arguments      []string       `json:"arguments" yaml:"arguments"`
 	Parameters     Parameters     `json:"parameters" yaml:"parameters"`
-	Constraints    Constraints    `json:"constraints" yaml:"constraints"`
+	Constraints    RunConstraints `json:"constraints" yaml:"constraints"`
 	Env            TaskEnv        `json:"env" yaml:"env"`
 	ResourceLimits ResourceLimits `json:"resourceLimits" yaml:"resourceLimits"`
 	Builder        string         `json:"builder" yaml:"builder"`
