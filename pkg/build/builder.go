@@ -286,6 +286,8 @@ func BuildDockerfile(c DockerfileConfig) (string, error) {
 		return python(c.Root, c.Args)
 	case "node":
 		return node(c.Root, c.Args)
+	case "docker":
+		return docker(c.Root, c.Args)
 	default:
 		return "", errors.Errorf("build: unknown builder type %q", c.Builder)
 	}
