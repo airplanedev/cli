@@ -24,10 +24,3 @@ func ParseName(nameTag string) (NameTag, error) {
 	}
 	return res, nil
 }
-
-func JoinName(name, tag string) string {
-	if tag == "" {
-		return name
-	}
-	return name + ":" + tag
-}
