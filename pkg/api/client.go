@@ -167,6 +167,22 @@ func (c Client) GetTask(ctx context.Context, slug string) (res Task, err error) 
 	return
 }
 
+// GetConfig returns a config by name and tag.
+func (c Client) GetConfig(ctx context.Context, name, tag string) (res GetConfigResponse, err error) {
+	q := url.Values{
+		"name": []string{name},
+		"tag":  []string{tag},
+	}
+	err = c.do(ctx, "GET", "/configs/get?"+q.Encode(), nil, &res)
+	return
+}
+
+// SetConfig sets a config, creating it if new and updating it if already exists.
+func (c Client) SetConfig(ctx context.Context, req SetConfigRequest) (err error) {
+	err = c.do(ctx, "POST", "/configs/set", req, nil)
+	return
+}
+
 // Do sends a request with `method`, `path`, `payload` and `reply`.
 func (c Client) do(ctx context.Context, method, path string, payload, reply interface{}) error {
 	var url = "https://" + c.host() + "/v0" + path

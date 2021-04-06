@@ -9,7 +9,12 @@ import (
 	"time"
 
 	"github.com/airplanedev/cli/pkg/api"
+	"github.com/fatih/color"
 	"github.com/olekukonko/tablewriter"
+)
+
+var (
+	gray = color.New(color.FgHiBlack).SprintFunc()
 )
 
 // Table implements a table formatter.
@@ -170,4 +175,16 @@ func getCellValue(value interface{}) string {
 		}
 		return string(v)
 	}
+}
+
+// print config as table
+func (t Table) config(config api.Config) {
+	// Nothing fancy, just the value
+	var valueStr string
+	if config.IsSecret {
+		valueStr = gray("<secret value hidden>")
+	} else {
+		valueStr = config.Value
+	}
+	fmt.Fprintln(os.Stdout, valueStr)
 }

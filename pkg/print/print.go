@@ -19,6 +19,7 @@ type Formatter interface {
 	runs([]api.Run)
 	run(api.Run)
 	outputs(api.Outputs)
+	config(api.Config)
 }
 
 // Tasks prints the given slice of tasks using the default formatter.
@@ -41,6 +42,12 @@ func Run(run api.Run) {
 	DefaultFormatter.run(run)
 }
 
+// Outputs prints a collection of outputs.
 func Outputs(outputs api.Outputs) {
 	DefaultFormatter.outputs(outputs)
+}
+
+// Config prints a single config var.
+func Config(config api.Config) {
+	DefaultFormatter.config(config)
 }
