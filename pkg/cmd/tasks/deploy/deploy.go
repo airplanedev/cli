@@ -39,8 +39,10 @@ func New(c *cli.Config) *cobra.Command {
 	}
 
 	cmd.Flags().StringVarP(&cfg.file, "file", "f", "", "Path to a task definition file.")
-	// TODO: make "remote" as the default once it is implemented.
 	cmd.Flags().StringVar(&cfg.builder, "builder", string(build.BuilderKindLocal), "Where to build the task's Docker image. Accepts: [local, remote]")
+
+	// TODO: make "remote" the default once and un-hide this flag once it is fully implemented.
+	cli.Must(cmd.Flags().MarkHidden("builder"))
 
 	cli.Must(cmd.MarkFlagRequired("file"))
 
