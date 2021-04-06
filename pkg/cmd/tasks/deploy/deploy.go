@@ -6,7 +6,6 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"path"
 
 	"github.com/MakeNowJust/heredoc"
 	"github.com/airplanedev/cli/pkg/api"
@@ -14,7 +13,6 @@ import (
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/taskdir"
-	"github.com/mholt/archiver/v3"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -141,7 +139,7 @@ func run(ctx context.Context, cfg config) error {
 				return errors.Wrap(err, "push")
 			}
 		case build.BuilderKindRemote:
-			if err := buildRemote(ctx, dir, client); err != nil {
+			if err := build.Remote(ctx, dir, client); err != nil {
 				return err
 			}
 		}
@@ -177,37 +175,4 @@ To execute %s:
 - From the UI: %s`, def.Name, cmd, client.TaskURL(taskID))
 
 	return nil
-}
-
-func buildRemote(ctx context.Context, dir taskdir.TaskDirectory, client *api.Client) error {
-	tmpdir := os.TempDir()
-	defer os.RemoveAll(tmpdir)
-
-	// Archive the root task directory.
-	archiveName := "airplane-build.tar.gz"
-	archivePath := path.Join(tmpdir, archiveName)
-	// TODO: filter out files/directories that match .dockerignore
-	if err := archiver.Archive([]string{dir.DefinitionRootPath()}, archivePath); err != nil {
-		return errors.Wrap(err, "building archive")
-	}
-
-	// Upload the task directory to Airplane.
-	upload, err := client.UploadBuild(ctx, api.UploadBuildRequest{
-		FileName: archiveName,
-		// TODO: compute this
-		SizeBytes: 0,
-	})
-	if err != nil {
-		return errors.Wrap(err, "creating upload")
-	}
-
-	// TODO: GCS write to that URL
-
-	logger.Debug("Uploaded archive to id=%s at %s", upload.ID, upload.URL)
-
-	// TODO: create the build, referencing this upload
-	// TODO: poll the build until it finishes
-
-	// TODO: once this works e2e, we can remove this error:
-	return errors.New("remote builds not implemented")
 }

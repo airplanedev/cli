@@ -169,7 +169,7 @@ func (c Client) GetTask(ctx context.Context, slug string) (res Task, err error) 
 
 // UploadBuild creates an Airplane upload and returns metadata about it.
 func (c Client) UploadBuild(ctx context.Context, req UploadBuildRequest) (res Upload, err error) {
-	err = c.do(ctx, "POST", "/builds/upload?", req, &res)
+	err = c.do(ctx, "POST", "/builds/upload", req, &res)
 	return
 }
 
