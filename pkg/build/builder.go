@@ -277,10 +277,6 @@ func exist(paths ...string) error {
 }
 
 func BuildDockerfile(c DockerfileConfig) (string, error) {
-	if c.Args["entrypoint"] == "" {
-		return "", fmt.Errorf("build: .entrypoint is required")
-	}
-
 	switch c.Builder {
 	case "go":
 		return golang(c.Root, c.Args)
