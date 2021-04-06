@@ -2,6 +2,7 @@ package build
 
 import (
 	"context"
+	"io/ioutil"
 	"os"
 	"path"
 
@@ -13,14 +14,31 @@ import (
 )
 
 func Remote(ctx context.Context, dir taskdir.TaskDirectory, client *api.Client) error {
-	tmpdir := os.TempDir()
-	defer os.RemoveAll(tmpdir)
+	tmpdir, err := ioutil.TempDir("", "airplane-builds-")
+	if err != nil {
+		return errors.Wrap(err, "creating temporary directory for remote build")
+	}
+	logger.Debug("tmpdir: %s", tmpdir)
+	// defer os.RemoveAll(tmpdir)
 
 	// Archive the root task directory:
+	// TODO: filter out files/directories that match .dockerignore
 	archiveName := "airplane-build.tar.gz"
 	archivePath := path.Join(tmpdir, archiveName)
-	// TODO: filter out files/directories that match .dockerignore
-	if err := archiver.Archive([]string{dir.DefinitionRootPath()}, archivePath); err != nil {
+	// We want to produce an archive where the contents of the archive
+	// are the files inside of `dir.DefinitionRootPath()`, rather than
+	// a directory containing those files. Therefore, we need to produce
+	// a list of files/directories within the root directory instead of
+	// directly providing mholt/archiver with `dir.DefinitionRootPath()`.
+	var sources []string
+	if files, err := ioutil.ReadDir(dir.DefinitionRootPath()); err != nil {
+		return errors.Wrap(err, "inspecting files in task root")
+	} else {
+		for _, f := range files {
+			sources = append(sources, path.Join(dir.DefinitionRootPath(), f.Name()))
+		}
+	}
+	if err := archiver.Archive(sources, archivePath); err != nil {
 		return errors.Wrap(err, "building archive")
 	}
 
@@ -41,11 +59,11 @@ func Remote(ctx context.Context, dir taskdir.TaskDirectory, client *api.Client) 
 	}
 
 	// Upload the archive to Airplane:
-	upload, err := client.UploadBuild(ctx, req)
+	resp, err := client.UploadBuild(ctx, req)
 	if err != nil {
 		return errors.Wrap(err, "creating upload")
 	}
-	logger.Debug("Uploaded archive to id=%s at %s", upload.ID, upload.URL)
+	logger.Debug("Uploaded archive to id=%s at %s", resp.Upload.ID, resp.Upload.URL)
 
 	// TODO: GCS write to that URL
 
