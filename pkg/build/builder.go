@@ -47,7 +47,7 @@ func ToBuilderKind(s string) (BuilderKind, error) {
 	case string(BuilderKindLocal):
 		return BuilderKindLocal, nil
 	case string(BuilderKindRemote):
-		return BuilderKindLocal, nil
+		return BuilderKindRemote, nil
 	default:
 		return BuilderKind(""), errors.Errorf("Unknown builder: %s", s)
 	}
