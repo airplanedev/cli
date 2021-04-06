@@ -295,3 +295,16 @@ type Run struct {
 type ListRunsResponse struct {
 	Runs []Run `json:"runs"`
 }
+
+type UploadBuildRequest struct {
+	FileName string `json:"fileName"`
+	// TODO
+}
+
+type UploadBuildResponse struct {
+	Upload Upload `json:"upload"`
+}
+
+type Upload struct {
+	// TODO
+}

@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path"
 
 	"github.com/MakeNowJust/heredoc"
 	"github.com/airplanedev/cli/pkg/api"
@@ -13,13 +14,15 @@ import (
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/taskdir"
+	"github.com/mholt/archiver/v3"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
 type config struct {
-	root *cli.Config
-	file string
+	root    *cli.Config
+	file    string
+	builder string
 }
 
 func New(c *cli.Config) *cobra.Command {
@@ -38,6 +41,8 @@ func New(c *cli.Config) *cobra.Command {
 	}
 
 	cmd.Flags().StringVarP(&cfg.file, "file", "f", "", "Path to a task definition file.")
+	// TODO: make "remote" as the default once it is implemented.
+	cmd.Flags().StringVar(&cfg.file, "builder", string(build.BuilderKindLocal), "Path to a task definition file.")
 
 	cli.Must(cmd.MarkFlagRequired("file"))
 
@@ -46,6 +51,11 @@ func New(c *cli.Config) *cobra.Command {
 
 func run(ctx context.Context, cfg config) error {
 	var client = cfg.root.Client
+
+	builder, err := build.ToBuilderKind(cfg.builder)
+	if err != nil {
+		return err
+	}
 
 	dir, err := taskdir.Open(cfg.file)
 	if err != nil {
@@ -94,39 +104,46 @@ func run(ctx context.Context, cfg config) error {
 	}
 
 	if def.Builder != "" {
-		registry, err := client.GetRegistryToken(ctx)
-		if err != nil {
-			return errors.Wrap(err, "getting registry token")
-		}
+		switch builder {
+		case build.BuilderKindLocal:
+			registry, err := client.GetRegistryToken(ctx)
+			if err != nil {
+				return errors.Wrap(err, "getting registry token")
+			}
 
-		var output io.Writer = ioutil.Discard
-		if cfg.root.DebugMode {
-			output = os.Stderr
-		}
+			var output io.Writer = ioutil.Discard
+			if cfg.root.DebugMode {
+				output = os.Stderr
+			}
 
-		b, err := build.New(build.Config{
-			Root:    dir.DefinitionRootPath(),
-			Builder: def.Builder,
-			Args:    build.Args(def.BuilderConfig),
-			Writer:  output,
-			Auth: &build.RegistryAuth{
-				Token: registry.Token,
-				Repo:  registry.Repo,
-			},
-		})
-		if err != nil {
-			return errors.Wrap(err, "new build")
-		}
+			b, err := build.New(build.Config{
+				Root:    dir.DefinitionRootPath(),
+				Builder: def.Builder,
+				Args:    build.Args(def.BuilderConfig),
+				Writer:  output,
+				Auth: &build.RegistryAuth{
+					Token: registry.Token,
+					Repo:  registry.Repo,
+				},
+			})
+			if err != nil {
+				return errors.Wrap(err, "new build")
+			}
 
-		logger.Log("  Building...")
-		bo, err := b.Build(ctx, taskID, "latest")
-		if err != nil {
-			return errors.Wrap(err, "build")
-		}
+			logger.Log("  Building...")
+			bo, err := b.Build(ctx, taskID, "latest")
+			if err != nil {
+				return errors.Wrap(err, "build")
+			}
 
-		logger.Log("  Updating...")
-		if err := b.Push(ctx, bo.Tag); err != nil {
-			return errors.Wrap(err, "push")
+			logger.Log("  Updating...")
+			if err := b.Push(ctx, bo.Tag); err != nil {
+				return errors.Wrap(err, "push")
+			}
+		case build.BuilderKindRemote:
+			if err := buildRemote(ctx, dir, client); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -160,4 +177,33 @@ To execute %s:
 - From the UI: %s`, def.Name, cmd, client.TaskURL(taskID))
 
 	return nil
+}
+
+func buildRemote(ctx context.Context, dir taskdir.TaskDirectory, client *api.Client) error {
+	tmpdir := os.TempDir()
+	defer os.RemoveAll(tmpdir)
+
+	// Archive the root task directory.
+	archiveName := "airplane-build.tar.gz"
+	archivePath := path.Join(tmpdir, archiveName)
+	// TODO: filter out files/directories that match .dockerignore
+	if err := archiver.Archive([]string{dir.DefinitionRootPath()}, archivePath); err != nil {
+		return errors.Wrap(err, "building archive")
+	}
+
+	// Upload the task directory to Airplane.
+	upload, err := client.UploadBuild(ctx, api.UploadBuildRequest{
+		FileName: archiveName,
+	})
+	if err != nil {
+		return errors.Wrap(err, "creating upload")
+	}
+
+	logger.Debug("Uploaded archive to: %+v", upload)
+
+	// TODO: create the build, referencing this upload
+	// TODO: poll the build until it finishes
+
+	// TODO: once this works e2e, we can remove this error:
+	return errors.New("remote builds not implemented")
 }
