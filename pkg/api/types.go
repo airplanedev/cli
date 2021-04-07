@@ -316,3 +316,18 @@ type Config struct {
 type GetConfigResponse struct {
 	Config Config `json:"config"`
 }
+
+type CreateBuildUploadRequest struct {
+	FileName  string `json:"fileName"`
+	SizeBytes int    `json:"sizeBytes"`
+}
+
+type CreateBuildUploadResponse struct {
+	Upload       Upload `json:"upload"`
+	WriteOnlyURL string `json:"writeOnlyURL"`
+}
+
+type Upload struct {
+	ID  string `json:"id"`
+	URL string `json:"url"`
+}

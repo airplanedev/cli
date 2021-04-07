@@ -11,9 +11,11 @@ require (
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/fatih/color v1.10.0
 	github.com/go-git/go-git/v5 v5.2.0
+	github.com/golang/snappy v0.0.3 // indirect
 	github.com/gosimple/slug v1.9.0
 	github.com/kr/text v0.2.0
 	github.com/mattn/go-isatty v0.0.12
+	github.com/mholt/archiver/v3 v3.5.0
 	github.com/moby/sys/mount v0.2.0 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/olekukonko/tablewriter v0.0.5
@@ -22,6 +24,7 @@ require (
 	github.com/segmentio/events/v2 v2.4.0
 	github.com/spf13/cobra v1.1.3
 	github.com/stretchr/testify v1.6.1
+	github.com/ulikunitz/xz v0.5.10 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/sys v0.0.0-20210309074719-68d13333faf2 // indirect
 	golang.org/x/text v0.3.5 // indirect

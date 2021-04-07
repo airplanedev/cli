@@ -18,8 +18,9 @@ import (
 )
 
 type config struct {
-	root *cli.Config
-	file string
+	root    *cli.Config
+	file    string
+	builder string
 }
 
 func New(c *cli.Config) *cobra.Command {
@@ -38,6 +39,10 @@ func New(c *cli.Config) *cobra.Command {
 	}
 
 	cmd.Flags().StringVarP(&cfg.file, "file", "f", "", "Path to a task definition file.")
+	cmd.Flags().StringVar(&cfg.builder, "builder", string(build.BuilderKindLocal), "Where to build the task's Docker image. Accepts: [local, remote]")
+
+	// TODO: make "remote" the default once and un-hide this flag once it is fully implemented.
+	cli.Must(cmd.Flags().MarkHidden("builder"))
 
 	cli.Must(cmd.MarkFlagRequired("file"))
 
@@ -46,6 +51,11 @@ func New(c *cli.Config) *cobra.Command {
 
 func run(ctx context.Context, cfg config) error {
 	var client = cfg.root.Client
+
+	builder, err := build.ToBuilderKind(cfg.builder)
+	if err != nil {
+		return err
+	}
 
 	dir, err := taskdir.Open(cfg.file)
 	if err != nil {
@@ -94,39 +104,19 @@ func run(ctx context.Context, cfg config) error {
 	}
 
 	if def.Builder != "" {
-		registry, err := client.GetRegistryToken(ctx)
-		if err != nil {
-			return errors.Wrap(err, "getting registry token")
-		}
-
-		var output io.Writer = ioutil.Discard
-		if cfg.root.DebugMode {
-			output = os.Stderr
-		}
-
-		b, err := build.New(build.Config{
-			Root:    dir.DefinitionRootPath(),
-			Builder: def.Builder,
-			Args:    build.Args(def.BuilderConfig),
-			Writer:  output,
-			Auth: &build.RegistryAuth{
-				Token: registry.Token,
-				Repo:  registry.Repo,
-			},
-		})
-		if err != nil {
-			return errors.Wrap(err, "new build")
-		}
-
-		logger.Log("  Building...")
-		bo, err := b.Build(ctx, taskID, "latest")
-		if err != nil {
-			return errors.Wrap(err, "build")
-		}
-
-		logger.Log("  Updating...")
-		if err := b.Push(ctx, bo.Tag); err != nil {
-			return errors.Wrap(err, "push")
+		switch builder {
+		case build.BuilderKindLocal:
+			var output io.Writer = ioutil.Discard
+			if cfg.root.DebugMode {
+				output = os.Stderr
+			}
+			if err := build.Local(ctx, client, dir, def, taskID, output); err != nil {
+				return err
+			}
+		case build.BuilderKindRemote:
+			if err := build.Remote(ctx, dir, client); err != nil {
+				return err
+			}
 		}
 	}
 

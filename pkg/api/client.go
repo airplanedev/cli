@@ -183,6 +183,12 @@ func (c Client) SetConfig(ctx context.Context, req SetConfigRequest) (err error)
 	return
 }
 
+// CreateBuildUpload creates an Airplane upload and returns metadata about it.
+func (c Client) CreateBuildUpload(ctx context.Context, req CreateBuildUploadRequest) (res CreateBuildUploadResponse, err error) {
+	err = c.do(ctx, "POST", "/builds/createUpload", req, &res)
+	return
+}
+
 // Do sends a request with `method`, `path`, `payload` and `reply`.
 func (c Client) do(ctx context.Context, method, path string, payload, reply interface{}) error {
 	var url = "https://" + c.host() + "/v0" + path
