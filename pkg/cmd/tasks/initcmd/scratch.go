@@ -32,7 +32,7 @@ func initFromScratch(cfg config) error {
 		file = "airplane.yml"
 	}
 
-	dir, err := taskdir.Open(file)
+	dir, err := taskdir.New(file)
 	if err != nil {
 		return err
 	}
