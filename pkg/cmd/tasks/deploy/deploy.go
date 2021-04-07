@@ -140,7 +140,7 @@ func run(ctx context.Context, cfg config) error {
 	}
 
 	logger.Log("  Done!")
-	cmd := fmt.Sprintf("airplane tasks execute %s", def.Slug)
+	cmd := fmt.Sprintf("airplane execute %s", def.Slug)
 	if len(def.Parameters) > 0 {
 		cmd += " -- [parameters]"
 	}
