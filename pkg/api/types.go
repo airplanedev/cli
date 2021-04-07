@@ -301,6 +301,27 @@ type ListRunsResponse struct {
 	Runs []Run `json:"runs"`
 }
 
+// SetConfigRequest represents a set config request.
+type SetConfigRequest struct {
+	Name     string `json:"name"`
+	Tag      string `json:"tag"`
+	Value    string `json:"value"`
+	IsSecret bool   `json:"isSecret"`
+}
+
+// Config represents a config var.
+type Config struct {
+	Name     string `json:"name"`
+	Tag      string `json:"tag"`
+	Value    string `json:"value"`
+	IsSecret bool   `json:"isSecret"`
+}
+
+// GetConfigResponse represents a get config response.
+type GetConfigResponse struct {
+	Config Config `json:"config"`
+}
+
 type GetBuildResponse struct {
 	Build Build `json:"build"`
 }
@@ -351,25 +372,4 @@ type CreateBuildUploadResponse struct {
 type Upload struct {
 	ID  string `json:"id"`
 	URL string `json:"url"`
-}
-
-// SetConfigRequest represents a set config request.
-type SetConfigRequest struct {
-	Name     string `json:"name"`
-	Tag      string `json:"tag"`
-	Value    string `json:"value"`
-	IsSecret bool   `json:"isSecret"`
-}
-
-// Config represents a config var.
-type Config struct {
-	Name     string `json:"name"`
-	Tag      string `json:"tag"`
-	Value    string `json:"value"`
-	IsSecret bool   `json:"isSecret"`
-}
-
-// GetConfigResponse represents a get config response.
-type GetConfigResponse struct {
-	Config Config `json:"config"`
 }
