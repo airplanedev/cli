@@ -21,7 +21,7 @@ func New(c *cli.Config) *cobra.Command {
 		Short: "Print the CLI version",
 		Long:  "Print the CLI version",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return run(cmd.Context())
+			return run(cmd.Root().Context())
 		},
 	}
 

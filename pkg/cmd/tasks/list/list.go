@@ -21,7 +21,7 @@ func New(c *cli.Config) *cobra.Command {
 			airplane tasks list -o json
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return run(cmd.Context(), c)
+			return run(cmd.Root().Context(), c)
 		},
 	}
 	return cmd

@@ -1,8 +1,6 @@
 package runs
 
 import (
-	"context"
-
 	"github.com/MakeNowJust/heredoc"
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/cmd/auth/login"
@@ -24,7 +22,7 @@ func New(c *cli.Config) *cobra.Command {
 			airplane runs get <id>
 		`),
 		PersistentPreRunE: utils.WithParentPersistentPreRunE(func(cmd *cobra.Command, args []string) error {
-			return login.EnsureLoggedIn(context.TODO(), c)
+			return login.EnsureLoggedIn(cmd.Root().Context(), c)
 		}),
 	}
 
