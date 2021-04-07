@@ -36,7 +36,7 @@ func Local(ctx context.Context, client *api.Client, dir taskdir.TaskDirectory, d
 		return errors.Wrap(err, "build")
 	}
 
-	logger.Log("  Updating...")
+	logger.Log("  Pushing...")
 	if err := b.Push(ctx, bo.Tag); err != nil {
 		return errors.Wrap(err, "push")
 	}

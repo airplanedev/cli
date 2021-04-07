@@ -45,6 +45,10 @@ type UpdateTaskRequest struct {
 	Timeout int `json:"timeout" yaml:"timeout"`
 }
 
+type UpdateTaskResponse struct {
+	TaskRevisionID string `json:"taskRevisionID"`
+}
+
 // GetLogsResponse represents a get logs response.
 type GetLogsResponse struct {
 	RunID string    `json:"runID"`
@@ -163,8 +167,9 @@ type AgentLabel struct {
 
 // CreateTaskResponse represents a create task response.
 type CreateTaskResponse struct {
-	TaskID string `json:"taskID"`
-	Slug   string `json:"slug"`
+	TaskID         string `json:"taskID"`
+	Slug           string `json:"slug"`
+	TaskRevisionID string `json:"taskRevisionID"`
 }
 
 // ListTasksResponse represents a list tasks response.
@@ -317,9 +322,46 @@ type GetConfigResponse struct {
 	Config Config `json:"config"`
 }
 
+type GetBuildResponse struct {
+	Build Build `json:"build"`
+}
+
+type CreateBuildRequest struct {
+	TaskRevisionID string `json:"taskRevisionID"`
+	SourceUploadID string `json:"sourceUploadID"`
+}
+
+type CreateBuildResponse struct {
+	Build Build `json:"build"`
+}
+
+type Build struct {
+	ID             string      `json:"id"`
+	TaskRevisionID string      `json:"taskRevisionID"`
+	Status         BuildStatus `json:"status"`
+	CreatedAt      time.Time   `json:"createdAt"`
+	CreatorID      string      `json:"creatorID"`
+	QueuedAt       *time.Time  `json:"queuedAt"`
+	QueuedBy       *string     `json:"queuedBy"`
+	SourceUploadID string      `json:"sourceUploadID"`
+}
+
+type BuildStatus string
+
+const (
+	BuildNotStarted BuildStatus = "NotStarted"
+	BuildActive     BuildStatus = "Active"
+	BuildSucceeded  BuildStatus = "Succeeded"
+	BuildFailed     BuildStatus = "Failed"
+	BuildCancelled  BuildStatus = "Cancelled"
+)
+
+func (this BuildStatus) Stopped() bool {
+	return this == BuildSucceeded || this == BuildFailed || this == BuildCancelled
+}
+
 type CreateBuildUploadRequest struct {
-	FileName  string `json:"fileName"`
-	SizeBytes int    `json:"sizeBytes"`
+	SizeBytes int `json:"sizeBytes"`
 }
 
 type CreateBuildUploadResponse struct {

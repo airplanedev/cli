@@ -96,8 +96,8 @@ func (c Client) CreateTask(ctx context.Context, req CreateTaskRequest) (res Crea
 }
 
 // UpdateTask updates a task with the given req.
-func (c Client) UpdateTask(ctx context.Context, req UpdateTaskRequest) (err error) {
-	err = c.do(ctx, "POST", "/tasks/update", req, nil)
+func (c Client) UpdateTask(ctx context.Context, req UpdateTaskRequest) (res UpdateTaskResponse, err error) {
+	err = c.do(ctx, "POST", "/tasks/update", req, &res)
 	return
 }
 
@@ -180,6 +180,19 @@ func (c Client) GetConfig(ctx context.Context, name, tag string) (res GetConfigR
 // SetConfig sets a config, creating it if new and updating it if already exists.
 func (c Client) SetConfig(ctx context.Context, req SetConfigRequest) (err error) {
 	err = c.do(ctx, "POST", "/configs/set", req, nil)
+	return
+}
+
+// GetBuild returns metadata about a hosted build.
+func (c Client) GetBuild(ctx context.Context, id string) (res GetBuildResponse, err error) {
+	q := url.Values{"id": []string{id}}
+	err = c.do(ctx, "GET", "/builds/get?"+q.Encode(), nil, &res)
+	return
+}
+
+// CreateBuild creates an Airplane build and returns metadata about it.
+func (c Client) CreateBuild(ctx context.Context, req CreateBuildRequest) (res CreateBuildResponse, err error) {
+	err = c.do(ctx, "POST", "/builds/create", req, &res)
 	return
 }
 

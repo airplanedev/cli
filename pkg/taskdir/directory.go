@@ -18,6 +18,22 @@ type TaskDirectory struct {
 	closer io.Closer
 }
 
+// New creates a TaskDirectory struct with the (desired) definition file as input
+func New(file string) (TaskDirectory, error) {
+	var td TaskDirectory
+	var err error
+	td.defPath, err = filepath.Abs(file)
+	if err != nil {
+		return td, errors.Wrap(err, "converting local file path to absolute path")
+	}
+	// For a new defPath, assume the root is the directory of the defPath
+	td.rootPath = filepath.Dir(td.defPath)
+	return td, nil
+}
+
+// Open creates a TaskDirectory struct from a file argument
+// Supports file in the form of github.com/path/to/repo/example and will download from GitHub
+// Supports file in the form of local_file.yml and will read it to determine the full details
 func Open(file string) (TaskDirectory, error) {
 	if strings.HasPrefix(file, "http://") {
 		return TaskDirectory{}, errors.New("http:// paths are not supported, use https:// instead")
