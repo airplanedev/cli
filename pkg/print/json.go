@@ -39,6 +39,7 @@ func (j *JSON) run(run api.Run) {
 	j.enc.Encode(run)
 }
 
+// Outputs implementation.
 func (j *JSON) outputs(outputs api.Outputs) {
 	for key, values := range outputs {
 		for _, value := range values {
@@ -48,4 +49,9 @@ func (j *JSON) outputs(outputs api.Outputs) {
 			})
 		}
 	}
+}
+
+// Config implementation.
+func (j *JSON) config(config api.Config) {
+	j.enc.Encode(config)
 }

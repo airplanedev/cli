@@ -23,6 +23,7 @@ func Confirm(question string) (bool, error) {
 	return ok, nil
 }
 
+// CanPrompt checks that both stdin and stderr are terminal
 func CanPrompt() bool {
-	return isatty.IsTerminal(os.Stderr.Fd())
+	return isatty.IsTerminal(os.Stdin.Fd()) && isatty.IsTerminal(os.Stderr.Fd())
 }

@@ -32,6 +32,7 @@ func (YAML) run(run api.Run) {
 	yaml.NewEncoder(os.Stdout).Encode(run)
 }
 
+// Outputs implementation.
 func (YAML) outputs(outputs api.Outputs) {
 	var rows []api.OutputRow
 	for key, values := range outputs {
@@ -43,4 +44,9 @@ func (YAML) outputs(outputs api.Outputs) {
 		}
 	}
 	yaml.NewEncoder(os.Stdout).Encode(rows)
+}
+
+// Config implementation.
+func (YAML) config(config api.Config) {
+	yaml.NewEncoder(os.Stdout).Encode(config)
 }
