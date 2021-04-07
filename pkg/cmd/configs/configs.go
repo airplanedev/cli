@@ -14,8 +14,8 @@ func New(c *cli.Config) *cobra.Command {
 		Short: "Manage config variables",
 		Long:  "Manage config variables",
 		Example: heredoc.Doc(`
-			$ airplane config set my_database_url postgresql://my_database
-			$ airplane config get my_config_name
+			$ airplane configs set my_database_url postgresql://my_database
+			$ airplane configs get my_config_name
 		`),
 	}
 
