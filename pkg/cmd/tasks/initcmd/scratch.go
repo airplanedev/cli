@@ -17,7 +17,7 @@ func initFromScratch(cfg config) error {
 		return err
 	}
 
-	name, err := pickString("Pick a name:")
+	name, err := pickString("Pick a name:", survey.WithValidator(survey.Required))
 	if err != nil {
 		return err
 	}
@@ -133,14 +133,15 @@ func pickRuntime() (runtimeKind, error) {
 	return runtimeKind(runtime), nil
 }
 
-func pickString(msg string) (string, error) {
+func pickString(msg string, opts ...survey.AskOpt) (string, error) {
 	var str string
+	opts = append(opts, survey.WithStdio(os.Stdin, os.Stderr, os.Stderr))
 	if err := survey.AskOne(
 		&survey.Input{
 			Message: msg,
 		},
 		&str,
-		survey.WithStdio(os.Stdin, os.Stderr, os.Stderr),
+		opts...,
 	); err != nil {
 		return "", errors.Wrap(err, "prompting")
 	}
