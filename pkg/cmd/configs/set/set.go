@@ -12,8 +12,8 @@ import (
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/configs"
 	"github.com/airplanedev/cli/pkg/logger"
+	"github.com/airplanedev/cli/pkg/utils"
 	"github.com/fatih/color"
-	"github.com/mattn/go-isatty"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -97,8 +97,7 @@ func run(ctx context.Context, c *cli.Config, name string, argValue *string, secr
 
 func readValue(secret bool) (string, error) {
 	var value string
-	if isatty.IsTerminal(os.Stdin.Fd()) {
-		// Prompt
+	if utils.CanPrompt() {
 		msg := "Config value:"
 		var prompt survey.Prompt
 		if secret {
