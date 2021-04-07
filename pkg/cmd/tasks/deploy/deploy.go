@@ -73,13 +73,12 @@ func run(ctx context.Context, cfg config) error {
 	}
 
 	var taskID string
+	var taskRevisionID string
 	task, err := client.GetTask(ctx, def.Slug)
 	if err == nil {
-		taskID = task.ID
-	} else if aerr, ok := err.(api.Error); ok && aerr.Code == 404 {
-		// A task with this slug does not exist, so we should create one.
-		logger.Log("  Creating...")
-		if res, err := client.CreateTask(ctx, api.CreateTaskRequest{
+		// This task already exists, so we update it:
+		logger.Log("  Updating...")
+		res, err := client.UpdateTask(ctx, api.UpdateTaskRequest{
 			Slug:           def.Slug,
 			Name:           def.Name,
 			Description:    def.Description,
@@ -94,11 +93,38 @@ func run(ctx context.Context, cfg config) error {
 			BuilderConfig:  def.BuilderConfig,
 			Repo:           def.Repo,
 			Timeout:        def.Timeout,
-		}); err != nil {
-			return errors.Wrapf(err, "creating task %s", def.Slug)
-		} else {
-			taskID = res.TaskID
+		})
+		if err != nil {
+			return errors.Wrapf(err, "updating task %s", def.Slug)
 		}
+
+		taskID = task.ID
+		taskRevisionID = res.TaskRevisionID
+	} else if aerr, ok := err.(api.Error); ok && aerr.Code == 404 {
+		// A task with this slug does not exist, so we should create one.
+		logger.Log("  Creating...")
+		res, err := client.CreateTask(ctx, api.CreateTaskRequest{
+			Slug:           def.Slug,
+			Name:           def.Name,
+			Description:    def.Description,
+			Image:          def.Image,
+			Command:        def.Command,
+			Arguments:      def.Arguments,
+			Parameters:     def.Parameters,
+			Constraints:    def.Constraints,
+			Env:            def.Env,
+			ResourceLimits: def.ResourceLimits,
+			Builder:        def.Builder,
+			BuilderConfig:  def.BuilderConfig,
+			Repo:           def.Repo,
+			Timeout:        def.Timeout,
+		})
+		if err != nil {
+			return errors.Wrapf(err, "creating task %s", def.Slug)
+		}
+
+		taskID = res.TaskID
+		taskRevisionID = res.TaskRevisionID
 	} else {
 		return errors.Wrap(err, "getting task")
 	}
@@ -114,29 +140,10 @@ func run(ctx context.Context, cfg config) error {
 				return err
 			}
 		case build.BuilderKindRemote:
-			if err := build.Remote(ctx, dir, client); err != nil {
+			if err := build.Remote(ctx, dir, client, taskRevisionID); err != nil {
 				return err
 			}
 		}
-	}
-
-	if err := client.UpdateTask(ctx, api.UpdateTaskRequest{
-		Slug:           def.Slug,
-		Name:           def.Name,
-		Description:    def.Description,
-		Image:          def.Image,
-		Command:        def.Command,
-		Arguments:      def.Arguments,
-		Parameters:     def.Parameters,
-		Constraints:    def.Constraints,
-		Env:            def.Env,
-		ResourceLimits: def.ResourceLimits,
-		Builder:        def.Builder,
-		BuilderConfig:  def.BuilderConfig,
-		Repo:           def.Repo,
-		Timeout:        def.Timeout,
-	}); err != nil {
-		return errors.Wrapf(err, "updating task %s", def.Slug)
 	}
 
 	logger.Log("  Done!")

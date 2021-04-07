@@ -45,6 +45,10 @@ type UpdateTaskRequest struct {
 	Timeout int `json:"timeout" yaml:"timeout"`
 }
 
+type UpdateTaskResponse struct {
+	TaskRevisionID string `json:"taskRevisionID"`
+}
+
 // GetLogsResponse represents a get logs response.
 type GetLogsResponse struct {
 	RunID string    `json:"runID"`
@@ -163,8 +167,9 @@ type AgentLabel struct {
 
 // CreateTaskResponse represents a create task response.
 type CreateTaskResponse struct {
-	TaskID string `json:"taskID"`
-	Slug   string `json:"slug"`
+	TaskID         string `json:"taskID"`
+	Slug           string `json:"slug"`
+	TaskRevisionID string `json:"taskRevisionID"`
 }
 
 // ListTasksResponse represents a list tasks response.
