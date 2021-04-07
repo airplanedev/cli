@@ -30,11 +30,11 @@ func New(c *cli.Config) *cobra.Command {
 		Use:   "set [--secret] <name> [<value>]",
 		Short: "Set a new or existing config variable",
 		Example: heredoc.Doc(`
-			# Set a value by entering it in to the prompt
+			# Pass in a value to the prompt
 			$ airplane configs set --secret db/url
 			Config value: my_value_here
 			
-			# Set a value by piping it in via stdin
+			# Pass in a value by piping it in via stdin
 			$ cat my_secret_value.txt | airplane configs set --secret secret_config
 
 			# Recommended for non-secrets only - pass in a value via arguments
@@ -69,7 +69,7 @@ func run(ctx context.Context, c *cli.Config, name string, argValue *string, secr
 		value = *argValue
 	} else {
 		var err error
-		value, err = readValue()
+		value, err = readValue(secret)
 		if err != nil {
 			return err
 		}
@@ -95,12 +95,19 @@ func run(ctx context.Context, c *cli.Config, name string, argValue *string, secr
 	return nil
 }
 
-func readValue() (string, error) {
+func readValue(secret bool) (string, error) {
 	var value string
 	if isatty.IsTerminal(os.Stdin.Fd()) {
 		// Prompt
+		msg := "Config value:"
+		var prompt survey.Prompt
+		if secret {
+			prompt = &survey.Password{Message: msg}
+		} else {
+			prompt = &survey.Input{Message: msg}
+		}
 		if err := survey.AskOne(
-			&survey.Input{Message: "Config value:"},
+			prompt,
 			&value,
 			survey.WithStdio(os.Stdin, os.Stderr, os.Stderr),
 		); err != nil {
