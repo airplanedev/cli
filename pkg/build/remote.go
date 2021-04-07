@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"time"
 
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/logger"
@@ -83,16 +84,29 @@ func Remote(ctx context.Context, dir taskdir.TaskDirectory, client *api.Client) 
 		return errors.Wrap(err, "creating build")
 	}
 
-	b, err := client.GetBuild(ctx, build.Build.ID)
-	if err != nil {
-		return errors.Wrap(err, "getting build")
+	if err := waitForBuild(ctx, client, build.Build.ID); err != nil {
+		return err
 	}
 
-	// TODO: wait until done
-	if b.Build.Status.IsDone() {
-		return nil
-	}
+	return nil
+}
 
-	// TODO: once this works e2e, we can remove this error:
-	return errors.New("remote builds not implemented")
+func waitForBuild(ctx context.Context, client *api.Client, buildID string) error {
+	t := time.NewTicker(time.Second)
+
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-t.C:
+			b, err := client.GetBuild(ctx, buildID)
+			if err != nil {
+				return errors.Wrap(err, "getting build")
+			}
+
+			if b.Build.Status.Stopped() {
+				return nil
+			}
+		}
+	}
 }

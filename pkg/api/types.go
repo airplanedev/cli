@@ -330,7 +330,7 @@ const (
 	BuildCancelled  BuildStatus = "Cancelled"
 )
 
-func (this BuildStatus) IsDone() bool {
+func (this BuildStatus) Stopped() bool {
 	return this == BuildSucceeded || this == BuildFailed || this == BuildCancelled
 }
 
