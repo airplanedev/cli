@@ -335,8 +335,7 @@ func (this BuildStatus) IsDone() bool {
 }
 
 type CreateBuildUploadRequest struct {
-	FileName  string `json:"fileName"`
-	SizeBytes int    `json:"sizeBytes"`
+	SizeBytes int `json:"sizeBytes"`
 }
 
 type CreateBuildUploadResponse struct {

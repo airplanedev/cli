@@ -24,8 +24,7 @@ func Remote(ctx context.Context, dir taskdir.TaskDirectory, client *api.Client) 
 
 	// Archive the root task directory:
 	// TODO: filter out files/directories that match .dockerignore
-	archiveName := "airplane-build.tar.gz"
-	archivePath := path.Join(tmpdir, archiveName)
+	archivePath := path.Join(tmpdir, "airplane-build.tar.gz")
 	// mholt/archiver takes a list of "sources" (files/directories) that will
 	// be included in the root of the archive. In our case, we want the root of
 	// the archive to be the contents of the task directory, rather than the
@@ -57,7 +56,6 @@ func Remote(ctx context.Context, dir taskdir.TaskDirectory, client *api.Client) 
 
 	// Upload the archive to Airplane:
 	upload, err := client.CreateBuildUpload(ctx, api.CreateBuildUploadRequest{
-		FileName:  archiveName,
 		SizeBytes: sizeBytes,
 	})
 	if err != nil {
