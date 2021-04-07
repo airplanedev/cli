@@ -20,7 +20,6 @@ func Remote(ctx context.Context, dir taskdir.TaskDirectory, client *api.Client) 
 	if err != nil {
 		return errors.Wrap(err, "creating temporary directory for remote build")
 	}
-	logger.Debug("tmpdir: %s", tmpdir)
 	defer os.RemoveAll(tmpdir)
 
 	// Archive the root task directory:
@@ -64,7 +63,8 @@ func Remote(ctx context.Context, dir taskdir.TaskDirectory, client *api.Client) 
 	if err != nil {
 		return errors.Wrap(err, "creating upload")
 	}
-	logger.Debug("Uploaded archive to id=%s at %s", upload.Upload.ID, upload.Upload.URL)
+
+	logger.Debug("Uploaded archive to id=%s at url=%s", upload.Upload.ID, upload.Upload.URL)
 
 	req, err := http.NewRequestWithContext(ctx, "PUT", upload.WriteOnlyURL, archive)
 	if err != nil {
@@ -77,10 +77,23 @@ func Remote(ctx context.Context, dir taskdir.TaskDirectory, client *api.Client) 
 	}
 	defer resp.Body.Close()
 
-	logger.Debug("Upload completed successfully!")
+	build, err := client.CreateBuild(ctx, api.CreateBuildRequest{
+		TaskRevisionID: "todo",
+		SourceUploadID: upload.Upload.ID,
+	})
+	if err != nil {
+		return errors.Wrap(err, "creating build")
+	}
 
-	// TODO: create the build, referencing this upload
-	// TODO: poll the build until it finishes
+	b, err := client.GetBuild(ctx, build.Build.ID)
+	if err != nil {
+		return errors.Wrap(err, "getting build")
+	}
+
+	// TODO: wait until done
+	if b.Build.Status.IsDone() {
+		return nil
+	}
 
 	// TODO: once this works e2e, we can remove this error:
 	return errors.New("remote builds not implemented")

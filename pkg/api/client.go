@@ -167,6 +167,19 @@ func (c Client) GetTask(ctx context.Context, slug string) (res Task, err error) 
 	return
 }
 
+// GetBuild returns metadata about a hosted build.
+func (c Client) GetBuild(ctx context.Context, id string) (res GetBuildResponse, err error) {
+	q := url.Values{"id": []string{id}}
+	err = c.do(ctx, "GET", "/builds/get?"+q.Encode(), nil, &res)
+	return
+}
+
+// CreateBuild creates an Airplane build and returns metadata about it.
+func (c Client) CreateBuild(ctx context.Context, req CreateBuildRequest) (res CreateBuildResponse, err error) {
+	err = c.do(ctx, "POST", "/builds/create", req, &res)
+	return
+}
+
 // CreateBuildUpload creates an Airplane upload and returns metadata about it.
 func (c Client) CreateBuildUpload(ctx context.Context, req CreateBuildUploadRequest) (res CreateBuildUploadResponse, err error) {
 	err = c.do(ctx, "POST", "/builds/createUpload", req, &res)
