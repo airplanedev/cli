@@ -10,9 +10,10 @@ import (
 
 func New(c *cli.Config) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "configs",
-		Short: "Manage config variables",
-		Long:  "Manage config variables",
+		Use:     "configs",
+		Short:   "Manage config variables",
+		Long:    "Manage config variables",
+		Aliases: []string{"config"},
 		Example: heredoc.Doc(`
 			$ airplane configs set my_database_url postgresql://my_database
 			$ airplane configs get my_config_name

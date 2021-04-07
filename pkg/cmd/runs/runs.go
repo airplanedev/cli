@@ -15,9 +15,10 @@ import (
 // New returns a new cobra command.
 func New(c *cli.Config) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "runs",
-		Short: "Manage runs",
-		Long:  "Manage runs",
+		Use:     "runs",
+		Short:   "Manage runs",
+		Long:    "Manage runs",
+		Aliases: []string{"run"},
 		Example: heredoc.Doc(`
 			airplane runs list --task my-task
 			airplane runs get <id>
