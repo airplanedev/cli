@@ -19,11 +19,6 @@ func NewJSONFormatter() *JSON {
 	}
 }
 
-// APIKeyCreated implementation.
-func (j *JSON) apiKeyCreated(apiKey api.APIKey) {
-	j.enc.Encode(apiKey)
-}
-
 // APIKeys implementation.
 func (j *JSON) apiKeys(apiKeys []api.APIKey) {
 	j.enc.Encode(apiKeys)

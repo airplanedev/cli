@@ -2,14 +2,22 @@ package create
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/cli"
-	"github.com/airplanedev/cli/pkg/print"
+	"github.com/airplanedev/cli/pkg/logger"
+	"github.com/fatih/color"
+	"github.com/mattn/go-isatty"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+)
+
+var (
+	blue = color.New(color.FgHiBlue).SprintFunc()
 )
 
 // New returns a new create command.
@@ -40,11 +48,27 @@ func run(ctx context.Context, c *cli.Config, name string) error {
 	req := api.CreateAPIKeyRequest{
 		Name: name,
 	}
+	logger.Log("  Creating API key named %s...", blue(req.Name))
 	resp, err := client.CreateAPIKey(ctx, req)
 	if err != nil {
 		return errors.Wrap(err, "creating API key")
 	}
 
-	print.APIKeyCreated(resp.APIKey)
+	apiKey := resp.APIKey
+	logger.Log("  Done!")
+	if isatty.IsTerminal(os.Stdout.Fd()) {
+		logger.Log(`  Save this somewhere safe, as you won't be able to retrieve it later:
+
+  %s
+
+  Key ID: %s
+  Team ID: %s
+`, blue(apiKey.Key), apiKey.ID, apiKey.TeamID)
+	} else {
+		if err := json.NewEncoder(os.Stdout).Encode(apiKey); err != nil {
+			return errors.Wrap(err, "encoding API key to JSON")
+		}
+	}
+
 	return nil
 }
