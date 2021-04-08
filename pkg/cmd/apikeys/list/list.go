@@ -16,7 +16,7 @@ func New(c *cli.Config) *cobra.Command {
 		Short: "Lists API keys by ID and created time",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return run(cmd.Context(), c)
+			return run(cmd.Root().Context(), c)
 		},
 	}
 	return cmd

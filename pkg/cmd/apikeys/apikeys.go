@@ -1,8 +1,6 @@
 package apikeys
 
 import (
-	"context"
-
 	"github.com/MakeNowJust/heredoc"
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/cmd/apikeys/create"
@@ -26,7 +24,7 @@ func New(c *cli.Config) *cobra.Command {
 			airplane apikeys delete <key_id>
 		`),
 		PersistentPreRunE: utils.WithParentPersistentPreRunE(func(cmd *cobra.Command, args []string) error {
-			return login.EnsureLoggedIn(context.TODO(), c)
+			return login.EnsureLoggedIn(cmd.Root().Context(), c)
 		}),
 	}
 

@@ -23,7 +23,7 @@ func New(c *cli.Config) *cobra.Command {
 			if len(args) > 0 {
 				name = args[0]
 			}
-			return run(cmd.Context(), c, name)
+			return run(cmd.Root().Context(), c, name)
 		},
 	}
 	return cmd

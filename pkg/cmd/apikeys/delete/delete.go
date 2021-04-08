@@ -22,7 +22,7 @@ func New(c *cli.Config) *cobra.Command {
 		Short: "Deletes one or more API keys by ID",
 		Args:  cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return run(cmd.Context(), c, args)
+			return run(cmd.Root().Context(), c, args)
 		},
 	}
 	return cmd
@@ -38,7 +38,7 @@ func run(ctx context.Context, c *cli.Config, apiKeyIDs []string) error {
 		}
 		logger.Log("  Deleting key %s...", red(apiKeyID))
 		if err := client.DeleteAPIKey(ctx, req); err != nil {
-			return errors.Wrap(err, "creating API key")
+			return errors.Wrap(err, "deleting API key")
 		}
 	}
 	logger.Log("  Done.")
