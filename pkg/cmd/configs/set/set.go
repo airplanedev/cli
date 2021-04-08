@@ -46,7 +46,7 @@ func New(c *cli.Config) *cobra.Command {
 			if len(args) == 2 {
 				value = &args[1]
 			}
-			return run(cmd.Context(), c, args[0], value, secret)
+			return run(cmd.Root().Context(), c, args[0], value, secret)
 		},
 	}
 	cmd.Flags().BoolVar(&secret, "secret", false, "Whether to set config var as a secret")

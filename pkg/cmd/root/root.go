@@ -9,9 +9,14 @@ import (
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/cmd/apikeys"
 	"github.com/airplanedev/cli/pkg/cmd/auth"
+	"github.com/airplanedev/cli/pkg/cmd/auth/login"
+	"github.com/airplanedev/cli/pkg/cmd/auth/logout"
 	"github.com/airplanedev/cli/pkg/cmd/configs"
 	"github.com/airplanedev/cli/pkg/cmd/runs"
 	"github.com/airplanedev/cli/pkg/cmd/tasks"
+	"github.com/airplanedev/cli/pkg/cmd/tasks/deploy"
+	"github.com/airplanedev/cli/pkg/cmd/tasks/execute"
+	"github.com/airplanedev/cli/pkg/cmd/tasks/initcmd"
 	"github.com/airplanedev/cli/pkg/cmd/version"
 	"github.com/airplanedev/cli/pkg/conf"
 	"github.com/airplanedev/cli/pkg/logger"
@@ -32,11 +37,11 @@ func New() *cobra.Command {
 		Use:   "airplane <command>",
 		Short: "Airplane CLI",
 		Example: heredoc.Doc(`
-		airplane tasks deploy -f ./task.yml
-		airplane tasks execute my_task
+		airplane deploy -f ./task.yml
+		airplane execute my_task
 
-		airplane tasks deploy -f github.com/airplanedev/examples/node/hello-world-javascript/airplane.yml
-		airplane tasks execute hello_world
+		airplane deploy -f github.com/airplanedev/examples/node/hello-world-javascript/airplane.yml
+		airplane execute hello_world
 		`),
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			if c, err := conf.ReadDefault(); err == nil {
@@ -82,7 +87,14 @@ func New() *cobra.Command {
 	cmd.PersistentFlags().BoolVar(&cfg.DebugMode, "debug", false, "Whether to produce debugging output.")
 	cmd.PersistentFlags().BoolVarP(&cfg.Version, "version", "v", false, "Print the CLI version.")
 
-	// Sub-commands.
+	// Aliases for popular namespaced commands:
+	cmd.AddCommand(initcmd.New(cfg))
+	cmd.AddCommand(deploy.New(cfg))
+	cmd.AddCommand(execute.New(cfg))
+	cmd.AddCommand(login.New(cfg))
+	cmd.AddCommand(logout.New(cfg))
+
+	// Sub-commands:
 	cmd.AddCommand(apikeys.New(cfg))
 	cmd.AddCommand(auth.New(cfg))
 	cmd.AddCommand(configs.New(cfg))

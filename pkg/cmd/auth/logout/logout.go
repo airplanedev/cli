@@ -15,7 +15,7 @@ func New(c *cli.Config) *cobra.Command {
 		Use:   "logout",
 		Short: "Log out of Airplane",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return run(cmd.Context(), c)
+			return run(cmd.Root().Context(), c)
 		},
 	}
 	return cmd
