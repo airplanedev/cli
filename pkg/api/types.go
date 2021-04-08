@@ -165,6 +165,22 @@ type AgentLabel struct {
 	Value string `json:"value" yaml:"value"`
 }
 
+// AuthInfoResponse represents info about authenticated user.
+type AuthInfoResponse struct {
+	User *UserInfo `json:"user"`
+	Team *TeamInfo `json:"team"`
+}
+
+type UserInfo struct {
+	ID    string `json:"id"`
+	Email string `json:"email"`
+}
+
+type TeamInfo struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
 // CreateTaskResponse represents a create task response.
 type CreateTaskResponse struct {
 	TaskID         string `json:"taskID"`

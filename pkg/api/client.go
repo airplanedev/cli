@@ -83,6 +83,12 @@ func (c Client) TaskURL(id string) string {
 	return u.String()
 }
 
+// AuthInfo responds with the currently authenticated details.
+func (c Client) AuthInfo(ctx context.Context) (res AuthInfoResponse, err error) {
+	err = c.do(ctx, "GET", "/auth/info", nil, &res)
+	return
+}
+
 // GetRegistryToken responds with the registry token.
 func (c Client) GetRegistryToken(ctx context.Context) (res RegistryTokenResponse, err error) {
 	err = c.do(ctx, "POST", "/registry/getToken", nil, &res)
