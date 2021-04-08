@@ -27,7 +27,7 @@ type JsonObject map[string]interface{}
 
 // APIKeyCreated implementation.
 func (t Table) apiKeyCreated(apiKey api.APIKey) {
-	fmt.Fprintln(os.Stderr, "A new API key was created! Save this somewhere safe, as you won't be able to retrieve it later:")
+	fmt.Fprintf(os.Stderr, "API key %s was created! Save this somewhere safe, as you won't be able to retrieve it later:\n", blue(apiKey.Name))
 	fmt.Fprintln(os.Stderr, "")
 	fmt.Fprintf(os.Stdout, "  %s\n", blue(apiKey.Key))
 	fmt.Fprintln(os.Stderr, "")
@@ -39,12 +39,13 @@ func (t Table) apiKeyCreated(apiKey api.APIKey) {
 func (t Table) apiKeys(apiKeys []api.APIKey) {
 	tw := tablewriter.NewWriter(os.Stdout)
 	tw.SetBorder(false)
-	tw.SetHeader([]string{"id", "created at"})
+	tw.SetHeader([]string{"id", "created at", "name"})
 
 	for _, k := range apiKeys {
 		tw.Append([]string{
 			k.ID,
 			k.CreatedAt.Format(time.RFC3339),
+			k.Name,
 		})
 	}
 

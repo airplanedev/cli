@@ -374,6 +374,10 @@ type Upload struct {
 	URL string `json:"url"`
 }
 
+type CreateAPIKeyRequest struct {
+	Name string `json:"name"`
+}
+
 type CreateAPIKeyResponse struct {
 	APIKey APIKey `json:"apiKey"`
 }
@@ -389,6 +393,7 @@ type DeleteAPIKeyRequest struct {
 type APIKey struct {
 	ID        string    `json:"id" yaml:"id"`
 	TeamID    string    `json:"teamID" yaml:"teamID"`
+	Name      string    `json:"name" yaml:"name"`
 	CreatedAt time.Time `json:"createdAt" yaml:"createdAt"`
-	Key       string    `json:"key"`
+	Key       string    `json:"key" yaml:"key"`
 }

@@ -21,7 +21,7 @@ func New(c *cli.Config) *cobra.Command {
 		Long:    "Manage API keys",
 		Aliases: []string{"apikey"},
 		Example: heredoc.Doc(`
-			airplane apikeys create
+			airplane apikeys create "Agent Key"
 			airplane apikeys list
 			airplane apikeys delete <key_id>
 		`),

@@ -203,8 +203,8 @@ func (c Client) CreateBuildUpload(ctx context.Context, req CreateBuildUploadRequ
 }
 
 // CreateAPIKey creates a new API key and returns data about it.
-func (c Client) CreateAPIKey(ctx context.Context) (res CreateAPIKeyResponse, err error) {
-	err = c.do(ctx, "POST", "/apiKeys/create", nil, &res)
+func (c Client) CreateAPIKey(ctx context.Context, req CreateAPIKeyRequest) (res CreateAPIKeyResponse, err error) {
+	err = c.do(ctx, "POST", "/apiKeys/create", req, &res)
 	return
 }
 
