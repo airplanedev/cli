@@ -11,6 +11,7 @@ import (
 
 var (
 	blue = color.New(color.FgHiBlue).SprintFunc()
+	gray = color.New(color.FgHiBlack).SprintFunc()
 )
 
 func New(c *cli.Config) *cobra.Command {
@@ -34,7 +35,7 @@ func run(ctx context.Context, c *cli.Config) error {
 
 	var userStr string
 	if res.User == nil {
-		userStr = "no user"
+		userStr = gray("<no user>")
 	} else {
 		userStr = res.User.Email
 	}
