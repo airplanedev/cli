@@ -208,6 +208,24 @@ func (c Client) CreateBuildUpload(ctx context.Context, req CreateBuildUploadRequ
 	return
 }
 
+// CreateAPIKey creates a new API key and returns data about it.
+func (c Client) CreateAPIKey(ctx context.Context, req CreateAPIKeyRequest) (res CreateAPIKeyResponse, err error) {
+	err = c.do(ctx, "POST", "/apiKeys/create", req, &res)
+	return
+}
+
+// ListAPIKeys lists API keys.
+func (c Client) ListAPIKeys(ctx context.Context) (res ListAPIKeysResponse, err error) {
+	err = c.do(ctx, "GET", "/apiKeys/list", nil, &res)
+	return
+}
+
+// DeleteAPIKey deletes an API key.
+func (c Client) DeleteAPIKey(ctx context.Context, req DeleteAPIKeyRequest) (err error) {
+	err = c.do(ctx, "POST", "/apiKeys/delete", req, nil)
+	return
+}
+
 // Do sends a request with `method`, `path`, `payload` and `reply`.
 func (c Client) do(ctx context.Context, method, path string, payload, reply interface{}) error {
 	var url = "https://" + c.host() + "/v0" + path

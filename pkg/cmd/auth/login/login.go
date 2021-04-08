@@ -18,7 +18,7 @@ func New(c *cli.Config) *cobra.Command {
 		Use:   "login",
 		Short: "Login to Airplane",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return run(cmd.Context(), c)
+			return run(cmd.Root().Context(), c)
 		},
 	}
 	return cmd
@@ -37,7 +37,7 @@ func run(ctx context.Context, c *cli.Config) error {
 }
 
 var (
-	ErrLoggedOut = errors.New("You are not logged in. To login, run:\n    airplane auth login")
+	ErrLoggedOut = errors.New("You are not logged in. To login, run:\n    airplane login")
 )
 
 func EnsureLoggedIn(ctx context.Context, c *cli.Config) error {

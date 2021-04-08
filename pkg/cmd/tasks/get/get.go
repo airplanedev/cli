@@ -21,7 +21,7 @@ func New(c *cli.Config) *cobra.Command {
 		`),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return run(cmd.Context(), c, args[0])
+			return run(cmd.Root().Context(), c, args[0])
 		},
 	}
 	return cmd

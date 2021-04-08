@@ -19,6 +19,11 @@ func NewJSONFormatter() *JSON {
 	}
 }
 
+// APIKeys implementation.
+func (j *JSON) apiKeys(apiKeys []api.APIKey) {
+	j.enc.Encode(apiKeys)
+}
+
 // Tasks implementation.
 func (j *JSON) tasks(tasks []api.Task) {
 	j.enc.Encode(tasks)

@@ -1,8 +1,6 @@
 package tasks
 
 import (
-	"context"
-
 	"github.com/MakeNowJust/heredoc"
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/cmd/auth/login"
@@ -18,9 +16,10 @@ import (
 // New returns a new cobra command.
 func New(c *cli.Config) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "tasks",
-		Short: "Manage tasks",
-		Long:  "Manage tasks",
+		Use:     "tasks",
+		Short:   "Manage tasks",
+		Long:    "Manage tasks",
+		Aliases: []string{"task"},
 		Example: heredoc.Doc(`
 			airplane tasks init
 			airplane tasks deploy -f mytask.yml
@@ -28,7 +27,7 @@ func New(c *cli.Config) *cobra.Command {
 			airplane tasks execute my_task
 		`),
 		PersistentPreRunE: utils.WithParentPersistentPreRunE(func(cmd *cobra.Command, args []string) error {
-			return login.EnsureLoggedIn(context.TODO(), c)
+			return login.EnsureLoggedIn(cmd.Root().Context(), c)
 		}),
 	}
 

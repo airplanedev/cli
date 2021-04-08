@@ -11,7 +11,9 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/MakeNowJust/heredoc"
 	"github.com/airplanedev/cli/pkg/cli"
+	"github.com/airplanedev/cli/pkg/cmd/auth/login"
 	"github.com/airplanedev/cli/pkg/logger"
+	"github.com/airplanedev/cli/pkg/utils"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -33,8 +35,11 @@ func New(c *cli.Config) *cobra.Command {
 			$ airplane tasks init -f ./airplane.yml
 			$ airplane tasks init --from hello_world
 		`),
+		PersistentPreRunE: utils.WithParentPersistentPreRunE(func(cmd *cobra.Command, args []string) error {
+			return login.EnsureLoggedIn(cmd.Root().Context(), c)
+		}),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return run(cmd.Context(), cfg)
+			return run(cmd.Root().Context(), cfg)
 		},
 	}
 

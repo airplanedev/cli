@@ -24,6 +24,23 @@ type Table struct{}
 
 type JsonObject map[string]interface{}
 
+// APIKeys implementation.
+func (t Table) apiKeys(apiKeys []api.APIKey) {
+	tw := tablewriter.NewWriter(os.Stdout)
+	tw.SetBorder(false)
+	tw.SetHeader([]string{"id", "created at", "name"})
+
+	for _, k := range apiKeys {
+		tw.Append([]string{
+			k.ID,
+			k.CreatedAt.Format(time.RFC3339),
+			k.Name,
+		})
+	}
+
+	tw.Render()
+}
+
 // Tasks implementation.
 func (t Table) tasks(tasks []api.Task) {
 	tw := tablewriter.NewWriter(os.Stdout)

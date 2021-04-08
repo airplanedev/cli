@@ -11,8 +11,10 @@ import (
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/build"
 	"github.com/airplanedev/cli/pkg/cli"
+	"github.com/airplanedev/cli/pkg/cmd/auth/login"
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/taskdir"
+	"github.com/airplanedev/cli/pkg/utils"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -34,8 +36,11 @@ func New(c *cli.Config) *cobra.Command {
 			airplane tasks deploy -f my-task.yml
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return run(cmd.Context(), cfg)
+			return run(cmd.Root().Context(), cfg)
 		},
+		PersistentPreRunE: utils.WithParentPersistentPreRunE(func(cmd *cobra.Command, args []string) error {
+			return login.EnsureLoggedIn(cmd.Root().Context(), c)
+		}),
 	}
 
 	cmd.Flags().StringVarP(&cfg.file, "file", "f", "", "Path to a task definition file.")
@@ -147,7 +152,7 @@ func run(ctx context.Context, cfg config) error {
 	}
 
 	logger.Log("  Done!")
-	cmd := fmt.Sprintf("airplane tasks execute %s", def.Slug)
+	cmd := fmt.Sprintf("airplane execute %s", def.Slug)
 	if len(def.Parameters) > 0 {
 		cmd += " -- [parameters]"
 	}

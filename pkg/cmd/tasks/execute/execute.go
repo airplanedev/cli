@@ -9,8 +9,10 @@ import (
 	"github.com/MakeNowJust/heredoc"
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/cli"
+	"github.com/airplanedev/cli/pkg/cmd/auth/login"
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/print"
+	"github.com/airplanedev/cli/pkg/utils"
 	"github.com/fatih/color"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -41,10 +43,13 @@ func New(c *cli.Config) *cobra.Command {
 			airplane tasks execute <slug> -- [parameters]
 		`),
 		Args: cobra.MinimumNArgs(1),
+		PersistentPreRunE: utils.WithParentPersistentPreRunE(func(cmd *cobra.Command, args []string) error {
+			return login.EnsureLoggedIn(cmd.Root().Context(), c)
+		}),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg.slug = args[0]
 			cfg.args = args[1:]
-			return run(cmd.Context(), cfg)
+			return run(cmd.Root().Context(), cfg)
 		},
 	}
 
