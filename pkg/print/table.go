@@ -14,6 +14,7 @@ import (
 )
 
 var (
+	blue = color.New(color.FgHiBlue).SprintFunc()
 	gray = color.New(color.FgHiBlack).SprintFunc()
 )
 
@@ -23,6 +24,32 @@ var (
 type Table struct{}
 
 type JsonObject map[string]interface{}
+
+// APIKeyCreated implementation.
+func (t Table) apiKeyCreated(apiKey api.APIKey) {
+	fmt.Fprintln(os.Stderr, "A new API key was created! Save this somewhere safe, as you won't be able to retrieve it later:")
+	fmt.Fprintln(os.Stderr, "")
+	fmt.Fprintf(os.Stdout, "  %s\n", blue(apiKey.Key))
+	fmt.Fprintln(os.Stderr, "")
+	fmt.Fprintf(os.Stderr, "  Key ID: %s\n", apiKey.ID)
+	fmt.Fprintf(os.Stderr, "  Team ID: %s\n", apiKey.TeamID)
+}
+
+// APIKeys implementation.
+func (t Table) apiKeys(apiKeys []api.APIKey) {
+	tw := tablewriter.NewWriter(os.Stdout)
+	tw.SetBorder(false)
+	tw.SetHeader([]string{"id", "created at"})
+
+	for _, k := range apiKeys {
+		tw.Append([]string{
+			k.ID,
+			k.CreatedAt.Format(time.RFC3339),
+		})
+	}
+
+	tw.Render()
+}
 
 // Tasks implementation.
 func (t Table) tasks(tasks []api.Task) {

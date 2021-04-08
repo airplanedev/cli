@@ -14,12 +14,24 @@ var (
 
 // Formatter represents an output formatter.
 type Formatter interface {
+	apiKeyCreated(api.APIKey)
+	apiKeys([]api.APIKey)
 	tasks([]api.Task)
 	task(api.Task)
 	runs([]api.Run)
 	run(api.Run)
 	outputs(api.Outputs)
 	config(api.Config)
+}
+
+// APIKeys prints a new API key.
+func APIKeyCreated(apiKey api.APIKey) {
+	DefaultFormatter.apiKeyCreated(apiKey)
+}
+
+// APIKeys prints one or more API keys.
+func APIKeys(apiKeys []api.APIKey) {
+	DefaultFormatter.apiKeys(apiKeys)
 }
 
 // Tasks prints the given slice of tasks using the default formatter.
