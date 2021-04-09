@@ -58,7 +58,7 @@ func New(c *cli.Config) *cobra.Command {
 				cfg.args = args[n:]
 			}
 
-			// If an arg was passed, before the --, then it is a task slug to run.
+			// If an arg was passed, before the --, then it is a task slug to execute.
 			if len(args) > 0 && n != 0 {
 				cfg.slug = args[0]
 			}
@@ -87,13 +87,16 @@ func run(ctx context.Context, cfg config) error {
 			return err
 		}
 		defer dir.Close()
+
 		def, err := dir.ReadDefinition()
 		if err != nil {
 			return err
 		}
+
 		if def.Slug == "" {
 			return errors.Errorf("no task slug found in task definition at %s", cfg.file)
 		}
+
 		slug = def.Slug
 	}
 
