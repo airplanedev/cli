@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -199,6 +200,16 @@ func (c Client) CreateBuild(ctx context.Context, req CreateBuildRequest) (res Cr
 // CreateBuildUpload creates an Airplane upload and returns metadata about it.
 func (c Client) CreateBuildUpload(ctx context.Context, req CreateBuildUploadRequest) (res CreateBuildUploadResponse, err error) {
 	err = c.do(ctx, "POST", "/builds/createUpload", req, &res)
+	return
+}
+
+// GetBuild returns the logs by buildID and since timestamp.
+func (c Client) GetBuildLogs(ctx context.Context, buildID string, offset int) (res GetBuildLogsResponse, err error) {
+	q := url.Values{"buildID": []string{buildID}}
+
+	q.Set("offset", strconv.Itoa(offset))
+
+	err = c.do(ctx, "GET", "/builds/getLogs?"+q.Encode(), nil, &res)
 	return
 }
 
