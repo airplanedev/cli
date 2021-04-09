@@ -51,7 +51,7 @@ func node(root string, args Args) (string, error) {
 
 	// Dockerfile template.
 	t, err := template.New("node").Parse(`
-FROM node:{{ .NodeVersion }}-buster
+FROM {{ .Base }}
 
 WORKDIR /airplane
 COPY . /airplane
@@ -66,11 +66,11 @@ ENTRYPOINT ["node", "{{ .Main }}"]
 	}
 
 	var data struct {
-		NodeVersion string
-		Commands    []string
-		Main        string
+		Base     string
+		Commands []string
+		Main     string
 	}
-	data.NodeVersion = expandNodeVersion(version)
+	data.Base = expandNodeVersion(version)
 	data.Commands = cmds
 	data.Main = entrypoint
 
@@ -89,13 +89,14 @@ func expandNodeVersion(version string) string {
 		// If empty, use default of 15
 		fallthrough
 	case "15":
-		return "15.12"
+		// 15.14-buster
+		return "node@sha256:0227179cbab2998464b8c9ec77812996aec73b7a4cceb0fcacc49bfff8b8cf8d"
 	case "14":
-		return "14.16"
+		return "node:14.16-buster"
 	case "12":
-		return "12.22"
+		return "node:12.22-buster"
 	default:
 		// Assume the version is already a more-specific version - default to just returning it back
-		return version
+		return "node:" + version + "-buster"
 	}
 }
