@@ -18,9 +18,9 @@
   },
   "deno": {
     "1": {
-      "image": "hayd/alpine-deno",
+      "image": "hayd/debian-deno",
       "tag": "1.8.3",
-      "digest": "sha256:b1a0c880df38248b52a61c10c8f79724a22e197027310785c8011daf88c2a070"
+      "digest": "sha256:73120fa167557fdf9d59247fd8c8334df4144cca385a637427d839a40ec2dc9d"
     }
   },
   "go": {
