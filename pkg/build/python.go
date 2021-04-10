@@ -17,18 +17,29 @@ func python(root string, args Args) (string, error) {
 	}
 
 	t, err := template.New("python").Parse(`
-    FROM python:3.9.1-buster
+    FROM {{ .Base }}
     WORKDIR /airplane
     COPY . .
     RUN pip install -r requirements.txt
-    ENTRYPOINT ["python", "/airplane/{{ . }}"]
+    ENTRYPOINT ["python", "/airplane/{{ .Entrypoint }}"]
 	`)
 	if err != nil {
 		return "", err
 	}
 
+	v, err := GetVersion(BuilderNamePython, "3")
+	if err != nil {
+		return "", err
+	}
+
 	var buf strings.Builder
-	if err := t.Execute(&buf, entrypoint); err != nil {
+	if err := t.Execute(&buf, struct {
+		Base       string
+		Entrypoint string
+	}{
+		Base:       v.String(),
+		Entrypoint: entrypoint,
+	}); err != nil {
 		return "", err
 	}
 

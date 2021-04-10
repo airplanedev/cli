@@ -18,19 +18,30 @@ func deno(root string, args Args) (string, error) {
 	}
 
 	t, err := template.New("deno").Parse(`
-FROM hayd/alpine-deno:1.7.2
+FROM {{ .Base }}
 WORKDIR /airplane
 ADD . .
 RUN deno cache {{ . }}
 USER deno
-ENTRYPOINT ["deno", "run", "-A", "{{ . }}"]
+ENTRYPOINT ["deno", "run", "-A", "{{ .Entrypoint }}"]
 	`)
 	if err != nil {
 		return "", errors.Wrap(err, "new template")
 	}
 
+	v, err := GetVersion(BuilderNameDeno, "1")
+	if err != nil {
+		return "", err
+	}
+
 	var buf strings.Builder
-	if err := t.Execute(&buf, entrypoint); err != nil {
+	if err := t.Execute(&buf, struct {
+		Base       string
+		Entrypoint string
+	}{
+		Base:       v.String(),
+		Entrypoint: entrypoint,
+	}); err != nil {
 		return "", err
 	}
 

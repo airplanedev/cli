@@ -65,38 +65,31 @@ ENTRYPOINT ["node", "{{ .Main }}"]
 		return "", err
 	}
 
-	var data struct {
+	if version == "" {
+		version = "15"
+	}
+	v, err := GetVersion(BuilderNameNode, version)
+	if err != nil {
+		return "", err
+	}
+	base := v.String()
+	if base == "" {
+		// Assume the version is already a more-specific version - default to just returning it back
+		base = "node:" + version + "-buster"
+	}
+
+	var buf strings.Builder
+	if err := t.Execute(&buf, struct {
 		Base     string
 		Commands []string
 		Main     string
-	}
-	data.Base = expandNodeVersion(version)
-	data.Commands = cmds
-	data.Main = entrypoint
-
-	var buf strings.Builder
-	if err := t.Execute(&buf, data); err != nil {
+	}{
+		Base:     base,
+		Commands: cmds,
+		Main:     entrypoint,
+	}); err != nil {
 		return "", err
 	}
 
 	return buf.String(), nil
-}
-
-// expandNodeVersion returns a pinned minor version of Node to use
-func expandNodeVersion(version string) string {
-	switch version {
-	case "":
-		// If empty, use default of 15
-		fallthrough
-	case "15":
-		// 15.14-buster
-		return "node@sha256:0227179cbab2998464b8c9ec77812996aec73b7a4cceb0fcacc49bfff8b8cf8d"
-	case "14":
-		return "node:14.16-buster"
-	case "12":
-		return "node:12.22-buster"
-	default:
-		// Assume the version is already a more-specific version - default to just returning it back
-		return "node:" + version + "-buster"
-	}
 }
