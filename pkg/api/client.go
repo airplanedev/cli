@@ -10,7 +10,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"strconv"
 	"strings"
 	"time"
 
@@ -227,10 +226,12 @@ func (c Client) DeleteAPIKey(ctx context.Context, req DeleteAPIKeyRequest) (err 
 	return
 }
 
-func (c Client) GetBuildLogs(ctx context.Context, buildID string, offset int) (res GetBuildLogsResponse, err error) {
+func (c Client) GetBuildLogs(ctx context.Context, buildID string, since time.Time) (res GetBuildLogsResponse, err error) {
 	q := url.Values{
 		"buildID": []string{buildID},
-		"offset":  []string{strconv.Itoa(offset)},
+	}
+	if !since.IsZero() {
+		q.Set("since", since.Format(time.RFC3339))
 	}
 	err = c.do(ctx, "GET", "/builds/getLogs?"+q.Encode(), nil, &res)
 	return

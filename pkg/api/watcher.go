@@ -54,7 +54,7 @@ func (r RunState) Failed() bool {
 func (r RunState) merge(b RunState) RunState {
 	return RunState{
 		Status:  b.Status,
-		Logs:    dedupeLogs(r.Logs, b.Logs),
+		Logs:    DedupeLogs(r.Logs, b.Logs),
 		Outputs: b.Outputs,
 	}
 }
@@ -206,7 +206,7 @@ func newLogKey(l LogItem) logKey {
 }
 
 // DedupeLogs de-duplicates logs by timestamp and insertId.
-func dedupeLogs(a, b []LogItem) []LogItem {
+func DedupeLogs(a, b []LogItem) []LogItem {
 	var dedupe = make(map[logKey]struct{})
 	var ret []LogItem
 
