@@ -5,13 +5,8 @@ import (
 	"strings"
 
 	"github.com/airplanedev/cli/pkg/logger"
-	"github.com/fatih/color"
 	"github.com/kr/text"
 	"github.com/spf13/cobra"
-)
-
-var (
-	bold = color.New(color.Bold).SprintFunc()
 )
 
 // Usage prints the usage for a command.
@@ -22,11 +17,11 @@ func usage(cmd *cobra.Command) error {
 // Help prints the help for a command.
 func help(cmd *cobra.Command, args []string) {
 	logger.Log("")
-	logger.Log("%s", bold("Usage:"))
+	logger.Log("%s", logger.Bold("Usage:"))
 	logger.Log("  %s", cmd.UseLine())
 
 	if cmd.HasSubCommands() {
-		logger.Log("\n%s", bold("Commands:"))
+		logger.Log("\n%s", logger.Bold("Commands:"))
 		for _, cmd := range cmd.Commands() {
 			if !cmd.Hidden {
 				name := rpad(cmd.Name(), cmd.NamePadding())
@@ -37,13 +32,13 @@ func help(cmd *cobra.Command, args []string) {
 
 	if flags := cmd.LocalFlags().FlagUsages(); flags != "" {
 		s := dedent(flags)
-		logger.Log("\n%s", bold("Flags:"))
+		logger.Log("\n%s", logger.Bold("Flags:"))
 		logger.Log("%s", text.Indent(s, "  "))
 	}
 
 	if cmd.HasExample() {
 		s := trim(cmd.Example)
-		logger.Log("\n%s", bold("Examples:"))
+		logger.Log("\n%s", logger.Bold("Examples:"))
 		logger.Log("%s", text.Indent(s, "  "))
 	}
 

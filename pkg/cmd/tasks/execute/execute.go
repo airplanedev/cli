@@ -14,14 +14,8 @@ import (
 	"github.com/airplanedev/cli/pkg/print"
 	"github.com/airplanedev/cli/pkg/taskdir"
 	"github.com/airplanedev/cli/pkg/utils"
-	"github.com/fatih/color"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-)
-
-var (
-	bold = color.New(color.Bold).SprintfFunc()
-	gray = color.New(color.FgHiBlack).SprintfFunc()
 )
 
 // Config are the execute config.
@@ -118,14 +112,14 @@ func run(ctx context.Context, cfg config) error {
 		return err
 	}
 
-	logger.Log(gray("Running: %s", task.Name))
+	logger.Log(logger.Gray("Running: %s", task.Name))
 
 	w, err := client.Watcher(ctx, req)
 	if err != nil {
 		return err
 	}
 
-	logger.Log(gray("Queued: %s", client.RunURL(w.RunID())))
+	logger.Log(logger.Gray("Queued: %s", client.RunURL(w.RunID())))
 
 	var state api.RunState
 	agentPrefix := "[agent]"
@@ -140,10 +134,10 @@ func run(ctx context.Context, cfg config) error {
 			var loggedText string
 			if strings.HasPrefix(l.Text, agentPrefix) {
 				// De-emphasize agent logs and remove prefix
-				loggedText = gray(strings.TrimLeft(strings.TrimPrefix(l.Text, agentPrefix), " "))
+				loggedText = logger.Gray(strings.TrimLeft(strings.TrimPrefix(l.Text, agentPrefix), " "))
 			} else if strings.HasPrefix(l.Text, outputPrefix) {
 				// De-emphasize outputs appearing in logs
-				loggedText = gray(l.Text)
+				loggedText = logger.Gray(l.Text)
 			} else {
 				// Try to leave user logs alone, so they can apply their own colors
 				loggedText = l.Text
@@ -165,11 +159,11 @@ func run(ctx context.Context, cfg config) error {
 	status := string(state.Status)
 	switch state.Status {
 	case api.RunSucceeded:
-		status = color.GreenString(status)
+		status = logger.Green(status)
 	case api.RunFailed, api.RunCancelled:
-		status = color.RedString(status)
+		status = logger.Red(status)
 	}
-	logger.Log(bold(status))
+	logger.Log(logger.Bold(status))
 
 	if state.Failed() {
 		return errors.New("Run has failed")

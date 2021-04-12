@@ -13,14 +13,8 @@ import (
 	"github.com/airplanedev/cli/pkg/configs"
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/utils"
-	"github.com/fatih/color"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-)
-
-var (
-	blue  = color.New(color.FgHiBlue).SprintFunc()
-	green = color.New(color.FgGreen).SprintFunc()
 )
 
 // New returns a new set command.
@@ -81,7 +75,7 @@ func run(ctx context.Context, c *cli.Config, name string, argValue *string, secr
 	} else {
 		valueStr = value
 	}
-	logger.Log("  Setting %s to %s...", blue(name), green(valueStr))
+	logger.Log("  Setting %s to %s...", logger.Blue(name), logger.Green(valueStr))
 	req := api.SetConfigRequest{
 		Name:     nt.Name,
 		Tag:      nt.Tag,

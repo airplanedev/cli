@@ -122,8 +122,9 @@ func waitForBuild(ctx context.Context, client *api.Client, buildID string) error
 			}
 			logOffset = logOffset + len(r.Logs)
 
+			buildPrefix := "[" + logger.Yellow("build") + "] "
 			for _, l := range r.Logs {
-				logger.Log(l.Text)
+				logger.Log(buildPrefix + logger.Gray(l.Text))
 			}
 
 			b, err := client.GetBuild(ctx, buildID)
