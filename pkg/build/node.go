@@ -51,7 +51,7 @@ func node(root string, args Args) (string, error) {
 
 	// Dockerfile template.
 	t, err := template.New("node").Parse(`
-FROM node:{{ .NodeVersion }}-buster
+FROM {{ .Base }}
 
 WORKDIR /airplane
 COPY . /airplane
@@ -65,37 +65,31 @@ ENTRYPOINT ["node", "{{ .Main }}"]
 		return "", err
 	}
 
-	var data struct {
-		NodeVersion string
-		Commands    []string
-		Main        string
+	if version == "" {
+		version = "15"
 	}
-	data.NodeVersion = expandNodeVersion(version)
-	data.Commands = cmds
-	data.Main = entrypoint
+	v, err := GetVersion(BuilderNameNode, version)
+	if err != nil {
+		return "", err
+	}
+	base := v.String()
+	if base == "" {
+		// Assume the version is already a more-specific version - default to just returning it back
+		base = "node:" + version + "-buster"
+	}
 
 	var buf strings.Builder
-	if err := t.Execute(&buf, data); err != nil {
+	if err := t.Execute(&buf, struct {
+		Base     string
+		Commands []string
+		Main     string
+	}{
+		Base:     base,
+		Commands: cmds,
+		Main:     entrypoint,
+	}); err != nil {
 		return "", err
 	}
 
 	return buf.String(), nil
-}
-
-// expandNodeVersion returns a pinned minor version of Node to use
-func expandNodeVersion(version string) string {
-	switch version {
-	case "":
-		// If empty, use default of 15
-		fallthrough
-	case "15":
-		return "15.12"
-	case "14":
-		return "14.16"
-	case "12":
-		return "12.22"
-	default:
-		// Assume the version is already a more-specific version - default to just returning it back
-		return version
-	}
 }

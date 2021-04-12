@@ -1,0 +1,40 @@
+{
+  "node": {
+    "15": {
+      "image": "node",
+      "tag": "15.14.0-buster",
+      "digest": "sha256:0227179cbab2998464b8c9ec77812996aec73b7a4cceb0fcacc49bfff8b8cf8d"
+    },
+    "14": {
+      "image": "node",
+      "tag": "14.16.1-buster",
+      "digest": "sha256:50492d7095e59ac62d633f81f4445c0018283ec29e21d5bc7e7647bfa346ac52"
+    },
+    "12": {
+      "image": "node",
+      "tag": "12.22.1-buster",
+      "digest": "sha256:f2a4275a088758ce4e5e2489e745d0245f086908f1a8a7419535fe415a5af7dc"
+    }
+  },
+  "deno": {
+    "1": {
+      "image": "hayd/debian-deno",
+      "tag": "1.8.3",
+      "digest": "sha256:73120fa167557fdf9d59247fd8c8334df4144cca385a637427d839a40ec2dc9d"
+    }
+  },
+  "go": {
+    "1": {
+      "image": "golang",
+      "tag": "1.16.3-buster",
+      "digest": "sha256:3fc96f3fc8a5566a07ac45759bad6381397f2f629bd9260ab0994ef0dc3b68ca"
+    }
+  },
+  "python": {
+    "3": {
+      "image": "python",
+      "tag": "3.9.4-buster",
+      "digest": "sha256:1ebdc67500199fd868551abb129aac4a7f78069b61138d8ae801a2073fe7877d"
+    }
+  }
+}

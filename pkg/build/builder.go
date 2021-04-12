@@ -303,17 +303,27 @@ func exist(paths ...string) error {
 	return nil
 }
 
+type BuilderName string
+
+const (
+	BuilderNameGo     BuilderName = "go"
+	BuilderNameDeno   BuilderName = "deno"
+	BuilderNamePython BuilderName = "python"
+	BuilderNameNode   BuilderName = "node"
+	BuilderNameDocker BuilderName = "docker"
+)
+
 func BuildDockerfile(c DockerfileConfig) (string, error) {
-	switch c.Builder {
-	case "go":
+	switch BuilderName(c.Builder) {
+	case BuilderNameGo:
 		return golang(c.Root, c.Args)
-	case "deno":
+	case BuilderNameDeno:
 		return deno(c.Root, c.Args)
-	case "python":
+	case BuilderNamePython:
 		return python(c.Root, c.Args)
-	case "node":
+	case BuilderNameNode:
 		return node(c.Root, c.Args)
-	case "docker":
+	case BuilderNameDocker:
 		return docker(c.Root, c.Args)
 	default:
 		return "", errors.Errorf("build: unknown builder type %q", c.Builder)

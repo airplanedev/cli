@@ -3,6 +3,7 @@ package auth
 import (
 	"github.com/MakeNowJust/heredoc"
 	"github.com/airplanedev/cli/pkg/cli"
+	"github.com/airplanedev/cli/pkg/cmd/auth/info"
 	"github.com/airplanedev/cli/pkg/cmd/auth/login"
 	"github.com/airplanedev/cli/pkg/cmd/auth/logout"
 	"github.com/spf13/cobra"
@@ -19,6 +20,7 @@ func New(c *cli.Config) *cobra.Command {
 		`),
 	}
 
+	cmd.AddCommand(info.New(c))
 	cmd.AddCommand(login.New(c))
 	cmd.AddCommand(logout.New(c))
 

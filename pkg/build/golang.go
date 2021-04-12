@@ -20,7 +20,7 @@ func golang(root string, args Args) (string, error) {
 	}
 
 	t, err := template.New("golang").Parse(`
-FROM golang:{{ .GoVersion }} as builder
+FROM {{ .Base }} as builder
 
 WORKDIR /airplane
 
@@ -29,9 +29,9 @@ RUN go mod download
 
 COPY . .
 
-RUN ["go", "build", "-o", "/bin/main", "/airplane/{{ .Main }}"]
+RUN ["go", "build", "-o", "/bin/main", "/airplane/{{ .Entrypoint }}"]
 
-FROM golang:{{ .GoVersion }}
+FROM {{ .Base }}
 
 COPY --from=builder /bin/main /bin/main
 
@@ -41,18 +41,21 @@ ENTRYPOINT ["/bin/main"]
 		return "", errors.Wrap(err, "parse template")
 	}
 
-	data := struct {
-		Main      string
-		HasGoSum  bool
-		GoVersion string
-	}{
-		Main:      entrypoint,
-		HasGoSum:  exist(gosum) == nil,
-		GoVersion: "1.16.3-alpine3.13",
+	v, err := GetVersion(BuilderNameGo, "1")
+	if err != nil {
+		return "", err
 	}
 
 	var buf strings.Builder
-	if err := t.Execute(&buf, data); err != nil {
+	if err := t.Execute(&buf, struct {
+		Base       string
+		Entrypoint string
+		HasGoSum   bool
+	}{
+		Base:       v.String(),
+		Entrypoint: entrypoint,
+		HasGoSum:   exist(gosum) == nil,
+	}); err != nil {
 		return "", err
 	}
 

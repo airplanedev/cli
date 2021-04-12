@@ -12,6 +12,7 @@ import (
 	"github.com/airplanedev/cli/pkg/cmd/auth/login"
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/print"
+	"github.com/airplanedev/cli/pkg/taskdir"
 	"github.com/airplanedev/cli/pkg/utils"
 	"github.com/fatih/color"
 	"github.com/pkg/errors"
@@ -28,6 +29,7 @@ type config struct {
 	root *cli.Config
 	slug string
 	args []string
+	file string
 }
 
 // New returns a new execute cobra command.
@@ -39,19 +41,33 @@ func New(c *cli.Config) *cobra.Command {
 		Short: "Execute a task",
 		Long:  "Execute a task by its slug with the provided parameters.",
 		Example: heredoc.Doc(`
-			airplane tasks execute echo -- --name value
-			airplane tasks execute <slug> -- [parameters]
+			airplane execute -f ./airplane.yml [-- <parameters...>]
+			airplane execute hello_world [-- <parameters...>]
 		`),
-		Args: cobra.MinimumNArgs(1),
 		PersistentPreRunE: utils.WithParentPersistentPreRunE(func(cmd *cobra.Command, args []string) error {
 			return login.EnsureLoggedIn(cmd.Root().Context(), c)
 		}),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cfg.slug = args[0]
-			cfg.args = args[1:]
+			n := cmd.Flags().ArgsLenAtDash()
+			if n > 1 {
+				return errors.Errorf("at most one arg expected, got: %d", n)
+			}
+
+			// If a '--' was used, then we have 0 or more args to pass to the task.
+			if n != -1 {
+				cfg.args = args[n:]
+			}
+
+			// If an arg was passed, before the --, then it is a task slug to execute.
+			if len(args) > 0 && n != 0 {
+				cfg.slug = args[0]
+			}
+
 			return run(cmd.Root().Context(), cfg)
 		},
 	}
+
+	cmd.Flags().StringVarP(&cfg.file, "file", "f", "", "Path to a task definition file.")
 
 	return cmd
 }
@@ -60,7 +76,31 @@ func New(c *cli.Config) *cobra.Command {
 func run(ctx context.Context, cfg config) error {
 	var client = cfg.root.Client
 
-	task, err := client.GetTask(ctx, cfg.slug)
+	slug := cfg.slug
+	if slug == "" {
+		if cfg.file == "" {
+			return errors.New("expected either a task slug or --file")
+		}
+
+		dir, err := taskdir.Open(cfg.file)
+		if err != nil {
+			return err
+		}
+		defer dir.Close()
+
+		def, err := dir.ReadDefinition()
+		if err != nil {
+			return err
+		}
+
+		if def.Slug == "" {
+			return errors.Errorf("no task slug found in task definition at %s", cfg.file)
+		}
+
+		slug = def.Slug
+	}
+
+	task, err := client.GetTask(ctx, slug)
 	if err != nil {
 		return errors.Wrap(err, "get task")
 	}

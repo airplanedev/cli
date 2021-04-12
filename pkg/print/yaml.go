@@ -12,6 +12,11 @@ import (
 // Its zero-value is ready for use.
 type YAML struct{}
 
+// APIKeys implementation.
+func (YAML) apiKeys(apiKeys []api.APIKey) {
+	yaml.NewEncoder(os.Stdout).Encode(apiKeys)
+}
+
 // Tasks implementation.
 func (YAML) tasks(tasks []api.Task) {
 	yaml.NewEncoder(os.Stdout).Encode(tasks)

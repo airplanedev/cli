@@ -84,6 +84,12 @@ func (c Client) TaskURL(id string) string {
 	return u.String()
 }
 
+// AuthInfo responds with the currently authenticated details.
+func (c Client) AuthInfo(ctx context.Context) (res AuthInfoResponse, err error) {
+	err = c.do(ctx, "GET", "/auth/info", nil, &res)
+	return
+}
+
 // GetRegistryToken responds with the registry token.
 func (c Client) GetRegistryToken(ctx context.Context) (res RegistryTokenResponse, err error) {
 	err = c.do(ctx, "POST", "/registry/getToken", nil, &res)
@@ -203,12 +209,29 @@ func (c Client) CreateBuildUpload(ctx context.Context, req CreateBuildUploadRequ
 	return
 }
 
-// GetBuild returns the logs by buildID and since timestamp.
+// CreateAPIKey creates a new API key and returns data about it.
+func (c Client) CreateAPIKey(ctx context.Context, req CreateAPIKeyRequest) (res CreateAPIKeyResponse, err error) {
+	err = c.do(ctx, "POST", "/apiKeys/create", req, &res)
+	return
+}
+
+// ListAPIKeys lists API keys.
+func (c Client) ListAPIKeys(ctx context.Context) (res ListAPIKeysResponse, err error) {
+	err = c.do(ctx, "GET", "/apiKeys/list", nil, &res)
+	return
+}
+
+// DeleteAPIKey deletes an API key.
+func (c Client) DeleteAPIKey(ctx context.Context, req DeleteAPIKeyRequest) (err error) {
+	err = c.do(ctx, "POST", "/apiKeys/delete", req, nil)
+	return
+}
+
 func (c Client) GetBuildLogs(ctx context.Context, buildID string, offset int) (res GetBuildLogsResponse, err error) {
-	q := url.Values{"buildID": []string{buildID}}
-
-	q.Set("offset", strconv.Itoa(offset))
-
+	q := url.Values{
+		"buildID": []string{buildID},
+		"offset":  []string{strconv.Itoa(offset)},
+	}
 	err = c.do(ctx, "GET", "/builds/getLogs?"+q.Encode(), nil, &res)
 	return
 }
