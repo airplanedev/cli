@@ -59,7 +59,6 @@ func ensureConfigExists(ctx context.Context, client *api.Client, envName, config
 }
 
 func createConfig(ctx context.Context, client *api.Client, cn configs.NameTag) error {
-	// TODO: create a config here
 	var secret bool
 	if err := survey.AskOne(
 		&survey.Confirm{
