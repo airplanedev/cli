@@ -85,7 +85,7 @@ func initFromSample(cfg config) error {
 An Airplane task definition for '%s' has been created!
 
 To deploy it to Airplane, run:
-  airplane tasks deploy -f %s`, def.Name, file)
+  airplane deploy -f %s`, def.Name, file)
 
 	return nil
 }

@@ -60,7 +60,7 @@ func initFromTask(ctx context.Context, cfg config) error {
 An Airplane task definition for '%s' has been created!
 
 To deploy it to Airplane, run:
-  airplane tasks deploy -f %s`, task.Name, file)
+  airplane deploy -f %s`, task.Name, file)
 
 	return nil
 }
