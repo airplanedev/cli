@@ -3,10 +3,8 @@ package execute
 import (
 	"context"
 	"flag"
-	"os"
 	"strings"
 
-	"github.com/AlecAivazis/survey/v2"
 	"github.com/MakeNowJust/heredoc"
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/cli"
@@ -211,68 +209,4 @@ func flagset(task api.Task, args api.Values) *flag.FlagSet {
 	}
 
 	return set
-}
-
-// promptForParamValues attempts to prompt user for param values, setting them on `params`
-// If no TTY, errors unless there are no parameters
-// If TTY, prompts for parameters (if any) and asks user to confirm
-func promptForParamValues(client *api.Client, task api.Task, paramValues map[string]interface{}) error {
-	if !utils.CanPrompt() {
-		// Don't error if there are no params
-		if len(task.Parameters) == 0 {
-			return nil
-		}
-		// Otherwise, error since we have no params and no way to prompt for it
-		logger.Log("Parameters were not specified! Task has %d parameter(s):\n", len(task.Parameters))
-		for _, param := range task.Parameters {
-			var req string
-			if !param.Constraints.Optional {
-				req = "*"
-			}
-			logger.Log("  %s%s %s (%s)", param.Name, req, param.Type, param.Slug)
-			if param.Desc != "" {
-				logger.Log("    %s", param.Desc)
-			}
-		}
-		return errors.New("missing parameters")
-	}
-
-	logger.Log("You are about to run %s:", bold(task.Name))
-	logger.Log(gray(client.TaskURL(task.ID)))
-	logger.Log("")
-
-	for _, param := range task.Parameters {
-		prompt, err := promptFromParam(param)
-		if err != nil {
-			return err
-		}
-		opts := []survey.AskOpt{
-			survey.WithStdio(os.Stdin, os.Stderr, os.Stderr),
-			survey.WithValidator(validateInput(param)),
-		}
-		if !param.Constraints.Optional {
-			opts = append(opts, survey.WithValidator(survey.Required))
-		}
-		var inputValue string
-		if err := survey.AskOne(prompt, &inputValue, opts...); err != nil {
-			return errors.Wrap(err, "asking prompt for param")
-		}
-
-		value, err := inputToAPIValue(param, inputValue)
-		if err != nil {
-			return errors.Wrap(err, "converting input to API value")
-		}
-		paramValues[param.Slug] = value
-	}
-	confirmed := false
-	if err := survey.AskOne(&survey.Confirm{
-		Message: "Execute?",
-		Default: true,
-	}, &confirmed); err != nil {
-		return errors.Wrap(err, "confirming")
-	}
-	if !confirmed {
-		return errors.New("user cancelled")
-	}
-	return nil
 }
