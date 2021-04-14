@@ -275,7 +275,7 @@ type Values = map[string]interface{}
 // RunTaskRequest represents a run task request.
 type RunTaskRequest struct {
 	TaskID      string            `json:"taskID"`
-	Parameters  Values            `json:"params"`
+	ParamValues Values            `json:"params"`
 	Env         map[string]string `json:"env"`
 	Constraints Constraints       `json:"constraints"`
 }
