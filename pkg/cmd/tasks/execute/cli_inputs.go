@@ -31,10 +31,8 @@ func promptForParamValues(client *api.Client, task api.Task, paramValues map[str
 			if !param.Constraints.Optional {
 				req = "*"
 			}
-			logger.Log("  %s%s %s (%s)", param.Name, req, param.Type, param.Slug)
-			if param.Desc != "" {
-				logger.Log("    %s", param.Desc)
-			}
+			logger.Log("  %s%s (%s)", param.Slug, req, param.Name)
+			logger.Log("    %s %s", gray(string(param.Type)), gray(param.Desc))
 		}
 		return errors.New("missing parameters")
 	}
