@@ -43,6 +43,7 @@ func (t Table) tasks(tasks []api.Task) {
 	tw := tablewriter.NewWriter(os.Stdout)
 	tw.SetBorder(false)
 	tw.SetHeader([]string{"name", "slug", "builder", "parameters"})
+	tw.SetRowLine(true)
 
 	for _, t := range tasks {
 		var builder = t.Builder
@@ -52,12 +53,12 @@ func (t Table) tasks(tasks []api.Task) {
 
 		var parametersStr string
 		if len(t.Parameters) > 0 {
-			parametersTableString := &strings.Builder{}
-			ptw := tablewriter.NewWriter(parametersTableString)
+			pts := &strings.Builder{}
+			ptw := tablewriter.NewWriter(pts)
 			ptw.SetBorder(false)
 			ptw.SetHeader([]string{"name", "slug", "type", "required", "default"})
 			for _, p := range t.Parameters {
-				var defaultStr = fmt.Sprintf("%v", p.Default)
+				defaultStr := fmt.Sprintf("%v", p.Default)
 				if p.Default == nil {
 					defaultStr = ""
 				}
@@ -71,7 +72,7 @@ func (t Table) tasks(tasks []api.Task) {
 				})
 			}
 			ptw.Render()
-			parametersStr = parametersTableString.String()
+			parametersStr = pts.String()
 		}
 
 		tw.Append([]string{
