@@ -31,8 +31,8 @@ func promptForParamValues(client *api.Client, task api.Task, paramValues map[str
 			if !param.Constraints.Optional {
 				req = "*"
 			}
-			logger.Log("  %s%s (%s)", param.Slug, req, param.Name)
-			logger.Log(logger.Gray("    %s %s", param.Type, param.Desc))
+			logger.Log("  %s%s %s", param.Name, req, logger.Gray("(--%s)", param.Slug))
+			logger.Log("    %s %s", param.Type, param.Desc)
 		}
 		return errors.New("missing parameters")
 	}
@@ -79,7 +79,7 @@ func promptForParamValues(client *api.Client, task api.Task, paramValues map[str
 
 // promptForParam returns a survey.Prompt matching the param type
 func promptForParam(param api.Parameter) (survey.Prompt, error) {
-	message := fmt.Sprintf("%s (%s):", param.Name, param.Slug)
+	message := fmt.Sprintf("%s %s:", param.Name, logger.Gray("(--%s)", param.Slug))
 	// TODO: support default values
 	switch param.Type {
 	case api.TypeBoolean:
