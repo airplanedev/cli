@@ -55,6 +55,12 @@ type GetLogsResponse struct {
 	Logs  []LogItem `json:"logs"`
 }
 
+// GetBuildLogsResponse represents a get build logs response.
+type GetBuildLogsResponse struct {
+	BuildID string    `json:"buildID"`
+	Logs    []LogItem `json:"logs"`
+}
+
 // Outputs represents outputs.
 type Outputs map[string][]interface{}
 

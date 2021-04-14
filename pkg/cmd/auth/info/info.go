@@ -5,13 +5,7 @@ import (
 
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/logger"
-	"github.com/fatih/color"
 	"github.com/spf13/cobra"
-)
-
-var (
-	blue = color.New(color.FgHiBlue).SprintFunc()
-	gray = color.New(color.FgHiBlack).SprintFunc()
 )
 
 func New(c *cli.Config) *cobra.Command {
@@ -35,12 +29,12 @@ func run(ctx context.Context, c *cli.Config) error {
 
 	var userStr string
 	if res.User == nil {
-		userStr = gray("<no user>")
+		userStr = logger.Gray("<no user>")
 	} else {
 		userStr = res.User.Email
 	}
-	logger.Log("  Signed in as %s", blue(userStr))
-	logger.Log("  Using team %s (ID: %s)", blue(res.Team.Name), res.Team.ID)
+	logger.Log("  Signed in as %s", logger.Blue(userStr))
+	logger.Log("  Using team %s (ID: %s)", logger.Blue(res.Team.Name), res.Team.ID)
 
 	return nil
 }

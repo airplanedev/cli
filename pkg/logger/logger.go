@@ -28,9 +28,10 @@ func Debug(msg string, args ...interface{}) {
 	if !EnableDebug {
 		return
 	}
+	debugPrefix := "[" + Blue("debug") + "] "
 	if len(args) == 0 {
-		fmt.Fprint(os.Stderr, msg+"\n")
+		fmt.Fprint(os.Stderr, debugPrefix+msg+"\n")
 	} else {
-		fmt.Fprintf(os.Stderr, msg+"\n", args...)
+		fmt.Fprintf(os.Stderr, debugPrefix+msg+"\n", args...)
 	}
 }

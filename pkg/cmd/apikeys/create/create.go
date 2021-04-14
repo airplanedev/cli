@@ -10,14 +10,9 @@ import (
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/logger"
-	"github.com/fatih/color"
 	"github.com/mattn/go-isatty"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-)
-
-var (
-	blue = color.New(color.FgHiBlue).SprintFunc()
 )
 
 // New returns a new create command.
@@ -48,7 +43,7 @@ func run(ctx context.Context, c *cli.Config, name string) error {
 	req := api.CreateAPIKeyRequest{
 		Name: name,
 	}
-	logger.Log("  Creating API key named %s...", blue(req.Name))
+	logger.Log("  Creating API key named %s...", logger.Blue(req.Name))
 	resp, err := client.CreateAPIKey(ctx, req)
 	if err != nil {
 		return errors.Wrap(err, "creating API key")
@@ -63,7 +58,7 @@ func run(ctx context.Context, c *cli.Config, name string) error {
 
   Key ID: %s
   Team ID: %s
-`, blue(apiKey.Key), apiKey.ID, apiKey.TeamID)
+`, logger.Blue(apiKey.Key), apiKey.ID, apiKey.TeamID)
 	} else {
 		if err := json.NewEncoder(os.Stdout).Encode(apiKey); err != nil {
 			return errors.Wrap(err, "encoding API key to JSON")

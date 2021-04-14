@@ -9,12 +9,8 @@ import (
 	"time"
 
 	"github.com/airplanedev/cli/pkg/api"
-	"github.com/fatih/color"
+	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/olekukonko/tablewriter"
-)
-
-var (
-	gray = color.New(color.FgHiBlack).SprintFunc()
 )
 
 // Table implements a table formatter.
@@ -199,7 +195,7 @@ func (t Table) config(config api.Config) {
 	// Nothing fancy, just the value
 	var valueStr string
 	if config.IsSecret {
-		valueStr = gray("<secret value hidden>")
+		valueStr = logger.Gray("<secret value hidden>")
 	} else {
 		valueStr = config.Value
 	}

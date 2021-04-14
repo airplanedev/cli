@@ -82,7 +82,7 @@ func run(ctx context.Context, cfg config) error {
 	task, err := client.GetTask(ctx, def.Slug)
 	if err == nil {
 		// This task already exists, so we update it:
-		logger.Log("  Updating...")
+		logger.Log("Updating...")
 		res, err := client.UpdateTask(ctx, api.UpdateTaskRequest{
 			Slug:           def.Slug,
 			Name:           def.Name,
@@ -107,7 +107,7 @@ func run(ctx context.Context, cfg config) error {
 		taskRevisionID = res.TaskRevisionID
 	} else if aerr, ok := err.(api.Error); ok && aerr.Code == 404 {
 		// A task with this slug does not exist, so we should create one.
-		logger.Log("  Creating...")
+		logger.Log("Creating...")
 		res, err := client.CreateTask(ctx, api.CreateTaskRequest{
 			Slug:           def.Slug,
 			Name:           def.Name,
@@ -151,7 +151,7 @@ func run(ctx context.Context, cfg config) error {
 		}
 	}
 
-	logger.Log("  Done!")
+	logger.Log("Done!")
 	cmd := fmt.Sprintf("airplane execute %s", def.Slug)
 	if len(def.Parameters) > 0 {
 		cmd += " -- [parameters]"

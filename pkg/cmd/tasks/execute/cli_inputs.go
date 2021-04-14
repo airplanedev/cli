@@ -32,13 +32,13 @@ func promptForParamValues(client *api.Client, task api.Task, paramValues map[str
 				req = "*"
 			}
 			logger.Log("  %s%s (%s)", param.Slug, req, param.Name)
-			logger.Log("    %s %s", gray(string(param.Type)), gray(param.Desc))
+			logger.Log(logger.Gray("    %s %s", param.Type, param.Desc))
 		}
 		return errors.New("missing parameters")
 	}
 
-	logger.Log("You are about to run %s:", bold(task.Name))
-	logger.Log(gray(client.TaskURL(task.ID)))
+	logger.Log("You are about to run %s:", logger.Bold(task.Name))
+	logger.Log(logger.Gray(client.TaskURL(task.ID)))
 	logger.Log("")
 
 	for _, param := range task.Parameters {

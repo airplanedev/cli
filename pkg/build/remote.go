@@ -110,11 +110,28 @@ func uploadArchive(ctx context.Context, client *api.Client, archivePath string) 
 func waitForBuild(ctx context.Context, client *api.Client, buildID string) error {
 	t := time.NewTicker(time.Second)
 
+	var since time.Time
+	var logs []api.LogItem
 	for {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
 		case <-t.C:
+			r, err := client.GetBuildLogs(ctx, buildID, since)
+			if err != nil {
+				return errors.Wrap(err, "getting build logs")
+			}
+			if len(r.Logs) > 0 {
+				since = r.Logs[len(r.Logs)-1].Timestamp
+			}
+
+			buildPrefix := "[" + logger.Yellow("build") + "] "
+			newLogs := api.DedupeLogs(logs, r.Logs)
+			for _, l := range newLogs {
+				logger.Log(buildPrefix + logger.Gray(l.Text))
+			}
+			logs = append(logs, newLogs...)
+
 			b, err := client.GetBuild(ctx, buildID)
 			if err != nil {
 				return errors.Wrap(err, "getting build")
