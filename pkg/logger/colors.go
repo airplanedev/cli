@@ -1,12 +1,23 @@
 package logger
 
-import "github.com/fatih/color"
+import (
+	"fmt"
+
+	"github.com/fatih/color"
+)
 
 var (
-	Gray   = color.New(color.FgHiBlack).SprintFunc()
-	Blue   = color.New(color.FgHiBlue).SprintFunc()
-	Red    = color.New(color.FgHiRed).SprintFunc()
-	Yellow = color.New(color.FgHiYellow).SprintFunc()
-	Green  = color.New(color.FgHiGreen).SprintFunc()
-	Bold   = color.New(color.Bold).SprintFunc()
+	Gray   = ColorSprintfFunc(color.FgHiBlack)
+	Blue   = ColorSprintfFunc(color.FgHiBlue)
+	Red    = ColorSprintfFunc(color.FgHiRed)
+	Yellow = ColorSprintfFunc(color.FgHiYellow)
+	Green  = ColorSprintfFunc(color.FgHiGreen)
+	Bold   = ColorSprintfFunc(color.Bold)
 )
+
+func ColorSprintfFunc(c color.Attribute) func(msg string, args ...interface{}) string {
+	colorSprint := color.New(c).SprintFunc()
+	return func(msg string, args ...interface{}) string {
+		return colorSprint(fmt.Sprintf(msg, args...))
+	}
+}
