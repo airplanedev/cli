@@ -3,9 +3,10 @@ package execute
 import (
 	"context"
 	"flag"
-	"strconv"
+	"os"
 	"strings"
 
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/MakeNowJust/heredoc"
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/cli"
@@ -24,7 +25,7 @@ var (
 	gray = color.New(color.FgHiBlack).SprintfFunc()
 )
 
-// Config are the execute config.
+// Config is the execute config.
 type config struct {
 	root *cli.Config
 	slug string
@@ -106,19 +107,27 @@ func run(ctx context.Context, cfg config) error {
 	}
 
 	req := api.RunTaskRequest{
-		TaskID:     task.ID,
-		Parameters: make(api.Values),
+		TaskID:      task.ID,
+		ParamValues: make(api.Values),
 	}
-	set := flagset(task, req.Parameters)
 
-	if err := set.Parse(cfg.args); err != nil {
-		if errors.Is(err, flag.ErrHelp) {
-			return nil
+	if len(cfg.args) > 0 {
+		// If args have been passed in, parse them as flags
+		set := flagset(task, req.ParamValues)
+		if err := set.Parse(cfg.args); err != nil {
+			if errors.Is(err, flag.ErrHelp) {
+				return nil
+			}
+			return err
 		}
-		return err
+	} else {
+		// Otherwise, try to prompt for parameters
+		if err := promptForParamValues(cfg.root.Client, task, req.ParamValues); err != nil {
+			return err
+		}
 	}
 
-	logger.Log(gray("Running: %s", task.Name))
+	logger.Log(gray("Running: %s\n", task.Name))
 
 	w, err := client.Watcher(ctx, req)
 	if err != nil {
@@ -191,56 +200,79 @@ func flagset(task api.Task, args api.Values) *flag.FlagSet {
 	}
 
 	for _, p := range task.Parameters {
-		var slug = p.Slug
-		var typ = p.Type
-		var def = p.Default
-
 		set.Func(p.Slug, p.Desc, func(v string) (err error) {
-			if v == "" {
-				args[slug] = def
-				return nil
+			// TODO: refactor out this function to re-use for prompting as well
+			args[p.Slug], err = inputToAPIValue(p, v)
+			if err != nil {
+				return errors.Wrap(err, "converting input to API value")
 			}
-
-			switch typ {
-			case api.TypeString:
-				args[slug] = v
-
-			case api.TypeBoolean:
-				b, err := strconv.ParseBool(v)
-				if err != nil {
-					return err
-				}
-				args[slug] = b
-
-			case api.TypeInteger:
-				n, err := strconv.Atoi(v)
-				if err != nil {
-					return err
-				}
-				args[slug] = n
-
-			case api.TypeFloat:
-				n, err := strconv.ParseFloat(v, 64)
-				if err != nil {
-					return err
-				}
-				args[slug] = n
-
-			case api.TypeUpload:
-				// TODO(amir): we need to support them with some special
-				// character perhaps `@` like curl?
-				return errors.New("uploads are not supported from the CLI")
-
-			case api.TypeDate:
-				args[slug] = v
-
-			case api.TypeDatetime:
-				args[slug] = v
-			}
-
-			return nil
+			return
 		})
 	}
 
 	return set
+}
+
+// promptForParamValues attempts to prompt user for param values, setting them on `params`
+// If no TTY, errors unless there are no parameters
+// If TTY, prompts for parameters (if any) and asks user to confirm
+func promptForParamValues(client *api.Client, task api.Task, paramValues map[string]interface{}) error {
+	if !utils.CanPrompt() {
+		// Don't error if there are no params
+		if len(task.Parameters) == 0 {
+			return nil
+		}
+		// Otherwise, error since we have no params and no way to prompt for it
+		logger.Log("Parameters were not specified! Task has %d parameter(s):\n", len(task.Parameters))
+		for _, param := range task.Parameters {
+			var req string
+			if !param.Constraints.Optional {
+				req = "*"
+			}
+			logger.Log("  %s%s %s (%s)", param.Name, req, param.Type, param.Slug)
+			if param.Desc != "" {
+				logger.Log("    %s", param.Desc)
+			}
+		}
+		return errors.New("missing parameters")
+	}
+
+	logger.Log("You are about to run %s:", bold(task.Name))
+	logger.Log(gray(client.TaskURL(task.ID)))
+	logger.Log("")
+
+	for _, param := range task.Parameters {
+		prompt, err := promptFromParam(param)
+		if err != nil {
+			return err
+		}
+		opts := []survey.AskOpt{
+			survey.WithStdio(os.Stdin, os.Stderr, os.Stderr),
+			survey.WithValidator(validateInput(param)),
+		}
+		if !param.Constraints.Optional {
+			opts = append(opts, survey.WithValidator(survey.Required))
+		}
+		var inputValue string
+		if err := survey.AskOne(prompt, &inputValue, opts...); err != nil {
+			return errors.Wrap(err, "asking prompt for param")
+		}
+
+		value, err := inputToAPIValue(param, inputValue)
+		if err != nil {
+			return errors.Wrap(err, "converting input to API value")
+		}
+		paramValues[param.Slug] = value
+	}
+	confirmed := false
+	if err := survey.AskOne(&survey.Confirm{
+		Message: "Execute?",
+		Default: true,
+	}, &confirmed); err != nil {
+		return errors.Wrap(err, "confirming")
+	}
+	if !confirmed {
+		return errors.New("user cancelled")
+	}
+	return nil
 }
