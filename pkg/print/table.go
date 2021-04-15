@@ -44,6 +44,8 @@ func (t Table) tasks(tasks []api.Task) {
 	tw.SetBorder(false)
 	tw.SetHeader([]string{"name", "slug", "builder", "parameters"})
 	tw.SetRowLine(true)
+	tw.SetAutoWrapText(false)
+	tw.SetCaption(true, "* indicates a required parameter")
 
 	for _, t := range tasks {
 		var builder = t.Builder
@@ -53,26 +55,21 @@ func (t Table) tasks(tasks []api.Task) {
 
 		var parametersStr string
 		if len(t.Parameters) > 0 {
-			pts := &strings.Builder{}
-			ptw := tablewriter.NewWriter(pts)
-			ptw.SetBorder(false)
-			ptw.SetHeader([]string{"name", "slug", "type", "required", "default"})
+			var ps []string
 			for _, p := range t.Parameters {
-				defaultStr := fmt.Sprintf("%v", p.Default)
-				if p.Default == nil {
-					defaultStr = ""
+				var reqStr string
+				if !p.Constraints.Optional {
+					reqStr = "*"
 				}
 
-				ptw.Append([]string{
-					p.Name,
-					p.Slug,
-					string(p.Type),
-					strconv.FormatBool(!p.Constraints.Optional),
-					defaultStr,
-				})
+				var defaultStr string
+				if p.Default != nil {
+					defaultStr = fmt.Sprintf(" (default: %v)", p.Default)
+				}
+
+				ps = append(ps, fmt.Sprintf("- %s%s [%s]%s", p.Slug, reqStr, string(p.Type), defaultStr))
 			}
-			ptw.Render()
-			parametersStr = pts.String()
+			parametersStr = strings.Join(ps, "\n")
 		}
 
 		tw.Append([]string{
@@ -88,7 +85,45 @@ func (t Table) tasks(tasks []api.Task) {
 
 // Task implementation.
 func (t Table) task(task api.Task) {
-	t.tasks([]api.Task{task})
+	builderStr := task.Builder
+	if task.Builder == "" {
+		builderStr = "manual"
+	}
+
+	fmt.Fprintln(os.Stdout, "Name:    ", task.Name)
+	fmt.Fprintln(os.Stdout, "Slug:    ", task.Slug)
+	fmt.Fprintln(os.Stdout, "Builder: ", builderStr)
+	fmt.Fprintln(os.Stdout, "")
+
+	if len(task.Parameters) > 0 {
+		tw := tablewriter.NewWriter(os.Stdout)
+		tw.SetBorder(false)
+		tw.SetHeader([]string{"name", "slug", "description", "type", "required", "default"})
+		tw.SetCaption(true, "Task Parameters")
+
+		for _, p := range task.Parameters {
+			requiredStr := "yes"
+			if p.Constraints.Optional {
+				requiredStr = "no"
+			}
+
+			var defaultStr string
+			if p.Default != nil {
+				defaultStr = fmt.Sprintf("%v", p.Default)
+			}
+
+			tw.Append([]string{
+				p.Name,
+				p.Slug,
+				p.Desc,
+				string(p.Type),
+				requiredStr,
+				defaultStr,
+			})
+		}
+
+		tw.Render()
+	}
 }
 
 // Runs implementation.
