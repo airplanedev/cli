@@ -2,17 +2,10 @@ package set
 
 import (
 	"context"
-	"io/ioutil"
-	"os"
-	"strings"
 
-	"github.com/AlecAivazis/survey/v2"
 	"github.com/MakeNowJust/heredoc"
-	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/configs"
-	"github.com/airplanedev/cli/pkg/logger"
-	"github.com/airplanedev/cli/pkg/utils"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -63,57 +56,10 @@ func run(ctx context.Context, c *cli.Config, name string, argValue *string, secr
 		value = *argValue
 	} else {
 		var err error
-		value, err = readValue(secret)
+		value, err = configs.ReadValue(secret)
 		if err != nil {
 			return err
 		}
 	}
-	// Avoid printing back secrets
-	var valueStr string
-	if secret {
-		valueStr = "<secret value>"
-	} else {
-		valueStr = value
-	}
-	logger.Log("  Setting %s to %s...", logger.Blue(name), logger.Green(valueStr))
-	req := api.SetConfigRequest{
-		Name:     nt.Name,
-		Tag:      nt.Tag,
-		Value:    value,
-		IsSecret: secret,
-	}
-	if err := client.SetConfig(ctx, req); err != nil {
-		return errors.Wrap(err, "set config")
-	}
-	logger.Log("  Done!")
-	return nil
-}
-
-func readValue(secret bool) (string, error) {
-	var value string
-	if utils.CanPrompt() {
-		msg := "Config value:"
-		var prompt survey.Prompt
-		if secret {
-			prompt = &survey.Password{Message: msg}
-		} else {
-			prompt = &survey.Input{Message: msg}
-		}
-		if err := survey.AskOne(
-			prompt,
-			&value,
-			survey.WithStdio(os.Stdin, os.Stderr, os.Stderr),
-		); err != nil {
-			return "", errors.Wrap(err, "prompting value")
-		}
-	} else {
-		// Read from stdin
-		logger.Log("Reading secret from stdin...")
-		data, err := ioutil.ReadAll(os.Stdin)
-		if err != nil {
-			return "", errors.Wrap(err, "reading from stdin")
-		}
-		value = string(data)
-	}
-	return strings.TrimSpace(value), nil
+	return configs.SetConfig(ctx, client, nt, value, secret)
 }

@@ -7,12 +7,17 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"path/filepath"
+	"strings"
 	"time"
 
+	"github.com/airplanedev/archiver"
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/taskdir"
-	"github.com/mholt/archiver/v3"
+	dockerBuild "github.com/docker/cli/cli/command/image/build"
+	dockerFileUtils "github.com/docker/docker/pkg/fileutils"
+	"github.com/dustin/go-humanize"
 	"github.com/pkg/errors"
 )
 
@@ -62,12 +67,119 @@ func archiveTaskDir(dir taskdir.TaskDirectory, archivePath string) error {
 		}
 	}
 
-	// TODO: filter out files/directories that match .dockerignore
-	if err := archiver.Archive(sources, archivePath); err != nil {
+	arch := archiver.NewTarGz()
+
+	def, err := dir.ReadDefinition()
+	if err != nil {
+		return err
+	}
+	arch.Tar.IncludeFunc, err = getIgnoreFunc(dir.DefinitionRootPath(), def.Builder)
+	if err != nil {
+		return err
+	}
+
+	if err := arch.Archive(sources, archivePath); err != nil {
 		return errors.Wrap(err, "building archive")
 	}
 
 	return nil
+}
+
+// Returns an IgnoreFunc that can be used with airplanedev/archiver to filter
+// out files that match a default (or user-provided) .dockerignore.
+//
+// This is modeled off of docker/cli.
+// See: https://github.com/docker/cli/blob/a32cd16160f1b41c1c4ae7bee4dac929d1484e59/vendor/github.com/docker/docker/pkg/archive/archive.go#L738
+func getIgnoreFunc(taskRootPath string, builder string) (func(filePath string, info os.FileInfo) (bool, error), error) {
+	excludes, err := getIgnorePatterns(taskRootPath, builder)
+	if err != nil {
+		return nil, err
+	}
+
+	pm, err := dockerFileUtils.NewPatternMatcher(excludes)
+	if err != nil {
+		return nil, errors.Wrap(err, "parsing dockerignore patterns")
+	}
+
+	return func(filePath string, info os.FileInfo) (bool, error) {
+		relFilePath, err := filepath.Rel(taskRootPath, filePath)
+		if err != nil {
+			return false, errors.Wrap(err, "getting archive relative path")
+		}
+
+		skip, err := pm.Matches(relFilePath)
+		if err != nil {
+			return false, errors.Wrap(err, "matching file")
+		}
+
+		// If we want to skip this file and it's a directory
+		// then we should first check to see if there's an
+		// inclusion pattern (e.g. !dir/file) that starts with this
+		// dir. If so then we can't skip this dir.
+		if info.IsDir() && skip {
+			for _, pat := range pm.Patterns() {
+				if !pat.Exclusion() {
+					continue
+				}
+				if strings.HasPrefix(pat.String()+string(filepath.Separator), relFilePath+string(filepath.Separator)) {
+					// There is a pattern in this directory that should be included, so
+					// we can't skip this directory.
+					return true, nil
+				}
+			}
+
+			return false, nil
+		}
+
+		return !skip, nil
+	}, nil
+}
+
+func getIgnorePatterns(path string, builder string) ([]string, error) {
+	// reference: https://docs.docker.com/engine/reference/builder/#dockerignore-file
+	excludes, err := dockerBuild.ReadDockerignore(path)
+	if err != nil {
+		return nil, errors.Wrap(err, "reading .dockerignore")
+	}
+
+	if len(excludes) > 0 {
+		return excludes, nil
+	}
+
+	// If a .dockerignore was not provided, use a default based on the builder.
+	defaultExcludes := []string{
+		".git",
+		"*.env",
+		"bin",
+	}
+	// For inspiration, see: https://github.com/github/gitignore
+	switch BuilderName(builder) {
+	case BuilderNameGo:
+		// https://github.com/github/gitignore/blob/master/Go.gitignore
+		return append(defaultExcludes, []string{
+			"vendor",
+		}...), nil
+	case BuilderNameDeno:
+		return defaultExcludes, nil
+	case BuilderNamePython:
+		return append(defaultExcludes, []string{
+			".venv",
+		}...), nil
+	case BuilderNameNode:
+		// https://github.com/github/gitignore/blob/master/Node.gitignore
+		return append(defaultExcludes, []string{
+			"node_modules",
+			".npm",
+			".next",
+			"out",
+			"dist",
+			".yarn",
+		}...), nil
+	case BuilderNameDocker:
+		return defaultExcludes, nil
+	default:
+		return nil, errors.Errorf("build: unknown builder type %s", builder)
+	}
 }
 
 func uploadArchive(ctx context.Context, client *api.Client, archivePath string) (string, error) {
@@ -83,14 +195,14 @@ func uploadArchive(ctx context.Context, client *api.Client, archivePath string) 
 	}
 	sizeBytes := int(info.Size())
 
+	logger.Debug("Uploading %s archive...", humanize.Bytes(uint64(sizeBytes)))
+
 	upload, err := client.CreateBuildUpload(ctx, api.CreateBuildUploadRequest{
 		SizeBytes: sizeBytes,
 	})
 	if err != nil {
 		return "", errors.Wrap(err, "creating upload")
 	}
-
-	logger.Debug("Uploaded archive to id=%s at url=%s", upload.Upload.ID, upload.Upload.URL)
 
 	req, err := http.NewRequestWithContext(ctx, "PUT", upload.WriteOnlyURL, archive)
 	if err != nil {
@@ -103,6 +215,8 @@ func uploadArchive(ctx context.Context, client *api.Client, archivePath string) 
 		return "", errors.Wrap(err, "uploading to GCS")
 	}
 	defer resp.Body.Close()
+
+	logger.Debug("Upload complete: %s", upload.Upload.URL)
 
 	return upload.Upload.ID, nil
 }

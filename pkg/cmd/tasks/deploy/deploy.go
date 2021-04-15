@@ -77,12 +77,16 @@ func run(ctx context.Context, cfg config) error {
 		return err
 	}
 
+	if err := ensureConfigsExist(ctx, client, def); err != nil {
+		return err
+	}
+
 	var taskID string
 	var taskRevisionID string
 	task, err := client.GetTask(ctx, def.Slug)
 	if err == nil {
 		// This task already exists, so we update it:
-		logger.Log("Updating...")
+		logger.Log("Updating task...")
 		res, err := client.UpdateTask(ctx, api.UpdateTaskRequest{
 			Slug:           def.Slug,
 			Name:           def.Name,
@@ -107,7 +111,7 @@ func run(ctx context.Context, cfg config) error {
 		taskRevisionID = res.TaskRevisionID
 	} else if aerr, ok := err.(api.Error); ok && aerr.Code == 404 {
 		// A task with this slug does not exist, so we should create one.
-		logger.Log("Creating...")
+		logger.Log("Creating task...")
 		res, err := client.CreateTask(ctx, api.CreateTaskRequest{
 			Slug:           def.Slug,
 			Name:           def.Name,
