@@ -11,6 +11,7 @@ import (
 
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/logger"
+	"github.com/airplanedev/cli/pkg/params"
 	"github.com/olekukonko/tablewriter"
 )
 
@@ -58,9 +59,9 @@ func (t Table) tasks(tasks []api.Task) {
 			ptw.SetBorder(false)
 			ptw.SetHeader([]string{"name", "slug", "type", "required", "default"})
 			for _, p := range t.Parameters {
-				defaultStr := fmt.Sprintf("%v", p.Default)
-				if p.Default == nil {
-					defaultStr = ""
+				defaultStr, err := params.APIValueToInput(p, p.Default)
+				if err != nil {
+					defaultStr = "?"
 				}
 
 				ptw.Append([]string{
