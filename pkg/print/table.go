@@ -112,9 +112,9 @@ func (t Table) task(task api.Task) {
 				requiredStr = "no"
 			}
 
-			var defaultStr string
-			if p.Default != nil {
-				defaultStr = fmt.Sprintf("%v", p.Default)
+			defaultStr, err := params.APIValueToInput(p, p.Default)
+			if err != nil {
+				defaultStr = "<unknown>"
 			}
 
 			tw.Append([]string{
