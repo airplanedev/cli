@@ -61,7 +61,7 @@ func (t Table) tasks(tasks []api.Task) {
 			for _, p := range t.Parameters {
 				defaultStr, err := params.APIValueToInput(p, p.Default)
 				if err != nil {
-					defaultStr = "?"
+					defaultStr = "<unknown>"
 				}
 
 				ptw.Append([]string{
