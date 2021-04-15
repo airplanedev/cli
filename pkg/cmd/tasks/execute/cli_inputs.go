@@ -42,9 +42,6 @@ func promptForParamValues(client *api.Client, task api.Task, paramValues map[str
 
 	for _, param := range task.Parameters {
 		if param.Type == api.TypeUpload {
-			if !param.Constraints.Optional {
-				return errors.Errorf("upload params are not supported and %s is required", param.Name)
-			}
 			logger.Log(logger.Yellow("Skipping %s - uploads are not supported in CLI", param.Name))
 			continue
 		}
