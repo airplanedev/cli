@@ -10,6 +10,7 @@ import (
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/cmd/auth/login"
 	"github.com/airplanedev/cli/pkg/logger"
+	"github.com/airplanedev/cli/pkg/params"
 	"github.com/airplanedev/cli/pkg/print"
 	"github.com/airplanedev/cli/pkg/taskdir"
 	"github.com/airplanedev/cli/pkg/utils"
@@ -193,8 +194,7 @@ func flagset(task api.Task, args api.Values) *flag.FlagSet {
 
 	for _, p := range task.Parameters {
 		set.Func(p.Slug, p.Desc, func(v string) (err error) {
-			// TODO: refactor out this function to re-use for prompting as well
-			args[p.Slug], err = inputToAPIValue(p, v)
+			args[p.Slug], err = params.ParseInput(p, v)
 			if err != nil {
 				return errors.Wrap(err, "converting input to API value")
 			}
