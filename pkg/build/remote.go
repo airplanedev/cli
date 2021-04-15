@@ -71,7 +71,43 @@ func archiveTaskDir(dir taskdir.TaskDirectory, archivePath string) error {
 	if err != nil {
 		return errors.Wrap(err, "reading .dockerignore")
 	}
-	logger.Log("found dockerignore paths: %+v", excludes)
+	if len(excludes) == 0 {
+		// If a .dockerignore was not provided, use a default based on the builder.
+		def, err := dir.ReadDefinition()
+		if err != nil {
+			return err
+		}
+		defaultExcludes := []string{
+			".git",
+			"*.env",
+		}
+		// For inspiration, see: https://github.com/github/gitignore
+		switch BuilderName(def.Builder) {
+		case BuilderNameGo:
+			// https://github.com/github/gitignore/blob/master/Go.gitignore
+			excludes = append(defaultExcludes, []string{
+				"vendor",
+			}...)
+		case BuilderNameDeno:
+			excludes = defaultExcludes
+		case BuilderNamePython:
+			excludes = defaultExcludes
+		case BuilderNameNode:
+			// https://github.com/github/gitignore/blob/master/Node.gitignore
+			excludes = append(defaultExcludes, []string{
+				"node_modules",
+				".npm",
+				".next",
+				"out",
+				"dist",
+				".yarn",
+			}...)
+		case BuilderNameDocker:
+			excludes = defaultExcludes
+		default:
+			return errors.Errorf("build: unknown builder type %s", def.Builder)
+		}
+	}
 
 	a := archiver.NewTarGz()
 	pm, err := dockerFileUtils.NewPatternMatcher(excludes)
