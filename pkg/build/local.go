@@ -30,13 +30,13 @@ func Local(ctx context.Context, client *api.Client, dir taskdir.TaskDirectory, d
 		return errors.Wrap(err, "new build")
 	}
 
-	logger.Log("  Building...")
+	logger.Log("Building...")
 	bo, err := b.Build(ctx, taskID, "latest")
 	if err != nil {
 		return errors.Wrap(err, "build")
 	}
 
-	logger.Log("  Pushing...")
+	logger.Log("Pushing...")
 	if err := b.Push(ctx, bo.Tag); err != nil {
 		return errors.Wrap(err, "push")
 	}
