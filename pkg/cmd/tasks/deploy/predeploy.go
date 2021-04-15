@@ -14,8 +14,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-// predeployHooks runs before a task is deployed and can e.g. prompt the user to specify or fix things
-func predeployHooks(ctx context.Context, client *api.Client, def taskdir.Definition) error {
+// ensureConfigsExist checks for config references in env and asks users to create any missing ones
+func ensureConfigsExist(ctx context.Context, client *api.Client, def taskdir.Definition) error {
 	// Check if configs exist
 	for k, v := range def.Env {
 		if v.Config != "" {

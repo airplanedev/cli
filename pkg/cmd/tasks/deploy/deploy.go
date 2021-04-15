@@ -77,7 +77,7 @@ func run(ctx context.Context, cfg config) error {
 		return err
 	}
 
-	if err := predeployHooks(ctx, client, def); err != nil {
+	if err := ensureConfigsExist(ctx, client, def); err != nil {
 		return err
 	}
 
