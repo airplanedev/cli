@@ -16,7 +16,6 @@ require (
 	github.com/gosimple/slug v1.9.0
 	github.com/kr/text v0.2.0
 	github.com/mattn/go-isatty v0.0.12
-	github.com/mholt/archiver/v3 v3.5.0 // indirect
 	github.com/moby/buildkit v0.8.2 // indirect
 	github.com/moby/sys/mount v0.2.0 // indirect
 	github.com/olekukonko/tablewriter v0.0.5

@@ -139,8 +139,6 @@ github.com/Shopify/logrus-bugsnag v0.0.0-20171204204709-577dee27f20d/go.mod h1:H
 github.com/Shopify/sarama v1.19.0/go.mod h1:FVkBWblsNy7DGZRfXLU0O9RCGt5g3g3yEuWXgklEdEo=
 github.com/Shopify/toxiproxy v2.1.4+incompatible/go.mod h1:OXgGpZ6Cli1/URJOF1DMxUHB2q5Ap20/P/eIdh4G0pI=
 github.com/StackExchange/wmi v0.0.0-20180116203802-5d049714c4a6/go.mod h1:3eOhrUMpNV+6aFIbp5/iudMxNCF27Vw2OZgy4xEx0Fg=
-github.com/airplanedev/archiver v1.1.3-0.20210415155907-e4a7ff131349 h1:rzqVENStpmhAmEB+ZtwuitzAZvDhTJIPKLaXDg+w5qg=
-github.com/airplanedev/archiver v1.1.3-0.20210415155907-e4a7ff131349/go.mod h1:yOnRDCqsSmKGs8JBUH2hOQHwy07s+lgyG8wmDogbCFw=
 github.com/airplanedev/archiver v1.1.3-0.20210415162045-beefc5425369 h1:NFRCfGEvP5KBdXof0US0CSak8Er0JRlrKq9xQNb6IIo=
 github.com/airplanedev/archiver v1.1.3-0.20210415162045-beefc5425369/go.mod h1:Ivrbszdwkt97U/lZecL5Sh3qlWOHcQk7HatXFTCCdZg=
 github.com/alcortesm/tgz v0.0.0-20161220082320-9c5fe88206d7 h1:uSoVVbwJiQipAclBbw+8quDsfcvFjOpI5iCf4p/cqCs=
