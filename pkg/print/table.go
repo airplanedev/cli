@@ -98,7 +98,7 @@ func (t Table) task(task api.Task) {
 	if len(task.Parameters) > 0 {
 		tw := tablewriter.NewWriter(os.Stdout)
 		tw.SetBorder(false)
-		tw.SetHeader([]string{"name", "slug", "type", "required", "default"})
+		tw.SetHeader([]string{"name", "slug", "description", "type", "required", "default"})
 		tw.SetCaption(true, "Task Parameters")
 
 		for _, p := range task.Parameters {
@@ -115,6 +115,7 @@ func (t Table) task(task api.Task) {
 			tw.Append([]string{
 				p.Name,
 				p.Slug,
+				p.Desc,
 				string(p.Type),
 				requiredStr,
 				defaultStr,
