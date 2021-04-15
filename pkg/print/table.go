@@ -103,6 +103,7 @@ func (t Table) task(task api.Task) {
 
 	if len(task.Parameters) > 0 {
 		fmt.Fprintln(os.Stdout, "Task Parameters:")
+		fmt.Fprintln(os.Stdout, "")
 		tw := tablewriter.NewWriter(os.Stdout)
 		tw.SetBorder(false)
 		tw.SetHeader([]string{"name", "slug", "description", "type", "required", "default"})
