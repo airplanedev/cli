@@ -17,6 +17,7 @@ import (
 	"github.com/airplanedev/cli/pkg/taskdir"
 	dockerBuild "github.com/docker/cli/cli/command/image/build"
 	dockerFileUtils "github.com/docker/docker/pkg/fileutils"
+	"github.com/dustin/go-humanize"
 	"github.com/pkg/errors"
 )
 
@@ -149,6 +150,7 @@ func getIgnorePatterns(path string, builder string) ([]string, error) {
 	defaultExcludes := []string{
 		".git",
 		"*.env",
+		"bin",
 	}
 	// For inspiration, see: https://github.com/github/gitignore
 	switch BuilderName(builder) {
@@ -160,7 +162,9 @@ func getIgnorePatterns(path string, builder string) ([]string, error) {
 	case BuilderNameDeno:
 		return defaultExcludes, nil
 	case BuilderNamePython:
-		return defaultExcludes, nil
+		return append(defaultExcludes, []string{
+			".venv",
+		}...), nil
 	case BuilderNameNode:
 		// https://github.com/github/gitignore/blob/master/Node.gitignore
 		return append(defaultExcludes, []string{
@@ -183,7 +187,8 @@ func uploadArchive(ctx context.Context, client *api.Client, archivePath string) 
 	if err != nil {
 		return "", errors.Wrap(err, "opening archive file")
 	}
-	defer archive.Close()
+	// defer archive.Close()
+	logger.Debug("archive: %s", archivePath)
 
 	info, err := archive.Stat()
 	if err != nil {
@@ -191,14 +196,14 @@ func uploadArchive(ctx context.Context, client *api.Client, archivePath string) 
 	}
 	sizeBytes := int(info.Size())
 
+	logger.Debug("Uploading %s archive...", humanize.Bytes(uint64(sizeBytes)))
+
 	upload, err := client.CreateBuildUpload(ctx, api.CreateBuildUploadRequest{
 		SizeBytes: sizeBytes,
 	})
 	if err != nil {
 		return "", errors.Wrap(err, "creating upload")
 	}
-
-	logger.Debug("Uploaded archive to id=%s at url=%s", upload.Upload.ID, upload.Upload.URL)
 
 	req, err := http.NewRequestWithContext(ctx, "PUT", upload.WriteOnlyURL, archive)
 	if err != nil {
@@ -211,6 +216,8 @@ func uploadArchive(ctx context.Context, client *api.Client, archivePath string) 
 		return "", errors.Wrap(err, "uploading to GCS")
 	}
 	defer resp.Body.Close()
+
+	logger.Debug("Upload complete: %s", upload.Upload.URL)
 
 	return upload.Upload.ID, nil
 }
