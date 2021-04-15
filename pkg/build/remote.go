@@ -7,12 +7,16 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"path/filepath"
+	"strings"
 	"time"
 
+	"github.com/airplanedev/archiver"
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/taskdir"
-	"github.com/mholt/archiver/v3"
+	dockerBuild "github.com/docker/cli/cli/command/image/build"
+	dockerFileUtils "github.com/docker/docker/pkg/fileutils"
 	"github.com/pkg/errors"
 )
 
@@ -62,8 +66,55 @@ func archiveTaskDir(dir taskdir.TaskDirectory, archivePath string) error {
 		}
 	}
 
-	// TODO: filter out files/directories that match .dockerignore
-	if err := archiver.Archive(sources, archivePath); err != nil {
+	// reference: https://docs.docker.com/engine/reference/builder/#dockerignore-file
+	excludes, err := dockerBuild.ReadDockerignore(dir.DefinitionRootPath())
+	if err != nil {
+		return errors.Wrap(err, "reading .dockerignore")
+	}
+	logger.Log("found dockerignore paths: %+v", excludes)
+
+	a := archiver.NewTarGz()
+	pm, err := dockerFileUtils.NewPatternMatcher(excludes)
+	if err != nil {
+		return errors.Wrap(err, "parsing dockerignore patterns")
+	}
+	a.Tar.IncludeFunc = func(filePath string, info os.FileInfo) (bool, error) {
+		// This is modeled off of docker/cli.
+		// See: https://github.com/docker/cli/blob/a32cd16160f1b41c1c4ae7bee4dac929d1484e59/vendor/github.com/docker/docker/pkg/archive/archive.go#L738
+		relFilePath, err := filepath.Rel(dir.DefinitionRootPath(), filePath)
+		if err != nil {
+			return false, errors.Wrap(err, "getting archive relative path")
+		}
+		logger.Log("checking relative file path: %s", relFilePath)
+
+		skip, err := pm.Matches(relFilePath)
+		if err != nil {
+			return false, errors.Wrap(err, "matching file")
+		}
+
+		// If we want to skip this file and it's a directory
+		// then we should first check to see if there's an
+		// inclusion pattern (e.g. !dir/file) that starts with this
+		// dir. If so then we can't skip this dir.
+		if info.IsDir() && skip {
+			for _, pat := range pm.Patterns() {
+				if !pat.Exclusion() {
+					continue
+				}
+				if strings.HasPrefix(pat.String()+string(filepath.Separator), relFilePath+string(filepath.Separator)) {
+					// There is a pattern in this directory that should be included, so
+					// we can't skip this directory.
+					logger.Debug("Including directory from inclusion rule: %s", relFilePath)
+					return true, nil
+				}
+			}
+
+			return false, nil
+		}
+
+		return !skip, nil
+	}
+	if err := a.Archive(sources, archivePath); err != nil {
 		return errors.Wrap(err, "building archive")
 	}
 
