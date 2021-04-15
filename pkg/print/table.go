@@ -3,6 +3,7 @@ package print
 import (
 	"encoding/json"
 	"strconv"
+	"strings"
 
 	"fmt"
 	"os"
@@ -41,20 +42,44 @@ func (t Table) apiKeys(apiKeys []api.APIKey) {
 func (t Table) tasks(tasks []api.Task) {
 	tw := tablewriter.NewWriter(os.Stdout)
 	tw.SetBorder(false)
-	tw.SetHeader([]string{"name", "slug", "builder", "arguments"})
+	tw.SetHeader([]string{"name", "slug", "builder", "parameters"})
+	tw.SetRowLine(true)
 
 	for _, t := range tasks {
 		var builder = t.Builder
-
 		if builder == "" {
 			builder = "manual"
+		}
+
+		var parametersStr string
+		if len(t.Parameters) > 0 {
+			pts := &strings.Builder{}
+			ptw := tablewriter.NewWriter(pts)
+			ptw.SetBorder(false)
+			ptw.SetHeader([]string{"name", "slug", "type", "required", "default"})
+			for _, p := range t.Parameters {
+				defaultStr := fmt.Sprintf("%v", p.Default)
+				if p.Default == nil {
+					defaultStr = ""
+				}
+
+				ptw.Append([]string{
+					p.Name,
+					p.Slug,
+					string(p.Type),
+					strconv.FormatBool(!p.Constraints.Optional),
+					defaultStr,
+				})
+			}
+			ptw.Render()
+			parametersStr = pts.String()
 		}
 
 		tw.Append([]string{
 			t.Name,
 			t.Slug,
-			t.Builder,
-			fmt.Sprintf("%v", t.Arguments),
+			builder,
+			parametersStr,
 		})
 	}
 
