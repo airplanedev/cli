@@ -6,7 +6,7 @@ require (
 	github.com/AlecAivazis/survey/v2 v2.2.9
 	github.com/MakeNowJust/heredoc v1.0.0
 	github.com/Microsoft/hcsshim v0.8.15 // indirect
-	github.com/airplanedev/archiver v1.1.3-0.20210415162045-beefc5425369
+	github.com/airplanedev/archiver v1.1.3-0.20210415162748-2c30a7f20851
 	github.com/containerd/continuity v0.0.0-20210313171317-968621f0704d // indirect
 	github.com/docker/cli v20.10.6+incompatible
 	github.com/docker/docker v20.10.5+incompatible
