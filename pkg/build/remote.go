@@ -187,8 +187,7 @@ func uploadArchive(ctx context.Context, client *api.Client, archivePath string) 
 	if err != nil {
 		return "", errors.Wrap(err, "opening archive file")
 	}
-	// defer archive.Close()
-	logger.Debug("archive: %s", archivePath)
+	defer archive.Close()
 
 	info, err := archive.Stat()
 	if err != nil {
