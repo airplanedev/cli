@@ -95,16 +95,17 @@ func (t Table) task(task api.Task) {
 		builderStr = "manual"
 	}
 
-	fmt.Fprintln(os.Stdout, "Name:    ", task.Name)
-	fmt.Fprintln(os.Stdout, "Slug:    ", task.Slug)
-	fmt.Fprintln(os.Stdout, "Builder: ", builderStr)
+	fmt.Fprintln(os.Stdout, "Name:       ", task.Name)
+	fmt.Fprintln(os.Stdout, "Slug:       ", task.Slug)
+	fmt.Fprintln(os.Stdout, "Description:", task.Description)
+	fmt.Fprintln(os.Stdout, "Builder:    ", builderStr)
 	fmt.Fprintln(os.Stdout, "")
 
 	if len(task.Parameters) > 0 {
+		fmt.Fprintln(os.Stdout, "Task Parameters:")
 		tw := tablewriter.NewWriter(os.Stdout)
 		tw.SetBorder(false)
 		tw.SetHeader([]string{"name", "slug", "description", "type", "required", "default"})
-		tw.SetCaption(true, "Task Parameters")
 
 		for _, p := range task.Parameters {
 			requiredStr := "yes"
