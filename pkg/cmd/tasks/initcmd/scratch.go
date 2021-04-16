@@ -40,7 +40,7 @@ func initFromScratch(ctx context.Context, cfg config) error {
 	}
 	defer dir.Close()
 
-	r, err := client.GetUniqueSlug(ctx, name)
+	r, err := client.GetUniqueSlug(ctx, name, "")
 	if err != nil {
 		return errors.Wrap(err, "getting unique slug")
 	}

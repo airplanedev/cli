@@ -36,7 +36,7 @@ func initFromSample(ctx context.Context, cfg config) error {
 		return err
 	}
 
-	r, err := client.GetUniqueSlug(ctx, def.Name)
+	r, err := client.GetUniqueSlug(ctx, def.Name, def.Slug)
 	if err != nil {
 		return errors.Wrap(err, "getting unique slug")
 	}
