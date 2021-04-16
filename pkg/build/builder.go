@@ -164,7 +164,7 @@ func (b *Builder) Build(ctx context.Context, taskID, version string) (BuildOutpu
 	}
 	defer tree.Close()
 
-	buf, err := BuildDockerfile(DockerfileConfig{
+	dockerfile, err := BuildDockerfile(DockerfileConfig{
 		Builder: b.name,
 		Root:    b.root,
 		Args:    b.args,
@@ -172,8 +172,9 @@ func (b *Builder) Build(ctx context.Context, taskID, version string) (BuildOutpu
 	if err != nil {
 		return BuildOutput{}, errors.Wrap(err, "creating dockerfile")
 	}
+	logger.Debug(strings.TrimSpace(dockerfile))
 
-	if err := tree.Write("Dockerfile", strings.NewReader(buf)); err != nil {
+	if err := tree.Write("Dockerfile", strings.NewReader(dockerfile)); err != nil {
 		return BuildOutput{}, errors.Wrap(err, "writing dockerfile")
 	}
 
