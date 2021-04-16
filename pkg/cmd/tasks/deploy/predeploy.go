@@ -18,8 +18,8 @@ import (
 func ensureConfigsExist(ctx context.Context, client *api.Client, def taskdir.Definition) error {
 	// Check if configs exist
 	for k, v := range def.Env {
-		if v.Config != "" {
-			if err := ensureConfigExists(ctx, client, k, v.Config); err != nil {
+		if v.Config != nil {
+			if err := ensureConfigExists(ctx, client, k, *v.Config); err != nil {
 				return err
 			}
 		}
