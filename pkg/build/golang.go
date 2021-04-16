@@ -29,7 +29,7 @@ RUN go mod download
 
 COPY . .
 
-RUN ["go", "build", "-o", "/bin/main", "/airplane/{{ .Entrypoint }}"]
+RUN ["go", "build", "-o", "/bin/main", "{{ .Entrypoint }}"]
 
 FROM {{ .Base }}
 
@@ -53,7 +53,7 @@ ENTRYPOINT ["/bin/main"]
 		HasGoSum   bool
 	}{
 		Base:       v.String(),
-		Entrypoint: entrypoint,
+		Entrypoint: filepath.Join("/airplane", entrypoint),
 		HasGoSum:   exist(gosum) == nil,
 	}); err != nil {
 		return "", err
