@@ -77,7 +77,6 @@ func archiveTaskDir(dir taskdir.TaskDirectory, archivePath string) error {
 	if err != nil {
 		return err
 	}
-	arch.Tar.ContinueOnError = true
 
 	if err := arch.Archive(sources, archivePath); err != nil {
 		return errors.Wrap(err, "building archive")
