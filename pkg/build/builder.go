@@ -219,22 +219,9 @@ func (b *Builder) Build(ctx context.Context, taskID, version string) (BuildOutpu
 		return BuildOutput{}, errors.Wrap(err, "copy output")
 	}
 
-	images, err := b.client.ImageList(ctx, types.ImageListOptions{})
-	if err != nil {
-		return BuildOutput{}, errors.Wrap(err, "image list")
-	}
-
-	for _, img := range images {
-		for _, t := range img.RepoTags {
-			if t == tag {
-				return BuildOutput{
-					Tag: t,
-				}, nil
-			}
-		}
-	}
-
-	return BuildOutput{}, fmt.Errorf("build: image with the tag %q was not found", tag)
+	return BuildOutput{
+		Tag: tag,
+	}, nil
 }
 
 // Push pushes the given image.
