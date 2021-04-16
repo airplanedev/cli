@@ -77,6 +77,7 @@ func archiveTaskDir(dir taskdir.TaskDirectory, archivePath string) error {
 	if err != nil {
 		return err
 	}
+	arch.Tar.ContinueOnError = true
 
 	if err := arch.Archive(sources, archivePath); err != nil {
 		return errors.Wrap(err, "building archive")
@@ -102,6 +103,12 @@ func getIgnoreFunc(taskRootPath string, builder string) (func(filePath string, i
 	}
 
 	return func(filePath string, info os.FileInfo) (bool, error) {
+		// Ignore symbolic links. For example, in Node projects you occasionally see
+		// symbolic links to binaries like `.bin/foobar`  which don't exist.
+		if info.Mode()&os.ModeSymlink == os.ModeSymlink {
+			return false, nil
+		}
+
 		relFilePath, err := filepath.Rel(taskRootPath, filePath)
 		if err != nil {
 			return false, errors.Wrap(err, "getting archive relative path")
