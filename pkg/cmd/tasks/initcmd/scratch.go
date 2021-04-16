@@ -63,7 +63,7 @@ func initFromScratch(cfg config) error {
 A skeleton Airplane task definition for '%s' has been created in %s! Fill it out with the rest of your task details.
 
 Once you are ready, deploy it to Airplane with:
-  airplane tasks deploy -f %s`, name, file, file)
+  airplane deploy -f %s`, name, file, file)
 
 	return nil
 }
