@@ -419,3 +419,7 @@ type APIKey struct {
 	CreatedAt time.Time `json:"createdAt" yaml:"createdAt"`
 	Key       string    `json:"key" yaml:"key"`
 }
+
+type GetUniqueSlugResponse struct {
+	Slug string `json:"slug"`
+}

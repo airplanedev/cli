@@ -67,11 +67,11 @@ func run(ctx context.Context, cfg config) error {
 
 	switch kind {
 	case initKindSample:
-		if err := initFromSample(cfg); err != nil {
+		if err := initFromSample(ctx, cfg); err != nil {
 			return err
 		}
 	case initKindScratch:
-		if err := initFromScratch(cfg); err != nil {
+		if err := initFromScratch(ctx, cfg); err != nil {
 			return err
 		}
 	case initKindTask:

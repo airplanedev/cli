@@ -1,18 +1,20 @@
 package initcmd
 
 import (
+	"context"
 	"os"
 	"path"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/taskdir"
-	"github.com/airplanedev/cli/pkg/utils"
 	"github.com/otiai10/copy"
 	"github.com/pkg/errors"
 )
 
-func initFromSample(cfg config) error {
+func initFromSample(ctx context.Context, cfg config) error {
+	client := cfg.root.Client
+
 	runtime, err := pickRuntime()
 	if err != nil {
 		return err
@@ -34,17 +36,12 @@ func initFromSample(cfg config) error {
 		return err
 	}
 
-	// TODO: Only prompt the user for a slug if the default slug is not unique.
-	defaultSlug := def.Slug
-	if defaultSlug == "" {
-		defaultSlug = utils.MakeSlug(def.Name)
-	}
-	slug, err := utils.PickSlug(defaultSlug)
+	r, err := client.GetUniqueSlug(ctx, def.Name, def.Slug)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "getting unique slug")
 	}
-	if slug != def.Slug {
-		if err := dir.WriteSlug(slug); err != nil {
+	if r.Slug != def.Slug {
+		if err := dir.WriteSlug(r.Slug); err != nil {
 			return err
 		}
 	}
