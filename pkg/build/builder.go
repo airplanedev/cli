@@ -1,11 +1,11 @@
 package build
 
 import (
+	"bufio"
 	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io"
 	"os"
 	"path"
 	"path/filepath"
@@ -87,15 +87,6 @@ type Config struct {
 	//
 	// If nil, New returns an error.
 	Auth *RegistryAuth
-
-	// Writer is the writer to output docker build
-	// status to.
-	//
-	// TODO(amir): we may want to read the output stream
-	// detect an error and return it.
-	//
-	// If empty, os.Stderr is used.
-	Writer io.Writer
 }
 
 type DockerfileConfig struct {
@@ -109,7 +100,6 @@ type Builder struct {
 	root   string
 	name   string
 	args   Args
-	writer io.Writer
 	auth   *RegistryAuth
 	client *client.Client
 }
@@ -128,10 +118,6 @@ func New(c Config) (*Builder, error) {
 		c.Args = make(Args)
 	}
 
-	if c.Writer == nil {
-		c.Writer = os.Stderr
-	}
-
 	if c.Auth == nil {
 		return nil, fmt.Errorf("build: builder requires registry auth")
 	}
@@ -148,7 +134,6 @@ func New(c Config) (*Builder, error) {
 		root:   c.Root,
 		name:   c.Builder,
 		args:   c.Args,
-		writer: c.Writer,
 		auth:   c.Auth,
 		client: client,
 	}, nil
@@ -213,10 +198,34 @@ func (b *Builder) Build(ctx context.Context, taskID, version string) (BuildOutpu
 	}
 	defer resp.Body.Close()
 
-	// TODO(amir): read and abort on any build errors, including the surrounding
-	// lines.
-	if _, err := io.Copy(b.writer, resp.Body); err != nil {
-		return BuildOutput{}, errors.Wrap(err, "copy output")
+	scanner := bufio.NewScanner(resp.Body)
+	for scanner.Scan() {
+		// A `docker build` event will contain either a
+		// (stream) or (error, errorDetail).
+		var event struct {
+			Stream string `json:"stream"`
+
+			Error       string `json:"error"`
+			ErrorDetail struct {
+				Code    int    `json:"code"`
+				Message string `json:"message"`
+			} `json:"errorDetail"`
+		}
+		if err := json.Unmarshal(scanner.Bytes(), &event); err != nil {
+			return BuildOutput{}, errors.Wrap(err, "unmarshaling docker build event")
+		}
+
+		// TODO: prettify these logs, f.e. a progress bar
+		// s, err := strconv.Unquote(`"` + event.Stream + `"`)
+		// if err != nil {
+		// 	logger.Debug("unable to parse: %s", event.Stream)
+		// 	return BuildOutput{}, errors.Wrap(err, "parsing unicode from docker build event")
+		// }
+		fmt.Fprintf(os.Stderr, "%s", event.Stream)
+
+		if event.Error != "" {
+			return BuildOutput{}, errors.Errorf("docker build: %s", event.Error)
+		}
 	}
 
 	return BuildOutput{
@@ -239,10 +248,10 @@ func (b *Builder) Push(ctx context.Context, tag string) error {
 	}
 	defer resp.Close()
 
-	// TODO(amir): read and abort on any errors.
-	if _, err := io.Copy(b.writer, resp); err != nil {
-		return errors.Wrap(err, "image push")
-	}
+	// TODO
+	// if err := wait(resp); err != nil {
+	// 	return err
+	// }
 
 	return nil
 }
