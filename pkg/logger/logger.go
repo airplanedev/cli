@@ -30,7 +30,7 @@ func Debug(msg string, args ...interface{}) {
 		return
 	}
 
-	msgf := msg + "\n"
+	msgf := msg
 	if len(args) > 0 {
 		msgf = fmt.Sprintf(msg, args...)
 	}
@@ -38,5 +38,5 @@ func Debug(msg string, args ...interface{}) {
 	debugPrefix := "[" + Blue("debug") + "] "
 	msgf = debugPrefix + strings.Join(strings.Split(msgf, "\n"), "\n"+debugPrefix)
 
-	fmt.Fprint(os.Stderr, msgf)
+	fmt.Fprint(os.Stderr, msgf+"\n")
 }
