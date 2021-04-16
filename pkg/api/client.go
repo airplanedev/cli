@@ -116,8 +116,8 @@ func (c Client) ListTasks(ctx context.Context) (res ListTasksResponse, err error
 // GetUniqueSlug gets a unique slug based on the given name.
 func (c Client) GetUniqueSlug(ctx context.Context, name, preferredSlug string) (res GetUniqueSlugResponse, err error) {
 	q := url.Values{
-		"name":          []string{name},
-		"preferredSlug": []string{preferredSlug},
+		"name": []string{name},
+		"slug": []string{preferredSlug},
 	}
 	err = c.do(ctx, "GET", "/tasks/getUniqueSlug?"+q.Encode(), nil, &res)
 	return
