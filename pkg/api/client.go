@@ -13,6 +13,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/airplanedev/cli/pkg/version"
+
 	"github.com/pkg/errors"
 )
 
@@ -274,6 +276,9 @@ func (c Client) do(ctx context.Context, method, path string, payload, reply inte
 	}
 
 	req.Header.Set("X-Airplane-Token", token)
+	req.Header.Set("X-Airplane-Client", "cli")
+	req.Header.Set("X-Airplane-Version", version.Get())
+
 	resp, err := http.DefaultClient.Do(req)
 
 	if resp != nil {
