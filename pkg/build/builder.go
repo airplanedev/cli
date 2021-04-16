@@ -16,6 +16,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	dockerJSONMessage "github.com/docker/docker/pkg/jsonmessage"
+	"github.com/mattn/go-isatty"
 	"github.com/pkg/errors"
 )
 
@@ -203,15 +204,13 @@ func (b *Builder) Build(ctx context.Context, taskID, version string) (BuildOutpu
 
 	scanner := bufio.NewScanner(resp.Body)
 	for scanner.Scan() {
-		var event dockerJSONMessage.JSONMessage
+		var event *dockerJSONMessage.JSONMessage
 		if err := json.Unmarshal(scanner.Bytes(), &event); err != nil {
 			return BuildOutput{}, errors.Wrap(err, "unmarshaling docker build event")
 		}
 
-		logger.LogInline("%s", event.Stream)
-
-		if event.Error != nil {
-			return BuildOutput{}, errors.Errorf("docker build: %s", event.Error.Message)
+		if err := event.Display(os.Stderr, isatty.IsTerminal(os.Stderr.Fd())); err != nil {
+			return BuildOutput{}, errors.Wrap(err, "docker build")
 		}
 	}
 
@@ -235,10 +234,17 @@ func (b *Builder) Push(ctx context.Context, tag string) error {
 	}
 	defer resp.Close()
 
-	// TODO
-	// if err := wait(resp); err != nil {
-	// 	return err
-	// }
+	scanner := bufio.NewScanner(resp)
+	for scanner.Scan() {
+		var event *dockerJSONMessage.JSONMessage
+		if err := json.Unmarshal(scanner.Bytes(), &event); err != nil {
+			return errors.Wrap(err, "unmarshaling docker build event")
+		}
+
+		if err := event.Display(os.Stderr, isatty.IsTerminal(os.Stderr.Fd())); err != nil {
+			return errors.Wrap(err, "docker push")
+		}
+	}
 
 	return nil
 }
