@@ -13,11 +13,17 @@ var (
 // Log writes a log message to stderr, followed by a newline. Printf-style
 // formatting is applied to msg using args.
 func Log(msg string, args ...interface{}) {
+	LogInline(msg+"\n", args...)
+}
+
+// Log writes a log message to stderr. Printf-style
+// formatting is applied to msg using args.
+func LogInline(msg string, args ...interface{}) {
 	if len(args) == 0 {
 		// Use Fprint if no args - avoids treating msg like a format string
-		fmt.Fprint(os.Stderr, msg+"\n")
+		fmt.Fprint(os.Stderr, msg)
 	} else {
-		fmt.Fprintf(os.Stderr, msg+"\n", args...)
+		fmt.Fprintf(os.Stderr, msg, args...)
 	}
 }
 
@@ -25,13 +31,20 @@ func Log(msg string, args ...interface{}) {
 // is executing in debug mode. Printf-style formatting is applied to msg
 // using args.
 func Debug(msg string, args ...interface{}) {
+	DebugInline(msg+"\n", args...)
+}
+
+// Debug writes a log message to stderr if the CLI
+// is executing in debug mode. Printf-style formatting is applied to msg
+// using args.
+func DebugInline(msg string, args ...interface{}) {
 	if !EnableDebug {
 		return
 	}
 	debugPrefix := "[" + Blue("debug") + "] "
 	if len(args) == 0 {
-		fmt.Fprint(os.Stderr, debugPrefix+msg+"\n")
+		fmt.Fprint(os.Stderr, debugPrefix+msg)
 	} else {
-		fmt.Fprintf(os.Stderr, debugPrefix+msg+"\n", args...)
+		fmt.Fprintf(os.Stderr, debugPrefix+msg, args...)
 	}
 }

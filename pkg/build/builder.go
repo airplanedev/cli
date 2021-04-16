@@ -12,8 +12,10 @@ import (
 	"strings"
 	"unicode"
 
+	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
+	dockerJSONMessage "github.com/docker/docker/pkg/jsonmessage"
 	"github.com/pkg/errors"
 )
 
@@ -200,31 +202,15 @@ func (b *Builder) Build(ctx context.Context, taskID, version string) (BuildOutpu
 
 	scanner := bufio.NewScanner(resp.Body)
 	for scanner.Scan() {
-		// A `docker build` event will contain either a
-		// (stream) or (error, errorDetail).
-		var event struct {
-			Stream string `json:"stream"`
-
-			Error       string `json:"error"`
-			ErrorDetail struct {
-				Code    int    `json:"code"`
-				Message string `json:"message"`
-			} `json:"errorDetail"`
-		}
+		var event dockerJSONMessage.JSONMessage
 		if err := json.Unmarshal(scanner.Bytes(), &event); err != nil {
 			return BuildOutput{}, errors.Wrap(err, "unmarshaling docker build event")
 		}
 
-		// TODO: prettify these logs, f.e. a progress bar
-		// s, err := strconv.Unquote(`"` + event.Stream + `"`)
-		// if err != nil {
-		// 	logger.Debug("unable to parse: %s", event.Stream)
-		// 	return BuildOutput{}, errors.Wrap(err, "parsing unicode from docker build event")
-		// }
-		fmt.Fprintf(os.Stderr, "%s", event.Stream)
+		logger.LogInline("%s", event.Stream)
 
-		if event.Error != "" {
-			return BuildOutput{}, errors.Errorf("docker build: %s", event.Error)
+		if event.Error != nil {
+			return BuildOutput{}, errors.Errorf("docker build: %s", event.Error.Message)
 		}
 	}
 
