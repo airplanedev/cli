@@ -202,8 +202,8 @@ type ListTasksResponse struct {
 type TaskEnv map[string]EnvVarValue
 
 type EnvVarValue struct {
-	Value  string `json:"value" yaml:"value"`
-	Config string `json:"config" yaml:"config"`
+	Value  *string `json:"value" yaml:"value"`
+	Config *string `json:"config" yaml:"config"`
 }
 
 var _ yaml.Unmarshaler = &EnvVarValue{}
@@ -222,7 +222,7 @@ func (this *EnvVarValue) UnmarshalYAML(node *yaml.Node) error {
 	var value string
 	if err := node.Decode(&value); err == nil {
 		// Success!
-		this.Value = value
+		this.Value = &value
 		return nil
 	}
 
