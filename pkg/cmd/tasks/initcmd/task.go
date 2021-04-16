@@ -37,13 +37,8 @@ func initFromTask(ctx context.Context, cfg config) error {
 	}
 	defer dir.Close()
 
-	r, err := client.GetUniqueSlug(ctx, task.Name)
-	if err != nil {
-		return errors.Wrap(err, "getting unique slug")
-	}
-
 	if err := dir.WriteDefinition(taskdir.Definition{
-		Slug:           r.Slug,
+		Slug:           task.Slug,
 		Name:           task.Name,
 		Description:    task.Description,
 		Image:          task.Image,
