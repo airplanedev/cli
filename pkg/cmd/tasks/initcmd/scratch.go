@@ -1,7 +1,11 @@
 package initcmd
 
 import (
+	"encoding/json"
+	"io/ioutil"
 	"os"
+	"path"
+	"path/filepath"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/airplanedev/cli/pkg/api"
@@ -56,6 +60,10 @@ func initFromScratch(cfg config) error {
 	}
 
 	if err := dir.WriteDefinition(def); err != nil {
+		return err
+	}
+
+	if err := writeRuntimeFiles(def); err != nil {
 		return err
 	}
 
@@ -147,4 +155,43 @@ func pickString(msg string, opts ...survey.AskOpt) (string, error) {
 	}
 
 	return str, nil
+}
+
+// For the various runtimes, we pre-populate basic versions of e.g. package.json to reduce how much
+// the user has to set up.
+func writeRuntimeFiles(def taskdir.Definition) error {
+	logger.Debug("writeRuntimeFiles %s", def.Builder)
+	files := map[string][]byte{}
+	switch def.Builder {
+	case "node":
+		// main.js
+		files[path.Join(filepath.Dir(def.Root), "main.js")] = []byte(`// main.js
+const main = () => {
+	console.log("Hello world!")
+}
+
+main();
+`)
+		// package.json
+		j, err := json.MarshalIndent(struct {
+			Name    string `json:"name"`
+			Version string `json:"version"`
+		}{
+			Name:    def.Slug,
+			Version: "0.0.1",
+		}, "", "  ")
+		if err != nil {
+			return errors.Wrap(err, "creating package.json")
+		}
+		files[path.Join(filepath.Dir(def.Root), "package.json")] = j
+	default:
+		// TODO: handle other builders
+	}
+	for filePath, fileContents := range files {
+		logger.Debug("writing file %s", filePath)
+		if err := ioutil.WriteFile(filePath, fileContents, 0664); err != nil {
+			return errors.Wrapf(err, "writing %s", filePath)
+		}
+	}
+	return nil
 }
