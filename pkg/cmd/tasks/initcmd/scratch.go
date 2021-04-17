@@ -6,6 +6,7 @@ import (
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/airplanedev/cli/pkg/api"
+	"github.com/airplanedev/cli/pkg/cmd/tasks/initcmd/scaffolders"
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/taskdir"
 	"github.com/airplanedev/cli/pkg/utils"
@@ -46,7 +47,7 @@ func initFromScratch(cfg config) error {
 		Description: description,
 	}
 
-	var scaffolder runtimeScaffolder
+	var scaffolder scaffolders.RuntimeScaffolder
 	if runtime == runtimeKindManual {
 		// TODO: let folks enter an image
 		def.Image = "alpine:3"
@@ -74,33 +75,33 @@ Once you are ready, deploy it to Airplane with:
 	return nil
 }
 
-func defaultRuntimeConfig(runtime runtimeKind) (string, api.BuilderConfig, runtimeScaffolder, error) {
+func defaultRuntimeConfig(runtime runtimeKind) (string, api.BuilderConfig, scaffolders.RuntimeScaffolder, error) {
 	// TODO: let folks configure the following configuration
 	switch runtime {
 	case runtimeKindDeno:
 		return "deno", api.BuilderConfig{
 			"entrypoint": "main.ts",
-		}, denoScaffolder{entrypoint: "main.ts"}, nil
+		}, scaffolders.DenoScaffolder{Entrypoint: "main.ts"}, nil
 	case runtimeKindDockerfile:
 		return "docker", api.BuilderConfig{
 			"dockerfile": "Dockerfile",
-		}, noopScaffolder{}, nil
+		}, scaffolders.DockerfileScaffolder{Dockerfile: "Dockerfile"}, nil
 	case runtimeKindGo:
 		return "go", api.BuilderConfig{
 			"entrypoint": "main.go",
-		}, noopScaffolder{}, nil
+		}, scaffolders.NoopScaffolder{}, nil
 	case runtimeKindNode:
 		return "node", api.BuilderConfig{
 			"entrypoint":  "main.js",
 			"language":    "javascript",
 			"nodeVersion": "15",
-		}, nodeScaffolder{entrypoint: "main.js"}, nil
+		}, scaffolders.NodeScaffolder{Entrypoint: "main.js"}, nil
 	case runtimeKindPython:
 		return "python", api.BuilderConfig{
 			"entrypoint": "main.py",
-		}, noopScaffolder{}, nil
+		}, scaffolders.PythonScaffolder{Entrypoint: "main.py"}, nil
 	default:
-		return "", nil, noopScaffolder{}, errors.Errorf("unknown runtime: %s", runtime)
+		return "", nil, scaffolders.NoopScaffolder{}, errors.Errorf("unknown runtime: %s", runtime)
 	}
 }
 
@@ -157,7 +158,7 @@ func pickString(msg string, opts ...survey.AskOpt) (string, error) {
 
 // For the various runtimes, we pre-populate basic versions of e.g. package.json to reduce how much
 // the user has to set up.
-func writeRuntimeFiles(def taskdir.Definition, scaffolder runtimeScaffolder) error {
+func writeRuntimeFiles(def taskdir.Definition, scaffolder scaffolders.RuntimeScaffolder) error {
 	files := map[string][]byte{}
 	if err := scaffolder.GenerateFiles(def, files); err != nil {
 		return err
