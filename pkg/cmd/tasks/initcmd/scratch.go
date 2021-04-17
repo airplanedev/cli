@@ -1,11 +1,8 @@
 package initcmd
 
 import (
-	"encoding/json"
 	"io/ioutil"
 	"os"
-	"path"
-	"path/filepath"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/airplanedev/cli/pkg/api"
@@ -49,12 +46,13 @@ func initFromScratch(cfg config) error {
 		Description: description,
 	}
 
+	var scaffolder runtimeScaffolder
 	if runtime == runtimeKindManual {
 		// TODO: let folks enter an image
 		def.Image = "alpine:3"
 		def.Command = []string{"echo", `"Hello World"`}
 	} else {
-		if def.Builder, def.BuilderConfig, err = defaultRuntimeConfig(runtime); err != nil {
+		if def.Builder, def.BuilderConfig, scaffolder, err = defaultRuntimeConfig(runtime); err != nil {
 			return err
 		}
 	}
@@ -63,7 +61,7 @@ func initFromScratch(cfg config) error {
 		return err
 	}
 
-	if err := writeRuntimeFiles(def); err != nil {
+	if err := writeRuntimeFiles(def, scaffolder); err != nil {
 		return err
 	}
 
@@ -76,33 +74,33 @@ Once you are ready, deploy it to Airplane with:
 	return nil
 }
 
-func defaultRuntimeConfig(runtime runtimeKind) (string, api.BuilderConfig, error) {
+func defaultRuntimeConfig(runtime runtimeKind) (string, api.BuilderConfig, runtimeScaffolder, error) {
 	// TODO: let folks configure the following configuration
 	switch runtime {
 	case runtimeKindDeno:
 		return "deno", api.BuilderConfig{
 			"entrypoint": "main.ts",
-		}, nil
+		}, denoScaffolder{entrypoint: "main.ts"}, nil
 	case runtimeKindDockerfile:
 		return "docker", api.BuilderConfig{
 			"dockerfile": "Dockerfile",
-		}, nil
+		}, noopScaffolder{}, nil
 	case runtimeKindGo:
 		return "go", api.BuilderConfig{
 			"entrypoint": "main.go",
-		}, nil
+		}, noopScaffolder{}, nil
 	case runtimeKindNode:
 		return "node", api.BuilderConfig{
 			"entrypoint":  "main.js",
 			"language":    "javascript",
 			"nodeVersion": "15",
-		}, nil
+		}, nodeScaffolder{entrypoint: "main.js"}, nil
 	case runtimeKindPython:
 		return "python", api.BuilderConfig{
 			"entrypoint": "main.py",
-		}, nil
+		}, noopScaffolder{}, nil
 	default:
-		return "", nil, errors.Errorf("unknown runtime: %s", runtime)
+		return "", nil, noopScaffolder{}, errors.Errorf("unknown runtime: %s", runtime)
 	}
 }
 
@@ -159,33 +157,10 @@ func pickString(msg string, opts ...survey.AskOpt) (string, error) {
 
 // For the various runtimes, we pre-populate basic versions of e.g. package.json to reduce how much
 // the user has to set up.
-func writeRuntimeFiles(def taskdir.Definition) error {
-	logger.Debug("writeRuntimeFiles %s", def.Builder)
+func writeRuntimeFiles(def taskdir.Definition, scaffolder runtimeScaffolder) error {
 	files := map[string][]byte{}
-	switch def.Builder {
-	case "node":
-		// main.js
-		files[path.Join(filepath.Dir(def.Root), "main.js")] = []byte(`// main.js
-const main = () => {
-	console.log("Hello world!")
-}
-
-main();
-`)
-		// package.json
-		j, err := json.MarshalIndent(struct {
-			Name    string `json:"name"`
-			Version string `json:"version"`
-		}{
-			Name:    def.Slug,
-			Version: "0.0.1",
-		}, "", "  ")
-		if err != nil {
-			return errors.Wrap(err, "creating package.json")
-		}
-		files[path.Join(filepath.Dir(def.Root), "package.json")] = j
-	default:
-		// TODO: handle other builders
+	if err := scaffolder.GenerateFiles(def, files); err != nil {
+		return err
 	}
 	for filePath, fileContents := range files {
 		logger.Debug("writing file %s", filePath)
