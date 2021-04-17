@@ -55,6 +55,30 @@ CMD ["echo", "hello world"]
 	return nil
 }
 
+// Golang
+
+type GoScaffolder struct {
+	Entrypoint string
+}
+
+var _ RuntimeScaffolder = GoScaffolder{}
+
+func (this GoScaffolder) GenerateFiles(def taskdir.Definition, filemap map[string][]byte) error {
+	// Entrypoint
+	filemap[path.Join(def.Root, this.Entrypoint)] = []byte(`package main
+
+import (
+	"fmt"
+)
+
+func main() {
+	fmt.Println("Hello, playground")
+}
+`)
+	// TODO: this should also add go.mod and go.sum for Go to be fully buildable
+	return nil
+}
+
 // Node
 
 type NodeScaffolder struct {

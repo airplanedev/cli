@@ -89,7 +89,7 @@ func defaultRuntimeConfig(runtime runtimeKind) (string, api.BuilderConfig, scaff
 	case runtimeKindGo:
 		return "go", api.BuilderConfig{
 			"entrypoint": "main.go",
-		}, scaffolders.NoopScaffolder{}, nil
+		}, scaffolders.GoScaffolder{Entrypoint: "main.go"}, nil
 	case runtimeKindNode:
 		return "node", api.BuilderConfig{
 			"entrypoint":  "main.js",
