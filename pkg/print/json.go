@@ -19,6 +19,11 @@ func NewJSONFormatter() *JSON {
 	}
 }
 
+// Encode allows external callers to use the same encoder
+func (j *JSON) Encode(obj interface{}) {
+	j.enc.Encode(obj)
+}
+
 // APIKeys implementation.
 func (j *JSON) apiKeys(apiKeys []api.APIKey) {
 	j.enc.Encode(apiKeys)
