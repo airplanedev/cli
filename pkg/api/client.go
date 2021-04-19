@@ -13,6 +13,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/airplanedev/cli/pkg/version"
+
 	"github.com/pkg/errors"
 )
 
@@ -110,6 +112,16 @@ func (c Client) UpdateTask(ctx context.Context, req UpdateTaskRequest) (res Upda
 // ListTasks lists all tasks.
 func (c Client) ListTasks(ctx context.Context) (res ListTasksResponse, err error) {
 	err = c.do(ctx, "GET", "/tasks/list", nil, &res)
+	return
+}
+
+// GetUniqueSlug gets a unique slug based on the given name.
+func (c Client) GetUniqueSlug(ctx context.Context, name, preferredSlug string) (res GetUniqueSlugResponse, err error) {
+	q := url.Values{
+		"name": []string{name},
+		"slug": []string{preferredSlug},
+	}
+	err = c.do(ctx, "GET", "/tasks/getUniqueSlug?"+q.Encode(), nil, &res)
 	return
 }
 
@@ -264,6 +276,9 @@ func (c Client) do(ctx context.Context, method, path string, payload, reply inte
 	}
 
 	req.Header.Set("X-Airplane-Token", token)
+	req.Header.Set("X-Airplane-Client", "cli")
+	req.Header.Set("X-Airplane-Version", version.Get())
+
 	resp, err := http.DefaultClient.Do(req)
 
 	if resp != nil {

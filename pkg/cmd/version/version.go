@@ -6,13 +6,8 @@ import (
 
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/logger"
+	"github.com/airplanedev/cli/pkg/version"
 	"github.com/spf13/cobra"
-)
-
-// Set by Go Releaser.
-var (
-	version     string = "<unknown>"
-	compileDate string = "<unknown>"
 )
 
 func New(c *cli.Config) *cobra.Command {
@@ -29,7 +24,7 @@ func New(c *cli.Config) *cobra.Command {
 }
 
 func Version() string {
-	return fmt.Sprintf("Version: %s (%s)", version, compileDate)
+	return fmt.Sprintf("Version: %s (%s)", version.Get(), version.Date())
 }
 
 func run(ctx context.Context) error {
