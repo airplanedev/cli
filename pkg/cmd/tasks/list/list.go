@@ -39,7 +39,7 @@ func run(ctx context.Context, c *cli.Config) error {
 	if len(res.Tasks) == 0 {
 		logger.Log(`
   There are no tasks yet. To create a sample task:
-    airplane tasks deploy -f github.com/airplanedev/examples/node/hello-world-javascript/airplane.yml`)
+    airplane deploy -f github.com/airplanedev/examples/node/hello-world-javascript/airplane.yml`)
 		return nil
 	}
 
