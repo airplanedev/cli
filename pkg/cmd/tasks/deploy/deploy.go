@@ -3,9 +3,6 @@ package deploy
 import (
 	"context"
 	"fmt"
-	"io"
-	"io/ioutil"
-	"os"
 
 	"github.com/MakeNowJust/heredoc"
 	"github.com/airplanedev/cli/pkg/api"
@@ -141,11 +138,7 @@ func run(ctx context.Context, cfg config) error {
 	if def.Builder != "" {
 		switch builder {
 		case build.BuilderKindLocal:
-			var output io.Writer = ioutil.Discard
-			if cfg.root.DebugMode {
-				output = os.Stderr
-			}
-			if err := build.Local(ctx, client, dir, def, taskID, output); err != nil {
+			if err := build.Local(ctx, client, dir, def, taskID); err != nil {
 				return err
 			}
 		case build.BuilderKindRemote:

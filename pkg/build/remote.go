@@ -102,6 +102,12 @@ func getIgnoreFunc(taskRootPath string, builder string) (func(filePath string, i
 	}
 
 	return func(filePath string, info os.FileInfo) (bool, error) {
+		// Ignore symbolic links. For example, in Node projects you occasionally see
+		// symbolic links to binaries like `.bin/foobar`  which don't exist.
+		if info.Mode()&os.ModeSymlink == os.ModeSymlink {
+			return false, nil
+		}
+
 		relFilePath, err := filepath.Rel(taskRootPath, filePath)
 		if err != nil {
 			return false, errors.Wrap(err, "getting archive relative path")
@@ -242,7 +248,12 @@ func waitForBuild(ctx context.Context, client *api.Client, buildID string) error
 			buildPrefix := "[" + logger.Yellow("build") + "] "
 			newLogs := api.DedupeLogs(logs, r.Logs)
 			for _, l := range newLogs {
-				logger.Log(buildPrefix + logger.Gray(l.Text))
+				text := l.Text
+				if strings.HasPrefix(l.Text, "[builder] ") {
+					text = logger.Gray(strings.TrimPrefix(text, "[builder] "))
+				}
+
+				logger.Log(buildPrefix + text)
 			}
 			logs = append(logs, newLogs...)
 
