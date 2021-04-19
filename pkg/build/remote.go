@@ -248,7 +248,12 @@ func waitForBuild(ctx context.Context, client *api.Client, buildID string) error
 			buildPrefix := "[" + logger.Yellow("build") + "] "
 			newLogs := api.DedupeLogs(logs, r.Logs)
 			for _, l := range newLogs {
-				logger.Log(buildPrefix + logger.Gray(l.Text))
+				text := l.Text
+				if strings.HasPrefix(l.Text, "[builder] ") {
+					text = logger.Gray(strings.TrimPrefix(text, "[builder] "))
+				}
+
+				logger.Log(buildPrefix + text)
 			}
 			logs = append(logs, newLogs...)
 

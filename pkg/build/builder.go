@@ -1,19 +1,22 @@
 package build
 
 import (
+	"bufio"
 	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
 	"unicode"
 
+	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
+	dockerJSONMessage "github.com/docker/docker/pkg/jsonmessage"
+	"github.com/mattn/go-isatty"
 	"github.com/pkg/errors"
 )
 
@@ -87,15 +90,6 @@ type Config struct {
 	//
 	// If nil, New returns an error.
 	Auth *RegistryAuth
-
-	// Writer is the writer to output docker build
-	// status to.
-	//
-	// TODO(amir): we may want to read the output stream
-	// detect an error and return it.
-	//
-	// If empty, os.Stderr is used.
-	Writer io.Writer
 }
 
 type DockerfileConfig struct {
@@ -109,7 +103,6 @@ type Builder struct {
 	root   string
 	name   string
 	args   Args
-	writer io.Writer
 	auth   *RegistryAuth
 	client *client.Client
 }
@@ -128,10 +121,6 @@ func New(c Config) (*Builder, error) {
 		c.Args = make(Args)
 	}
 
-	if c.Writer == nil {
-		c.Writer = os.Stderr
-	}
-
 	if c.Auth == nil {
 		return nil, fmt.Errorf("build: builder requires registry auth")
 	}
@@ -148,7 +137,6 @@ func New(c Config) (*Builder, error) {
 		root:   c.Root,
 		name:   c.Builder,
 		args:   c.Args,
-		writer: c.Writer,
 		auth:   c.Auth,
 		client: client,
 	}, nil
@@ -177,7 +165,7 @@ func (b *Builder) Build(ctx context.Context, taskID, version string) (BuildOutpu
 	}
 	defer tree.Close()
 
-	buf, err := BuildDockerfile(DockerfileConfig{
+	dockerfile, err := BuildDockerfile(DockerfileConfig{
 		Builder: b.name,
 		Root:    b.root,
 		Args:    b.args,
@@ -185,8 +173,9 @@ func (b *Builder) Build(ctx context.Context, taskID, version string) (BuildOutpu
 	if err != nil {
 		return BuildOutput{}, errors.Wrap(err, "creating dockerfile")
 	}
+	logger.Debug(strings.TrimSpace(dockerfile))
 
-	if err := tree.Write("Dockerfile", strings.NewReader(buf)); err != nil {
+	if err := tree.Write("Dockerfile", strings.NewReader(dockerfile)); err != nil {
 		return BuildOutput{}, errors.Wrap(err, "writing dockerfile")
 	}
 
@@ -213,28 +202,21 @@ func (b *Builder) Build(ctx context.Context, taskID, version string) (BuildOutpu
 	}
 	defer resp.Body.Close()
 
-	// TODO(amir): read and abort on any build errors, including the surrounding
-	// lines.
-	if _, err := io.Copy(b.writer, resp.Body); err != nil {
-		return BuildOutput{}, errors.Wrap(err, "copy output")
-	}
+	scanner := bufio.NewScanner(resp.Body)
+	for scanner.Scan() {
+		var event *dockerJSONMessage.JSONMessage
+		if err := json.Unmarshal(scanner.Bytes(), &event); err != nil {
+			return BuildOutput{}, errors.Wrap(err, "unmarshaling docker build event")
+		}
 
-	images, err := b.client.ImageList(ctx, types.ImageListOptions{})
-	if err != nil {
-		return BuildOutput{}, errors.Wrap(err, "image list")
-	}
-
-	for _, img := range images {
-		for _, t := range img.RepoTags {
-			if t == tag {
-				return BuildOutput{
-					Tag: t,
-				}, nil
-			}
+		if err := event.Display(os.Stderr, isatty.IsTerminal(os.Stderr.Fd())); err != nil {
+			return BuildOutput{}, errors.Wrap(err, "docker build")
 		}
 	}
 
-	return BuildOutput{}, fmt.Errorf("build: image with the tag %q was not found", tag)
+	return BuildOutput{
+		Tag: tag,
+	}, nil
 }
 
 // Push pushes the given image.
@@ -252,9 +234,16 @@ func (b *Builder) Push(ctx context.Context, tag string) error {
 	}
 	defer resp.Close()
 
-	// TODO(amir): read and abort on any errors.
-	if _, err := io.Copy(b.writer, resp); err != nil {
-		return errors.Wrap(err, "image push")
+	scanner := bufio.NewScanner(resp)
+	for scanner.Scan() {
+		var event *dockerJSONMessage.JSONMessage
+		if err := json.Unmarshal(scanner.Bytes(), &event); err != nil {
+			return errors.Wrap(err, "unmarshaling docker build event")
+		}
+
+		if err := event.Display(os.Stderr, isatty.IsTerminal(os.Stderr.Fd())); err != nil {
+			return errors.Wrap(err, "docker push")
+		}
 	}
 
 	return nil
