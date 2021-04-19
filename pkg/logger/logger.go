@@ -3,6 +3,7 @@ package logger
 import (
 	"fmt"
 	"os"
+	"strings"
 )
 
 var (
@@ -28,10 +29,14 @@ func Debug(msg string, args ...interface{}) {
 	if !EnableDebug {
 		return
 	}
-	debugPrefix := "[" + Blue("debug") + "] "
-	if len(args) == 0 {
-		fmt.Fprint(os.Stderr, debugPrefix+msg+"\n")
-	} else {
-		fmt.Fprintf(os.Stderr, debugPrefix+msg+"\n", args...)
+
+	msgf := msg
+	if len(args) > 0 {
+		msgf = fmt.Sprintf(msg, args...)
 	}
+
+	debugPrefix := "[" + Blue("debug") + "] "
+	msgf = debugPrefix + strings.Join(strings.Split(msgf, "\n"), "\n"+debugPrefix)
+
+	fmt.Fprint(os.Stderr, msgf+"\n")
 }
