@@ -67,7 +67,7 @@ func initFromScratch(cfg config) error {
 	}
 
 	logger.Log(`
-A skeleton Airplane task definition for '%s' has been created in %s! Fill it out with the rest of your task details.
+A skeleton Airplane task definition for '%s' has been created in %s, along with other starter files!
 
 Once you are ready, deploy it to Airplane with:
   airplane deploy -f %s`, name, file, file)
