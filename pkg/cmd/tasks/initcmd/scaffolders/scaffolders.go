@@ -13,16 +13,6 @@ type RuntimeScaffolder interface {
 	GenerateFiles(def taskdir.Definition, filemap map[string][]byte) error
 }
 
-// Default noop scaffolder
-
-type NoopScaffolder struct{}
-
-var _ RuntimeScaffolder = NoopScaffolder{}
-
-func (this NoopScaffolder) GenerateFiles(def taskdir.Definition, filemap map[string][]byte) error {
-	return nil
-}
-
 // Deno
 
 type DenoScaffolder struct {

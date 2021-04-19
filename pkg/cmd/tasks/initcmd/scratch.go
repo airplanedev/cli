@@ -101,7 +101,7 @@ func defaultRuntimeConfig(runtime runtimeKind) (string, api.BuilderConfig, scaff
 			"entrypoint": "main.py",
 		}, scaffolders.PythonScaffolder{Entrypoint: "main.py"}, nil
 	default:
-		return "", nil, scaffolders.NoopScaffolder{}, errors.Errorf("unknown runtime: %s", runtime)
+		return "", nil, nil, errors.Errorf("unknown runtime: %s", runtime)
 	}
 }
 
