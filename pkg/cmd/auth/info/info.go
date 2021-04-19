@@ -28,12 +28,7 @@ func run(ctx context.Context, c *cli.Config) error {
 		return err
 	}
 
-	switch f := print.DefaultFormatter.(type) {
-	case *print.JSON:
-		f.Encode(res)
-	case print.YAML:
-		f.Encode(res)
-	default:
+	print.Print(res, func() {
 		var userStr string
 		if res.User == nil {
 			userStr = logger.Gray("<no user>")
@@ -42,7 +37,7 @@ func run(ctx context.Context, c *cli.Config) error {
 		}
 		logger.Log("  Signed in as %s", logger.Blue(userStr))
 		logger.Log("  Using team %s (ID: %s)", logger.Blue(res.Team.Name), res.Team.ID)
-	}
+	})
 
 	return nil
 }

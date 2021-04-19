@@ -57,3 +57,17 @@ func Outputs(outputs api.Outputs) {
 func Config(config api.Config) {
 	DefaultFormatter.config(config)
 }
+
+// Print outputs obj based on DefaultFormatter
+// If JSON or YAML, uses that formatter to encode obj
+// Otherwise, calls defaultPrintFunc to render the obj
+func Print(obj interface{}, defaultPrintFunc func()) {
+	switch f := DefaultFormatter.(type) {
+	case *JSON:
+		f.Encode(obj)
+	case YAML:
+		f.Encode(obj)
+	default:
+		defaultPrintFunc()
+	}
+}
