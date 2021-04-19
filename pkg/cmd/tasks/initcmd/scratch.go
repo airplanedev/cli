@@ -1,17 +1,19 @@
 package initcmd
 
 import (
+	"context"
 	"os"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/taskdir"
-	"github.com/airplanedev/cli/pkg/utils"
 	"github.com/pkg/errors"
 )
 
-func initFromScratch(cfg config) error {
+func initFromScratch(ctx context.Context, cfg config) error {
+	client := cfg.root.Client
+
 	runtime, err := pickRuntime()
 	if err != nil {
 		return err
@@ -38,9 +40,13 @@ func initFromScratch(cfg config) error {
 	}
 	defer dir.Close()
 
+	r, err := client.GetUniqueSlug(ctx, name, "")
+	if err != nil {
+		return errors.Wrap(err, "getting unique slug")
+	}
+
 	def := taskdir.Definition{
-		// TODO: choose a unique slug via the Airplane API
-		Slug:        utils.MakeSlug(name),
+		Slug:        r.Slug,
 		Name:        name,
 		Description: description,
 	}
