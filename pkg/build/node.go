@@ -45,14 +45,17 @@ func node(root string, args Args) (string, error) {
 	// Language specific.
 	switch lang {
 	case "typescript":
+		if buildDir == "" {
+			buildDir = ".airplane-build"
+		}
 		cmds = append(cmds, `npm install -g typescript@4.1`)
 		cmds = append(cmds, `[-f tsconfig.json] || echo '{"include": ["*", "**/*"], "exclude": ["node_modules"]}' >tsconfig.json`)
-		cmd := `rm -rf .airplane-build/ && tsc --outDir .airplane-build --rootDir .`
+		cmds = append(cmds, fmt.Sprintf(`rm -rf %s && tsc --outDir %s --rootDir .`, buildDir, buildDir))
 		if buildCommand != "" {
-			cmd += fmt.Sprintf(" && %s", buildCommand)
+			// It's not totally expected, but if you do set buildCommand we'll run it after tsc
+			cmds = append(cmds, buildCommand)
 		}
-		cmds = append(cmds, cmd)
-		buildWorkdir = path.Join(workdir, ".airplane-build")
+		buildWorkdir = path.Join(workdir, buildDir)
 		// If entrypoint ends in .ts, replace it with .js
 		entrypoint = strings.TrimSuffix(entrypoint, ".ts") + ".js"
 	case "javascript":
