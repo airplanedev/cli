@@ -2,9 +2,12 @@ package build
 
 import (
 	"fmt"
+	"path"
 	"path/filepath"
 	"strings"
 	"text/template"
+
+	"github.com/pkg/errors"
 )
 
 // Node creates a dockerfile for Node (typescript/javascript).
@@ -19,6 +22,12 @@ func node(root string, args Args) (string, error) {
 	var pkglock = filepath.Join(root, "package-lock.json")
 	var version = args["nodeVersion"]
 	var lang = args["language"]
+	// `workdir` is fixed usually - `buildWorkdir` is a subdirectory of `workdir` if there's
+	// `buildCommand` and is ultimately where `entrypoint` is run from.
+	var buildCommand = args["buildCommand"]
+	var buildDir = args["buildDir"]
+	var workdir = "/airplane"
+	var buildWorkdir = "/airplane"
 	var cmds []string
 
 	// Make sure that entrypoint and `package.json` exist.
@@ -36,29 +45,42 @@ func node(root string, args Args) (string, error) {
 	// Language specific.
 	switch lang {
 	case "typescript":
+		if buildDir == "" {
+			buildDir = ".airplane-build"
+		}
 		cmds = append(cmds, `npm install -g typescript@4.1`)
 		cmds = append(cmds, `[ -f tsconfig.json ] || echo '{"include": ["*", "**/*"], "exclude": ["node_modules"]}' >tsconfig.json`)
-		cmds = append(cmds, `rm -rf .airplane-build/ && tsc --outDir .airplane-build --rootDir .`)
-		entrypoint = "/airplane/.airplane-build/" + strings.TrimSuffix(entrypoint, ".ts") + ".js"
-
+		cmds = append(cmds, fmt.Sprintf(`rm -rf %s && tsc --outDir %s --rootDir .`, buildDir, buildDir))
+		if buildCommand != "" {
+			// It's not totally expected, but if you do set buildCommand we'll run it after tsc
+			cmds = append(cmds, buildCommand)
+		}
+		buildWorkdir = path.Join(workdir, buildDir)
+		// If entrypoint ends in .ts, replace it with .js
+		entrypoint = strings.TrimSuffix(entrypoint, ".ts") + ".js"
 	case "javascript":
-		entrypoint = "/airplane/" + entrypoint
-
+		if buildCommand != "" {
+			cmds = append(cmds, buildCommand)
+		}
+		if buildDir != "" {
+			buildWorkdir = path.Join(workdir, buildDir)
+		}
 	default:
-		return "", fmt.Errorf("build: unknown language %q, it must be javascript or tyescript", lang)
-
+		return "", errors.Errorf("build: unknown language %q, expected \"javascript\" or \"typescript\"", lang)
 	}
+	entrypoint = path.Join(buildWorkdir, entrypoint)
 
 	// Dockerfile template.
 	t, err := template.New("node").Parse(`
 FROM {{ .Base }}
 
-WORKDIR /airplane
-COPY . /airplane
+WORKDIR {{ .Workdir }}
+COPY . {{ .Workdir }}
 {{ range .Commands }}
 RUN {{ . }}
 {{ end }}
 
+WORKDIR {{ .BuildWorkdir }}
 ENTRYPOINT ["node", "{{ .Main }}"]
 `)
 	if err != nil {
@@ -80,13 +102,17 @@ ENTRYPOINT ["node", "{{ .Main }}"]
 
 	var buf strings.Builder
 	if err := t.Execute(&buf, struct {
-		Base     string
-		Commands []string
-		Main     string
+		Base         string
+		Workdir      string
+		BuildWorkdir string
+		Commands     []string
+		Main         string
 	}{
-		Base:     base,
-		Commands: cmds,
-		Main:     entrypoint,
+		Base:         base,
+		Workdir:      workdir,
+		BuildWorkdir: buildWorkdir,
+		Commands:     cmds,
+		Main:         entrypoint,
 	}); err != nil {
 		return "", err
 	}
