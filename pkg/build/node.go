@@ -75,7 +75,7 @@ func node(root string, args Args) (string, error) {
 FROM {{ .Base }}
 
 WORKDIR {{ .Workdir }}
-COPY . /airplane
+COPY . {{ .Workdir }}
 {{ range .Commands }}
 RUN {{ . }}
 {{ end }}
