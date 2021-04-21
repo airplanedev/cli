@@ -5,6 +5,7 @@ import (
 
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/logger"
+	"github.com/airplanedev/cli/pkg/print"
 	"github.com/spf13/cobra"
 )
 
@@ -27,14 +28,16 @@ func run(ctx context.Context, c *cli.Config) error {
 		return err
 	}
 
-	var userStr string
-	if res.User == nil {
-		userStr = logger.Gray("<no user>")
-	} else {
-		userStr = res.User.Email
-	}
-	logger.Log("  Signed in as %s", logger.Blue(userStr))
-	logger.Log("  Using team %s (ID: %s)", logger.Blue(res.Team.Name), res.Team.ID)
+	print.Print(res, func() {
+		var userStr string
+		if res.User == nil {
+			userStr = logger.Gray("<no user>")
+		} else {
+			userStr = res.User.Email
+		}
+		logger.Log("  Signed in as %s", logger.Blue(userStr))
+		logger.Log("  Using team %s (ID: %s)", logger.Blue(res.Team.Name), res.Team.ID)
+	})
 
 	return nil
 }

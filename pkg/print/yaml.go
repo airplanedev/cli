@@ -12,6 +12,11 @@ import (
 // Its zero-value is ready for use.
 type YAML struct{}
 
+// Encode allows external callers to use the same encoder
+func (YAML) Encode(obj interface{}) {
+	yaml.NewEncoder(os.Stdout).Encode(obj)
+}
+
 // APIKeys implementation.
 func (YAML) apiKeys(apiKeys []api.APIKey) {
 	yaml.NewEncoder(os.Stdout).Encode(apiKeys)
