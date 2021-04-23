@@ -2,12 +2,17 @@ package taskdir
 
 import (
 	"io/ioutil"
+	"os"
+	"path/filepath"
 
 	"github.com/airplanedev/cli/pkg/api"
+	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/utils"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v3"
 )
+
+const taskDefDocURL = "https://docs.airplane.dev/reference/task-definition-reference"
 
 // Definition represents a YAML-based task definition that can be used to create
 // or update Airplane tasks.
@@ -54,6 +59,32 @@ func (this TaskDirectory) ReadDefinition() (Definition, error) {
 	buf, err := ioutil.ReadFile(this.defPath)
 	if err != nil {
 		return Definition{}, errors.Wrap(err, "reading task definition")
+	}
+
+	// Validate definition against our Definition struct
+	if err := ValidateYAML(buf, Definition{}); err != nil {
+		defPath := this.defPath
+		// Attempt to set a prettier defPath, best effort
+		if wd, err := os.Getwd(); err != nil {
+			logger.Debug("%s", err)
+		} else if path, err := filepath.Rel(wd, defPath); err != nil {
+			logger.Debug("%s", err)
+		} else {
+			defPath = path
+		}
+		// Print any "expected" validation errors
+		switch err := errors.Cause(err).(type) {
+		case ErrInvalidYAML:
+			logger.Log(logger.Red("\nError reading %s: invalid YAML", defPath))
+			logger.Log("\nTask definition reference: %s", taskDefDocURL)
+		case ErrSchemaValidation:
+			logger.Log(logger.Red("\nError reading %s:\n", defPath))
+			for _, verr := range err.Errors {
+				logger.Log("  %s: %s", verr.Field(), verr.Description())
+			}
+			logger.Log("\nTask definition reference: %s", taskDefDocURL)
+		}
+		return Definition{}, errors.Wrapf(err, "error reading %s", defPath)
 	}
 
 	var def Definition
