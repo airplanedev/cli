@@ -217,7 +217,7 @@ func (b *Builder) Build(ctx context.Context, taskID, version string) (BuildOutpu
 	for scanner.Scan() {
 		var event *dockerJSONMessage.JSONMessage
 		if err := json.Unmarshal(scanner.Bytes(), &event); err != nil {
-			return BuildOutput{}, errors.Wrap(err, "unmarshaling docker build event")
+			return BuildOutput{}, errors.Wrap(err, "unmarshalling docker build event")
 		}
 
 		if err := event.Display(os.Stderr, isatty.IsTerminal(os.Stderr.Fd())); err != nil {
@@ -249,7 +249,7 @@ func (b *Builder) Push(ctx context.Context, tag string) error {
 	for scanner.Scan() {
 		var event *dockerJSONMessage.JSONMessage
 		if err := json.Unmarshal(scanner.Bytes(), &event); err != nil {
-			return errors.Wrap(err, "unmarshaling docker build event")
+			return errors.Wrap(err, "unmarshalling docker build event")
 		}
 
 		if err := event.Display(os.Stderr, isatty.IsTerminal(os.Stderr.Fd())); err != nil {

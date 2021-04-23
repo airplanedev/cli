@@ -58,7 +58,7 @@ func (this TaskDirectory) ReadDefinition() (Definition, error) {
 
 	var def Definition
 	if err := yaml.Unmarshal(buf, &def); err != nil {
-		return Definition{}, errors.Wrap(err, "unmarshaling task definition")
+		return Definition{}, errors.Wrap(err, "unmarshalling task definition")
 	}
 
 	return def, nil

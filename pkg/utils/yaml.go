@@ -36,7 +36,7 @@ func SetYAMLField(path, field, value string) error {
 
 	root := yaml.Node{}
 	if err := yaml.NewDecoder(f).Decode(&root); err != nil {
-		return errors.Wrap(err, "unmarshaling task definition")
+		return errors.Wrap(err, "unmarshalling task definition")
 	}
 
 	if len(root.Content) == 0 {
@@ -87,7 +87,7 @@ func SetYAMLField(path, field, value string) error {
 	enc := yaml.NewEncoder(f)
 	enc.SetIndent(2)
 	if err := enc.Encode(&root); err != nil {
-		return errors.Wrap(err, "marshaling task definition")
+		return errors.Wrap(err, "marshalling task definition")
 	}
 
 	return nil
