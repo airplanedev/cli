@@ -21,7 +21,7 @@ func deno(root string, args Args) (string, error) {
 FROM {{ .Base }}
 WORKDIR /airplane
 ADD . .
-RUN deno cache {{ . }}
+RUN deno cache {{ .Entrypoint }}
 USER deno
 ENTRYPOINT ["deno", "run", "-A", "{{ .Entrypoint }}"]
 	`)
