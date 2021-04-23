@@ -15,7 +15,15 @@ func Local(ctx context.Context, client *api.Client, dir taskdir.TaskDirectory, d
 		return errors.Wrap(err, "getting registry token")
 	}
 
-	b, err := New(Config{
+	buildEnv := make(map[string]string)
+	// TODO: currently, we just read non-config values from env. Should ask API for full BuildEnv instead.
+	for k, v := range def.Env {
+		if v.Value != nil {
+			buildEnv[k] = *v.Value
+		}
+	}
+
+	b, err := New(LocalConfig{
 		Root:    dir.DefinitionRootPath(),
 		Builder: def.Builder,
 		Args:    Args(def.BuilderConfig),
@@ -23,6 +31,7 @@ func Local(ctx context.Context, client *api.Client, dir taskdir.TaskDirectory, d
 			Token: registry.Token,
 			Repo:  registry.Repo,
 		},
+		BuildEnv: buildEnv,
 	})
 	if err != nil {
 		return errors.Wrap(err, "new build")
