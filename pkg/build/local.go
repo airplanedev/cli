@@ -2,7 +2,6 @@ package build
 
 import (
 	"context"
-	"strings"
 
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/logger"
@@ -19,7 +18,7 @@ func Local(ctx context.Context, client *api.Client, dir taskdir.TaskDirectory, d
 	buildEnv := make(map[string]string)
 	// TODO: currently, we just read non-config values from env. Should ask API for full BuildEnv instead.
 	for k, v := range def.Env {
-		if strings.HasPrefix(k, "BUILD_") && v.Value != nil {
+		if v.Value != nil {
 			buildEnv[k] = *v.Value
 		}
 	}
