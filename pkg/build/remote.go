@@ -202,7 +202,7 @@ func uploadArchive(ctx context.Context, client *api.Client, archivePath string) 
 	}
 	sizeBytes := int(info.Size())
 
-	buildLog(logger.Gray("Uploading %s build archive", humanize.Bytes(uint64(sizeBytes))))
+	buildLog(logger.Gray("Uploading %s build archive...", humanize.Bytes(uint64(sizeBytes))))
 
 	upload, err := client.CreateBuildUpload(ctx, api.CreateBuildUploadRequest{
 		SizeBytes: sizeBytes,
@@ -223,14 +223,14 @@ func uploadArchive(ctx context.Context, client *api.Client, archivePath string) 
 	}
 	defer resp.Body.Close()
 
-	buildLog(logger.Gray("Upload complete"))
+	buildLog(logger.Gray("Upload complete."))
 	logger.Debug("Upload available: %s", upload.Upload.URL)
 
 	return upload.Upload.ID, nil
 }
 
 func waitForBuild(ctx context.Context, client *api.Client, buildID string) error {
-	buildLog(logger.Gray("Waiting for build to be assigned"))
+	buildLog(logger.Gray("Waiting for build to be assigned..."))
 
 	t := time.NewTicker(time.Second)
 
