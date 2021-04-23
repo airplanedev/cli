@@ -31,7 +31,7 @@ func initFromTask(ctx context.Context, cfg config) error {
 	if file == "" {
 		file = "airplane.yml"
 	}
-	dir, err := taskdir.Open(file)
+	dir, err := taskdir.New(file)
 	if err != nil {
 		return errors.Wrap(err, "opening task directory")
 	}
@@ -42,11 +42,10 @@ func initFromTask(ctx context.Context, cfg config) error {
 		return errors.Wrap(err, "getting unique slug")
 	}
 
-	if err := dir.WriteDefinition(taskdir.Definition{
+	def := taskdir.Definition{
 		Slug:           r.Slug,
 		Name:           task.Name,
 		Description:    task.Description,
-		Image:          task.Image,
 		Command:        task.Command,
 		Arguments:      task.Arguments,
 		Parameters:     task.Parameters,
@@ -57,7 +56,12 @@ func initFromTask(ctx context.Context, cfg config) error {
 		BuilderConfig:  task.BuilderConfig,
 		Repo:           task.Repo,
 		Timeout:        task.Timeout,
-	}); err != nil {
+	}
+	// Only show the image field if this is a manual builder
+	if task.Builder == "manual" {
+		def.Image = task.Image
+	}
+	if err := dir.WriteDefinition(def); err != nil {
 		return errors.Wrap(err, "writing task definition")
 	}
 

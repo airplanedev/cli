@@ -137,7 +137,7 @@ type Parameter struct {
 	Type        Type        `json:"type" yaml:"type"`
 	Desc        string      `json:"desc" yaml:"desc,omitempty"`
 	Component   Component   `json:"component" yaml:"component,omitempty"`
-	Default     Value       `json:"default" yaml:"default"`
+	Default     Value       `json:"default" yaml:"default,omitempty"`
 	Constraints Constraints `json:"constraints" yaml:"constraints,omitempty"`
 }
 
@@ -321,6 +321,13 @@ type Run struct {
 // ListRunsResponse represents a list runs response.
 type ListRunsResponse struct {
 	Runs []Run `json:"runs"`
+}
+
+// GetConfigRequest represents a get config request
+type GetConfigRequest struct {
+	Name       string `json:"name"`
+	Tag        string `json:"tag"`
+	ShowSecret bool   `json:"showSecret"`
 }
 
 // SetConfigRequest represents a set config request.

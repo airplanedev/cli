@@ -61,8 +61,8 @@ func (r RegistryAuth) host() string {
 	return strings.SplitN(r.Repo, "/", 2)[0]
 }
 
-// Config configures a builder.
-type Config struct {
+// LocalConfig configures a (local) builder.
+type LocalConfig struct {
 	// Kind describes how the build should be performed, such as
 	// whether it should use the local Docker daemon or a remote
 	// hosted builder.
@@ -90,6 +90,9 @@ type Config struct {
 	//
 	// If nil, New returns an error.
 	Auth *RegistryAuth
+
+	// BuildEnv is a map of build-time environment variables to use.
+	BuildEnv map[string]string
 }
 
 type DockerfileConfig struct {
@@ -100,15 +103,16 @@ type DockerfileConfig struct {
 
 // Builder implements an image builder.
 type Builder struct {
-	root   string
-	name   string
-	args   Args
-	auth   *RegistryAuth
-	client *client.Client
+	root     string
+	name     string
+	args     Args
+	auth     *RegistryAuth
+	buildEnv map[string]string
+	client   *client.Client
 }
 
-// New returns a new builder with c.
-func New(c Config) (*Builder, error) {
+// New returns a new local builder with c.
+func New(c LocalConfig) (*Builder, error) {
 	if !filepath.IsAbs(c.Root) {
 		return nil, fmt.Errorf("build: expected an absolute path, got %q", c.Root)
 	}
@@ -134,11 +138,12 @@ func New(c Config) (*Builder, error) {
 	}
 
 	return &Builder{
-		root:   c.Root,
-		name:   c.Builder,
-		args:   c.Args,
-		auth:   c.Auth,
-		client: client,
+		root:     c.Root,
+		name:     c.Builder,
+		args:     c.Args,
+		auth:     c.Auth,
+		buildEnv: c.BuildEnv,
+		client:   client,
 	}, nil
 }
 
@@ -189,9 +194,15 @@ func (b *Builder) Build(ctx context.Context, taskID, version string) (BuildOutpu
 	}
 	defer bc.Close()
 
+	buildArgs := make(map[string]*string)
+	for k, v := range b.buildEnv {
+		value := v
+		buildArgs[k] = &value
+	}
+
 	opts := types.ImageBuildOptions{
 		Tags:        []string{tag},
-		BuildArgs:   map[string]*string{},
+		BuildArgs:   buildArgs,
 		Platform:    "linux/amd64",
 		AuthConfigs: b.authconfigs(),
 	}

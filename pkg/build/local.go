@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/airplanedev/cli/pkg/api"
+	"github.com/airplanedev/cli/pkg/configs"
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/taskdir"
 	"github.com/pkg/errors"
@@ -15,7 +16,12 @@ func Local(ctx context.Context, client *api.Client, dir taskdir.TaskDirectory, d
 		return errors.Wrap(err, "getting registry token")
 	}
 
-	b, err := New(Config{
+	buildEnv, err := getBuildEnv(ctx, client, def)
+	if err != nil {
+		return err
+	}
+
+	b, err := New(LocalConfig{
 		Root:    dir.DefinitionRootPath(),
 		Builder: def.Builder,
 		Args:    Args(def.BuilderConfig),
@@ -23,6 +29,7 @@ func Local(ctx context.Context, client *api.Client, dir taskdir.TaskDirectory, d
 			Token: registry.Token,
 			Repo:  registry.Repo,
 		},
+		BuildEnv: buildEnv,
 	})
 	if err != nil {
 		return errors.Wrap(err, "new build")
@@ -40,4 +47,30 @@ func Local(ctx context.Context, client *api.Client, dir taskdir.TaskDirectory, d
 	}
 
 	return nil
+}
+
+// Retreives a build env from def - looks for env vars starting with BUILD_ and either uses the
+// string literal or looks up the config value.
+func getBuildEnv(ctx context.Context, client *api.Client, def taskdir.Definition) (map[string]string, error) {
+	buildEnv := make(map[string]string)
+	for k, v := range def.Env {
+		if v.Value != nil {
+			buildEnv[k] = *v.Value
+		} else if v.Config != nil {
+			nt, err := configs.ParseName(*v.Config)
+			if err != nil {
+				return nil, err
+			}
+			res, err := client.GetConfig(ctx, api.GetConfigRequest{
+				Name:       nt.Name,
+				Tag:        nt.Tag,
+				ShowSecret: true,
+			})
+			if err != nil {
+				return nil, err
+			}
+			buildEnv[k] = res.Config.Value
+		}
+	}
+	return buildEnv, nil
 }

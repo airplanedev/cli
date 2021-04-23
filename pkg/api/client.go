@@ -186,12 +186,8 @@ func (c Client) GetTask(ctx context.Context, slug string) (res Task, err error) 
 }
 
 // GetConfig returns a config by name and tag.
-func (c Client) GetConfig(ctx context.Context, name, tag string) (res GetConfigResponse, err error) {
-	q := url.Values{
-		"name": []string{name},
-		"tag":  []string{tag},
-	}
-	err = c.do(ctx, "GET", "/configs/get?"+q.Encode(), nil, &res)
+func (c Client) GetConfig(ctx context.Context, req GetConfigRequest) (res GetConfigResponse, err error) {
+	err = c.do(ctx, "POST", "/configs/get", req, &res)
 	return
 }
 
