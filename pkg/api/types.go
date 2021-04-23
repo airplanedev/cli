@@ -137,7 +137,7 @@ type Parameter struct {
 	Type        Type        `json:"type" yaml:"type"`
 	Desc        string      `json:"desc" yaml:"desc,omitempty"`
 	Component   Component   `json:"component" yaml:"component,omitempty"`
-	Default     Value       `json:"default" yaml:"default"`
+	Default     Value       `json:"default" yaml:"default,omitempty"`
 	Constraints Constraints `json:"constraints" yaml:"constraints,omitempty"`
 }
 
