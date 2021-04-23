@@ -75,16 +75,16 @@ func (this TaskDirectory) ReadDefinition() (Definition, error) {
 		// Print any "expected" validation errors
 		switch err := errors.Cause(err).(type) {
 		case ErrInvalidYAML:
-			logger.Log(logger.Red("\nError reading %s: invalid YAML", defPath))
+			logger.Log("\nError reading %s: invalid YAML", defPath)
 			logger.Log("\nFor more information on the task definition format, see the docs:\n%s", taskDefDocURL)
 		case ErrSchemaValidation:
-			logger.Log(logger.Red("\nError reading %s:\n", defPath))
+			logger.Log("\nError reading %s:\n", defPath)
 			for _, verr := range err.Errors {
 				logger.Log("  %s: %s", verr.Field(), verr.Description())
 			}
 			logger.Log("\nFor more information on the task definition format, see the docs:\n%s", taskDefDocURL)
 		}
-		return Definition{}, errors.Wrapf(err, "error reading %s", defPath)
+		return Definition{}, errors.Errorf("reading %s: %s", defPath, errors.Cause(err))
 	}
 
 	var def Definition

@@ -29,9 +29,9 @@ func main() {
 
 		logger.Log("")
 		if logger.EnableDebug {
-			logger.Debug("  Error: %+v", err)
+			logger.Debug("Error: %+v", err)
 		} else {
-			logger.Log("  Error: %s", errors.Cause(err).Error())
+			logger.Log(logger.Red("Error: %s", errors.Cause(err).Error()))
 		}
 		logger.Log("")
 

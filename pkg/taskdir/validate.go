@@ -18,7 +18,7 @@ type ErrSchemaValidation struct {
 }
 
 func (this ErrSchemaValidation) Error() string {
-	return "failed validation against JSON schema"
+	return "invalid YAML format"
 }
 
 // ValidateYAML checks that YAML data matches the schema defined by schemaObj
