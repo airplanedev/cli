@@ -323,6 +323,13 @@ type ListRunsResponse struct {
 	Runs []Run `json:"runs"`
 }
 
+// GetConfigRequest represents a get config request
+type GetConfigRequest struct {
+	Name       string `json:"name"`
+	Tag        string `json:"tag"`
+	ShowSecret bool   `json:"showSecret"`
+}
+
 // SetConfigRequest represents a set config request.
 type SetConfigRequest struct {
 	Name     string `json:"name"`

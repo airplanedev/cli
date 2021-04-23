@@ -3,6 +3,7 @@ package get
 import (
 	"context"
 
+	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/configs"
 	"github.com/airplanedev/cli/pkg/print"
@@ -33,7 +34,11 @@ func run(ctx context.Context, c *cli.Config, name string) error {
 	if err == configs.ErrInvalidConfigName {
 		return errors.Errorf("invalid config name: %s - expected my_config or my_config:tag", name)
 	}
-	resp, err := client.GetConfig(ctx, nt.Name, nt.Tag)
+	resp, err := client.GetConfig(ctx, api.GetConfigRequest{
+		Name:       nt.Name,
+		Tag:        nt.Tag,
+		ShowSecret: false,
+	})
 	if err != nil {
 		return errors.Wrap(err, "get config")
 	}

@@ -32,7 +32,10 @@ func ensureConfigExists(ctx context.Context, client *api.Client, envName, config
 	if err != nil {
 		return err
 	}
-	_, err = client.GetConfig(ctx, cn.Name, cn.Tag)
+	_, err = client.GetConfig(ctx, api.GetConfigRequest{
+		Name: cn.Name,
+		Tag:  cn.Tag,
+	})
 	if err == nil {
 		return nil
 	}
