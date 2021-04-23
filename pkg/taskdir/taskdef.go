@@ -1,9 +1,11 @@
 package taskdir
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/logger"
@@ -55,6 +57,30 @@ func (this Definition) Validate() (Definition, error) {
 	return this, nil
 }
 
+type errReadDefinition struct {
+	msg       string
+	errorMsgs []string
+}
+
+func newErrReadDefinition(msg string, errorMsgs ...string) error {
+	return errors.WithStack(errReadDefinition{
+		msg:       msg,
+		errorMsgs: errorMsgs,
+	})
+}
+
+func (this errReadDefinition) Error() string {
+	return this.msg
+}
+
+// Implements ErrorExplained
+func (this errReadDefinition) ExplainError() string {
+	msgs := []string{}
+	msgs = append(msgs, this.errorMsgs...)
+	msgs = append(msgs, fmt.Sprintf("\nFor more information on the task definition format, see the docs:\n%s", taskDefDocURL))
+	return strings.Join(msgs, "\n")
+}
+
 func (this TaskDirectory) ReadDefinition() (Definition, error) {
 	buf, err := ioutil.ReadFile(this.defPath)
 	if err != nil {
@@ -75,16 +101,16 @@ func (this TaskDirectory) ReadDefinition() (Definition, error) {
 		// Print any "expected" validation errors
 		switch err := errors.Cause(err).(type) {
 		case ErrInvalidYAML:
-			logger.Log("\nError reading %s: invalid YAML", defPath)
-			logger.Log("\nFor more information on the task definition format, see the docs:\n%s", taskDefDocURL)
+			return Definition{}, newErrReadDefinition(fmt.Sprintf("Error reading %s: invalid YAML", defPath))
 		case ErrSchemaValidation:
-			logger.Log("\nError reading %s:\n", defPath)
+			errorMsgs := []string{}
 			for _, verr := range err.Errors {
-				logger.Log("  %s: %s", verr.Field(), verr.Description())
+				errorMsgs = append(errorMsgs, fmt.Sprintf("%s: %s", verr.Field(), verr.Description()))
 			}
-			logger.Log("\nFor more information on the task definition format, see the docs:\n%s", taskDefDocURL)
+			return Definition{}, newErrReadDefinition(fmt.Sprintf("Error reading %s", defPath), errorMsgs...)
+		default:
+			return Definition{}, errors.Wrapf(err, "reading %s", defPath)
 		}
-		return Definition{}, errors.Errorf("reading %s: %s", defPath, errors.Cause(err))
 	}
 
 	var def Definition
