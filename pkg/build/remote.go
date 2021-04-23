@@ -45,6 +45,7 @@ func Remote(ctx context.Context, dir taskdir.TaskDirectory, client *api.Client, 
 	if err != nil {
 		return errors.Wrap(err, "creating build")
 	}
+	logger.Debug("Created build with id=%s", build.Build.ID)
 
 	if err := waitForBuild(ctx, client, build.Build.ID); err != nil {
 		return err
@@ -201,7 +202,7 @@ func uploadArchive(ctx context.Context, client *api.Client, archivePath string) 
 	}
 	sizeBytes := int(info.Size())
 
-	logger.Debug("Uploading %s archive...", humanize.Bytes(uint64(sizeBytes)))
+	buildLog(logger.Gray("Uploading %s build archive...", humanize.Bytes(uint64(sizeBytes))))
 
 	upload, err := client.CreateBuildUpload(ctx, api.CreateBuildUploadRequest{
 		SizeBytes: sizeBytes,
@@ -228,6 +229,8 @@ func uploadArchive(ctx context.Context, client *api.Client, archivePath string) 
 }
 
 func waitForBuild(ctx context.Context, client *api.Client, buildID string) error {
+	buildLog(logger.Gray("Waiting for build to be assigned..."))
+
 	t := time.NewTicker(time.Second)
 
 	var since time.Time
@@ -245,7 +248,6 @@ func waitForBuild(ctx context.Context, client *api.Client, buildID string) error
 				since = r.Logs[len(r.Logs)-1].Timestamp
 			}
 
-			buildPrefix := "[" + logger.Yellow("build") + "] "
 			newLogs := api.DedupeLogs(logs, r.Logs)
 			for _, l := range newLogs {
 				text := l.Text
@@ -253,7 +255,7 @@ func waitForBuild(ctx context.Context, client *api.Client, buildID string) error
 					text = logger.Gray(strings.TrimPrefix(text, "[builder] "))
 				}
 
-				logger.Log(buildPrefix + text)
+				buildLog(text)
 			}
 			logs = append(logs, newLogs...)
 
@@ -263,8 +265,21 @@ func waitForBuild(ctx context.Context, client *api.Client, buildID string) error
 			}
 
 			if b.Build.Status.Stopped() {
+				switch b.Build.Status {
+				case api.BuildCancelled:
+					logger.Log("\nBuild " + logger.Bold(logger.Yellow("cancelled")))
+				case api.BuildFailed:
+					logger.Log("\nBuild " + logger.Bold(logger.Red("failed")))
+				case api.BuildSucceeded:
+					logger.Log("\nBuild " + logger.Bold(logger.Green("succeeded")))
+				}
+
 				return nil
 			}
 		}
 	}
+}
+
+func buildLog(msg string, args ...interface{}) {
+	logger.Log("["+logger.Yellow("build")+"] "+msg, args...)
 }
