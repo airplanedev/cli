@@ -223,8 +223,7 @@ func uploadArchive(ctx context.Context, client *api.Client, archivePath string) 
 	}
 	defer resp.Body.Close()
 
-	buildLog(logger.Gray("Upload complete."))
-	logger.Debug("Upload available: %s", upload.Upload.URL)
+	logger.Debug("Upload complete: %s", upload.Upload.URL)
 
 	return upload.Upload.ID, nil
 }
