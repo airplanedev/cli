@@ -77,7 +77,10 @@ func (this errReadDefinition) Error() string {
 func (this errReadDefinition) ExplainError() string {
 	msgs := []string{}
 	msgs = append(msgs, this.errorMsgs...)
-	msgs = append(msgs, fmt.Sprintf("\nFor more information on the task definition format, see the docs:\n%s", taskDefDocURL))
+	if len(this.errorMsgs) > 0 {
+		msgs = append(msgs, "")
+	}
+	msgs = append(msgs, fmt.Sprintf("For more information on the task definition format, see the docs:\n%s", taskDefDocURL))
 	return strings.Join(msgs, "\n")
 }
 
