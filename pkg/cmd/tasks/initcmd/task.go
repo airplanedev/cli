@@ -52,8 +52,8 @@ func initFromTask(ctx context.Context, cfg config) error {
 		Constraints:    task.Constraints,
 		Env:            task.Env,
 		ResourceLimits: task.ResourceLimits,
-		Builder:        task.Kind,
-		BuilderConfig:  task.KindOptions,
+		Kind:           task.Kind,
+		KindOptions:    task.KindOptions,
 		Repo:           task.Repo,
 		Timeout:        task.Timeout,
 	}

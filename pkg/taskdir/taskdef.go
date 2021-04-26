@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/utils"
 	"github.com/pkg/errors"
@@ -15,47 +14,6 @@ import (
 )
 
 const taskDefDocURL = "https://docs.airplane.dev/reference/task-definition-reference"
-
-// Definition represents a YAML-based task definition that can be used to create
-// or update Airplane tasks.
-//
-// Note this is the subset of fields that can be represented with a revision,
-// and therefore isolated to a specific environment.
-type Definition struct {
-	Slug           string             `yaml:"slug"`
-	Name           string             `yaml:"name"`
-	Description    string             `yaml:"description,omitempty"`
-	Image          string             `yaml:"image,omitempty"`
-	Command        []string           `yaml:"command,omitempty"`
-	Arguments      []string           `yaml:"arguments,omitempty"`
-	Parameters     api.Parameters     `yaml:"parameters,omitempty"`
-	Constraints    api.RunConstraints `yaml:"constraints,omitempty"`
-	Env            api.TaskEnv        `yaml:"env,omitempty"`
-	ResourceLimits api.ResourceLimits `yaml:"resourceLimits,omitempty"`
-	Builder        string             `yaml:"builder,omitempty"`
-	BuilderConfig  api.KindOptions    `yaml:"builderConfig,omitempty"`
-	Repo           string             `yaml:"repo,omitempty"`
-	Timeout        int                `yaml:"timeout,omitempty"`
-
-	// Root is a directory path relative to the parent directory of this
-	// task definition which defines what directory should be included
-	// in the task's Docker image.
-	//
-	// If not set, defaults to "." (in other words, the parent directory of this task definition).
-	//
-	// This field is ignored when using the pre-built image builder (aka "manual").
-	Root string `yaml:"root,omitempty"`
-}
-
-func (this Definition) Validate() (Definition, error) {
-	if this.Slug == "" {
-		return this, errors.New("Expected a task slug")
-	}
-
-	// TODO: validate the rest of the fields!
-
-	return this, nil
-}
 
 type errReadDefinition struct {
 	msg       string
@@ -92,6 +50,11 @@ func (this TaskDirectory) ReadDefinition() (Definition, error) {
 
 	// Validate definition against our Definition struct
 	if err := ValidateYAML(buf, Definition{}); err != nil {
+		// Try older definitions?
+		if def, oerr := tryOlderDefinitions(buf); oerr == nil {
+			return def, nil
+		}
+
 		defPath := this.defPath
 		// Attempt to set a prettier defPath, best effort
 		if wd, err := os.Getwd(); err != nil {
@@ -122,6 +85,18 @@ func (this TaskDirectory) ReadDefinition() (Definition, error) {
 	}
 
 	return def, nil
+}
+
+func tryOlderDefinitions(buf []byte) (Definition, error) {
+	var err error
+	if err = ValidateYAML(buf, Definition_0_1{}); err == nil {
+		var def Definition_0_1
+		if e := yaml.Unmarshal(buf, &def); e != nil {
+			return Definition{}, err
+		}
+		return def.upgrade()
+	}
+	return Definition{}, err
 }
 
 // WriteSlug updates the slug of a task definition and persists this to disk.

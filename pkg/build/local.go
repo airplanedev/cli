@@ -23,8 +23,8 @@ func Local(ctx context.Context, client *api.Client, dir taskdir.TaskDirectory, d
 
 	b, err := New(LocalConfig{
 		Root:    dir.DefinitionRootPath(),
-		Builder: def.Builder,
-		Args:    Args(def.BuilderConfig),
+		Builder: def.Kind,
+		Args:    Args(def.KindOptions),
 		Auth: &RegistryAuth{
 			Token: registry.Token,
 			Repo:  registry.Repo,

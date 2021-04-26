@@ -92,8 +92,8 @@ func run(ctx context.Context, cfg config) error {
 			Constraints:    def.Constraints,
 			Env:            def.Env,
 			ResourceLimits: def.ResourceLimits,
-			Kind:           def.Builder,
-			KindOptions:    def.BuilderConfig,
+			Kind:           def.Kind,
+			KindOptions:    def.KindOptions,
 			Repo:           def.Repo,
 			Timeout:        def.Timeout,
 		})
@@ -117,8 +117,8 @@ func run(ctx context.Context, cfg config) error {
 			Constraints:    def.Constraints,
 			Env:            def.Env,
 			ResourceLimits: def.ResourceLimits,
-			Kind:           def.Builder,
-			KindOptions:    def.BuilderConfig,
+			Kind:           def.Kind,
+			KindOptions:    def.KindOptions,
 			Repo:           def.Repo,
 			Timeout:        def.Timeout,
 		})
@@ -132,7 +132,7 @@ func run(ctx context.Context, cfg config) error {
 		return errors.Wrap(err, "getting task")
 	}
 
-	if def.Builder != "" {
+	if def.Kind != "" {
 		switch builder {
 		case build.BuilderKindLocal:
 			if err := build.Local(ctx, client, dir, def, taskID); err != nil {

@@ -57,27 +57,30 @@ func initFromSample(ctx context.Context, cfg config) error {
 		outputdir = path.Base(path.Dir(dir.DefinitionPath()))
 	}
 
-	// Rename the sample definition to match the filename in the `-f` argument.
-	// This is done to maintain semantic consistency with the other kinds of
-	// init, but is not strictly necessary.
-	defname := path.Base(dir.DefinitionPath())
-	if cfg.file != "" && defname != path.Base(cfg.file) {
-		defname = path.Base(cfg.file)
-		if err := os.Rename(
-			dir.DefinitionPath(),
-			path.Join(path.Dir(dir.DefinitionPath()), defname),
-		); err != nil {
-			return errors.Wrap(err, "renaming task definitino")
-		}
-	}
-
 	// Copy the sample code from the temporary directory into the user's
 	// local directory.
 	if err := copy.Copy(dir.DefinitionRootPath(), outputdir); err != nil {
 		return errors.Wrap(err, "copying sample directory")
 	}
 
+	// Remove the original def file.
+	if err := os.Remove(path.Join(outputdir, path.Base(dir.DefinitionPath()))); err != nil {
+		return errors.Wrap(err, "removing original def")
+	}
+
+	// Write the new definition to match the filename in the `-f` argument.
+	// This is done to maintain semantic consistency with the other kinds of
+	// init, but is not strictly necessary.
+	defname := path.Base(dir.DefinitionPath())
+	if cfg.file != "" && defname != path.Base(cfg.file) {
+		defname = path.Base(cfg.file)
+	}
 	file := path.Join(outputdir, defname)
+	oDir, err := taskdir.New(file)
+	if oDir.WriteDefinition(def); err != nil {
+		return errors.Wrap(err, "rewriting task definition")
+	}
+
 	logger.Log(`
 An Airplane task definition for '%s' has been created!
 

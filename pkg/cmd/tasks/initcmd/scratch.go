@@ -59,7 +59,7 @@ func initFromScratch(ctx context.Context, cfg config) error {
 		def.Image = "alpine:3"
 		def.Command = []string{"echo", `"Hello World"`}
 	} else {
-		if def.Builder, def.BuilderConfig, scaffolder, err = defaultRuntimeConfig(runtime); err != nil {
+		if def.Kind, def.KindOptions, scaffolder, err = defaultRuntimeConfig(runtime); err != nil {
 			return err
 		}
 	}
