@@ -52,13 +52,13 @@ func initFromTask(ctx context.Context, cfg config) error {
 		Constraints:    task.Constraints,
 		Env:            task.Env,
 		ResourceLimits: task.ResourceLimits,
-		Builder:        task.Builder,
-		BuilderConfig:  task.BuilderConfig,
+		Builder:        task.Kind,
+		BuilderConfig:  task.KindOptions,
 		Repo:           task.Repo,
 		Timeout:        task.Timeout,
 	}
 	// Only show the image field if this is a manual builder
-	if task.Builder == "manual" {
+	if task.Kind == "manual" {
 		def.Image = task.Image
 	}
 	if err := dir.WriteDefinition(def); err != nil {

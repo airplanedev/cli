@@ -33,7 +33,7 @@ type Definition struct {
 	Env            api.TaskEnv        `yaml:"env,omitempty"`
 	ResourceLimits api.ResourceLimits `yaml:"resourceLimits,omitempty"`
 	Builder        string             `yaml:"builder,omitempty"`
-	BuilderConfig  api.BuilderConfig  `yaml:"builderConfig,omitempty"`
+	BuilderConfig  api.KindOptions    `yaml:"builderConfig,omitempty"`
 	Repo           string             `yaml:"repo,omitempty"`
 	Timeout        int                `yaml:"timeout,omitempty"`
 

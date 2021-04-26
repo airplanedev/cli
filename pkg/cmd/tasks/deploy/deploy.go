@@ -92,8 +92,8 @@ func run(ctx context.Context, cfg config) error {
 			Constraints:    def.Constraints,
 			Env:            def.Env,
 			ResourceLimits: def.ResourceLimits,
-			Builder:        def.Builder,
-			BuilderConfig:  def.BuilderConfig,
+			Kind:           def.Builder,
+			KindOptions:    def.BuilderConfig,
 			Repo:           def.Repo,
 			Timeout:        def.Timeout,
 		})
@@ -117,8 +117,8 @@ func run(ctx context.Context, cfg config) error {
 			Constraints:    def.Constraints,
 			Env:            def.Env,
 			ResourceLimits: def.ResourceLimits,
-			Builder:        def.Builder,
-			BuilderConfig:  def.BuilderConfig,
+			Kind:           def.Builder,
+			KindOptions:    def.BuilderConfig,
 			Repo:           def.Repo,
 			Timeout:        def.Timeout,
 		})

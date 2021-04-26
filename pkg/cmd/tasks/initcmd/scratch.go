@@ -81,29 +81,29 @@ Once you are ready, deploy it to Airplane with:
 	return nil
 }
 
-func defaultRuntimeConfig(runtime runtimeKind) (string, api.BuilderConfig, scaffolders.RuntimeScaffolder, error) {
+func defaultRuntimeConfig(runtime runtimeKind) (string, api.KindOptions, scaffolders.RuntimeScaffolder, error) {
 	// TODO: let folks configure the following configuration
 	switch runtime {
 	case runtimeKindDeno:
-		return "deno", api.BuilderConfig{
+		return "deno", api.KindOptions{
 			"entrypoint": "main.ts",
 		}, scaffolders.DenoScaffolder{Entrypoint: "main.ts"}, nil
 	case runtimeKindDockerfile:
-		return "docker", api.BuilderConfig{
+		return "docker", api.KindOptions{
 			"dockerfile": "Dockerfile",
 		}, scaffolders.DockerfileScaffolder{Dockerfile: "Dockerfile"}, nil
 	case runtimeKindGo:
-		return "go", api.BuilderConfig{
+		return "go", api.KindOptions{
 			"entrypoint": "main.go",
 		}, scaffolders.GoScaffolder{Entrypoint: "main.go"}, nil
 	case runtimeKindNode:
-		return "node", api.BuilderConfig{
+		return "node", api.KindOptions{
 			"entrypoint":  "main.js",
 			"language":    "javascript",
 			"nodeVersion": "15",
 		}, scaffolders.NodeScaffolder{Entrypoint: "main.js"}, nil
 	case runtimeKindPython:
-		return "python", api.BuilderConfig{
+		return "python", api.KindOptions{
 			"entrypoint": "main.py",
 		}, scaffolders.PythonScaffolder{Entrypoint: "main.py"}, nil
 	default:

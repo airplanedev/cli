@@ -19,8 +19,8 @@ type CreateTaskRequest struct {
 	Constraints    RunConstraints    `json:"constraints"`
 	Env            TaskEnv           `json:"env"`
 	ResourceLimits map[string]string `json:"resourceLimits"`
-	Builder        string            `json:"builder"`
-	BuilderConfig  map[string]string `json:"builderConfig"`
+	Kind           string            `json:"kind"`
+	KindOptions    map[string]string `json:"kindOptions"`
 	Repo           string            `json:"repo"`
 	// TODO(amir): friendly type here (120s, 5m ...)
 	Timeout int `json:"timeout"`
@@ -38,8 +38,8 @@ type UpdateTaskRequest struct {
 	Constraints    RunConstraints    `json:"constraints" yaml:"constraints"`
 	Env            TaskEnv           `json:"env" yaml:"env"`
 	ResourceLimits map[string]string `json:"resourceLimits" yaml:"resourceLimits"`
-	Builder        string            `json:"builder" yaml:"builder"`
-	BuilderConfig  map[string]string `json:"builderConfig" yaml:"builderConfig"`
+	Kind           string            `json:"kind" yaml:"builder"`
+	KindOptions    map[string]string `json:"kindOptions" yaml:"builderConfig"`
 	Repo           string            `json:"repo" yaml:"repo"`
 	// TODO(amir): friendly type here (120s, 5m ...)
 	Timeout int `json:"timeout" yaml:"timeout"`
@@ -254,13 +254,13 @@ type Task struct {
 	Constraints    RunConstraints `json:"constraints" yaml:"constraints"`
 	Env            TaskEnv        `json:"env" yaml:"env"`
 	ResourceLimits ResourceLimits `json:"resourceLimits" yaml:"resourceLimits"`
-	Builder        string         `json:"builder" yaml:"builder"`
-	BuilderConfig  BuilderConfig  `json:"builderConfig" yaml:"builderConfig"`
+	Kind           string         `json:"kind" yaml:"kind"`
+	KindOptions    KindOptions    `json:"kindOptions" yaml:"kindOptions"`
 	Repo           string         `json:"repo" yaml:"repo"`
 	Timeout        int            `json:"timeout" yaml:"timeout"`
 }
 
-type BuilderConfig map[string]string
+type KindOptions map[string]string
 
 type ResourceLimits map[string]string
 

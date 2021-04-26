@@ -24,12 +24,12 @@ func (YAML) apiKeys(apiKeys []api.APIKey) {
 
 // Tasks implementation.
 func (YAML) tasks(tasks []api.Task) {
-	yaml.NewEncoder(os.Stdout).Encode(tasks)
+	yaml.NewEncoder(os.Stdout).Encode(printTasks(tasks))
 }
 
 // Task implementation.
 func (YAML) task(task api.Task) {
-	yaml.NewEncoder(os.Stdout).Encode(task)
+	yaml.NewEncoder(os.Stdout).Encode(printTask(task))
 }
 
 // Runs implementation.

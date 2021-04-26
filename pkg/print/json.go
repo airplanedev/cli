@@ -31,12 +31,12 @@ func (j *JSON) apiKeys(apiKeys []api.APIKey) {
 
 // Tasks implementation.
 func (j *JSON) tasks(tasks []api.Task) {
-	j.enc.Encode(tasks)
+	j.enc.Encode(printTasks(tasks))
 }
 
 // Task implementation.
 func (j *JSON) task(task api.Task) {
-	j.enc.Encode(task)
+	j.enc.Encode(printTask(task))
 }
 
 // Runs implementation.
