@@ -202,8 +202,8 @@ type ListTasksResponse struct {
 type TaskEnv map[string]EnvVarValue
 
 type EnvVarValue struct {
-	Value  *string `json:"value" yaml:"value"`
-	Config *string `json:"config" yaml:"config"`
+	Value  *string `json:"value" yaml:"value,omitempty"`
+	Config *string `json:"config" yaml:"config,omitempty"`
 }
 
 var _ yaml.Unmarshaler = &EnvVarValue{}
