@@ -31,7 +31,7 @@ type Definition_0_1 struct {
 }
 
 func (d Definition_0_1) upgrade() (Definition, error) {
-	return Definition_0_2{
+	def := Definition_0_2{
 		Slug:           d.Slug,
 		Name:           d.Name,
 		Description:    d.Description,
@@ -42,10 +42,49 @@ func (d Definition_0_1) upgrade() (Definition, error) {
 		Constraints:    d.Constraints,
 		Env:            d.Env,
 		ResourceLimits: d.ResourceLimits,
-		Kind:           d.Builder,
-		KindOptions:    d.BuilderConfig,
 		Repo:           d.Repo,
 		Timeout:        d.Timeout,
 		Root:           d.Root,
-	}.upgrade()
+	}
+
+	if d.Builder == "deno" {
+		deno := DenoDefinition{
+			Entrypoint: d.BuilderConfig["entrypoint"],
+		}
+		def.Deno = &deno
+
+	} else if d.Builder == "docker" {
+		docker := DockerDefinition{
+			Dockerfile: d.BuilderConfig["dockerfile"],
+		}
+		def.Docker = &docker
+
+	} else if d.Builder == "go" {
+		godef := GoDefinition{
+			Entrypoint: d.BuilderConfig["entrypoint"],
+		}
+		def.Go = &godef
+
+	} else if d.Builder == "node" {
+		node := NodeDefinition{
+			Entrypoint:  d.BuilderConfig["entrypoint"],
+			Language:    d.BuilderConfig["language"],
+			NodeVersion: d.BuilderConfig["nodeVersion"],
+		}
+		def.Node = &node
+
+	} else if d.Builder == "python" {
+		python := PythonDefinition{
+			Entrypoint: d.BuilderConfig["entrypoint"],
+		}
+		def.Python = &python
+
+	} else if d.Builder == "" {
+		manual := ManualDefinition{
+			Config: d.BuilderConfig,
+		}
+		def.Manual = &manual
+	}
+
+	return def.upgrade()
 }

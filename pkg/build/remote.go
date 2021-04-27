@@ -74,7 +74,11 @@ func archiveTaskDir(dir taskdir.TaskDirectory, archivePath string) error {
 	if err != nil {
 		return err
 	}
-	arch.Tar.IncludeFunc, err = getIgnoreFunc(dir.DefinitionRootPath(), def.Kind)
+	builder, _, err := def.GetKindAndOptions()
+	if err != nil {
+		return err
+	}
+	arch.Tar.IncludeFunc, err = getIgnoreFunc(dir.DefinitionRootPath(), builder)
 	if err != nil {
 		return err
 	}

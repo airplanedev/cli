@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/cmd/tasks/initcmd/scaffolders"
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/taskdir"
@@ -60,7 +59,7 @@ func initFromScratch(ctx context.Context, cfg config) error {
 		def.Image = "alpine:3"
 		def.Command = []string{"echo", `"Hello World"`}
 	} else {
-		if def.Kind, def.KindOptions, scaffolder, err = defaultRuntimeConfig(runtime); err != nil {
+		if scaffolder, err = defaultRuntimeConfig(runtime, &def); err != nil {
 			return err
 		}
 	}
@@ -82,33 +81,28 @@ Once you are ready, deploy it to Airplane with:
 	return nil
 }
 
-func defaultRuntimeConfig(runtime runtimeKind) (string, api.KindOptions, scaffolders.RuntimeScaffolder, error) {
+func defaultRuntimeConfig(runtime runtimeKind, def *definitions.Definition) (scaffolders.RuntimeScaffolder, error) {
 	// TODO: let folks configure the following configuration
 	switch runtime {
 	case runtimeKindDeno:
-		return "deno", api.KindOptions{
-			"entrypoint": "main.ts",
-		}, scaffolders.DenoScaffolder{Entrypoint: "main.ts"}, nil
+		def.Deno.Entrypoint = "main.ts"
+		return scaffolders.DenoScaffolder{Entrypoint: "main.ts"}, nil
 	case runtimeKindDockerfile:
-		return "docker", api.KindOptions{
-			"dockerfile": "Dockerfile",
-		}, scaffolders.DockerfileScaffolder{Dockerfile: "Dockerfile"}, nil
+		def.Docker.Dockerfile = "Dockerfile"
+		return scaffolders.DockerfileScaffolder{Dockerfile: "Dockerfile"}, nil
 	case runtimeKindGo:
-		return "go", api.KindOptions{
-			"entrypoint": "main.go",
-		}, scaffolders.GoScaffolder{Entrypoint: "main.go"}, nil
+		def.Go.Entrypoint = "main.go"
+		return scaffolders.GoScaffolder{Entrypoint: "main.go"}, nil
 	case runtimeKindNode:
-		return "node", api.KindOptions{
-			"entrypoint":  "main.js",
-			"language":    "javascript",
-			"nodeVersion": "15",
-		}, scaffolders.NodeScaffolder{Entrypoint: "main.js"}, nil
+		def.Node.Entrypoint = "main.js"
+		def.Node.Language = "javascript"
+		def.Node.NodeVersion = "15"
+		return scaffolders.NodeScaffolder{Entrypoint: "main.js"}, nil
 	case runtimeKindPython:
-		return "python", api.KindOptions{
-			"entrypoint": "main.py",
-		}, scaffolders.PythonScaffolder{Entrypoint: "main.py"}, nil
+		def.Python.Entrypoint = "main.py"
+		return scaffolders.PythonScaffolder{Entrypoint: "main.py"}, nil
 	default:
-		return "", nil, nil, errors.Errorf("unknown runtime: %s", runtime)
+		return nil, errors.Errorf("unknown runtime: %s", runtime)
 	}
 }
 

@@ -53,11 +53,11 @@ func initFromTask(ctx context.Context, cfg config) error {
 		Constraints:    task.Constraints,
 		Env:            task.Env,
 		ResourceLimits: task.ResourceLimits,
-		Kind:           task.Kind,
-		KindOptions:    task.KindOptions,
 		Repo:           task.Repo,
 		Timeout:        task.Timeout,
 	}
+	def.FromKindAndOptions(task.Kind, task.KindOptions)
+
 	// Only show the image field if this is a manual builder
 	if task.Kind == "manual" {
 		def.Image = task.Image

@@ -15,10 +15,15 @@ type Definition_0_2 struct {
 	Constraints    api.RunConstraints `yaml:"constraints,omitempty"`
 	Env            api.TaskEnv        `yaml:"env,omitempty"`
 	ResourceLimits api.ResourceLimits `yaml:"resourceLimits,omitempty"`
-	Kind           string             `yaml:"kind,omitempty"`
-	KindOptions    api.KindOptions    `yaml:"kindOptions,omitempty"`
 	Repo           string             `yaml:"repo,omitempty"`
 	Timeout        int                `yaml:"timeout,omitempty"`
+
+	Manual *ManualDefinition `yaml:"manual,omitempty"`
+	Deno   *DenoDefinition   `yaml:"deno,omitempty"`
+	Docker *DockerDefinition `yaml:"docker,omitempty"`
+	Go     *GoDefinition     `yaml:"go,omitempty"`
+	Node   *NodeDefinition   `yaml:"node,omitempty"`
+	Python *PythonDefinition `yaml:"python,omitempty"`
 
 	// Root is a directory path relative to the parent directory of this
 	// task definition which defines what directory should be included
@@ -28,6 +33,32 @@ type Definition_0_2 struct {
 	//
 	// This field is ignored when using the pre-built image builder (aka "manual").
 	Root string `yaml:"root,omitempty"`
+}
+
+type ManualDefinition struct {
+	Config map[string]string
+}
+
+type DenoDefinition struct {
+	Entrypoint string `yaml:"entrypoint"`
+}
+
+type DockerDefinition struct {
+	Dockerfile string `yaml:"dockerfile"`
+}
+
+type GoDefinition struct {
+	Entrypoint string `yaml:"entrypoint"`
+}
+
+type NodeDefinition struct {
+	Entrypoint  string `yaml:"entrypoint"`
+	Language    string `yaml:"language"`
+	NodeVersion string `yaml:"nodeVersion"`
+}
+
+type PythonDefinition struct {
+	Entrypoint string `yaml:"entrypoint"`
 }
 
 func (d Definition_0_2) upgrade() (Definition, error) {

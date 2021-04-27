@@ -75,6 +75,11 @@ func run(ctx context.Context, cfg config) error {
 		return err
 	}
 
+	kind, kindOptions, err := def.GetKindAndOptions()
+	if err != nil {
+		return err
+	}
+
 	var taskID string
 	var taskRevisionID string
 	task, err := client.GetTask(ctx, def.Slug)
@@ -92,8 +97,8 @@ func run(ctx context.Context, cfg config) error {
 			Constraints:    def.Constraints,
 			Env:            def.Env,
 			ResourceLimits: def.ResourceLimits,
-			Kind:           def.Kind,
-			KindOptions:    def.KindOptions,
+			Kind:           kind,
+			KindOptions:    kindOptions,
 			Repo:           def.Repo,
 			Timeout:        def.Timeout,
 		})
@@ -117,8 +122,8 @@ func run(ctx context.Context, cfg config) error {
 			Constraints:    def.Constraints,
 			Env:            def.Env,
 			ResourceLimits: def.ResourceLimits,
-			Kind:           def.Kind,
-			KindOptions:    def.KindOptions,
+			Kind:           kind,
+			KindOptions:    kindOptions,
 			Repo:           def.Repo,
 			Timeout:        def.Timeout,
 		})
@@ -132,7 +137,7 @@ func run(ctx context.Context, cfg config) error {
 		return errors.Wrap(err, "getting task")
 	}
 
-	if def.Kind != "" {
+	if kind != "" {
 		switch builder {
 		case build.BuilderKindLocal:
 			if err := build.Local(ctx, client, dir, def, taskID); err != nil {

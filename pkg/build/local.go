@@ -22,10 +22,14 @@ func Local(ctx context.Context, client *api.Client, dir taskdir.TaskDirectory, d
 		return err
 	}
 
+	kind, options, err := def.GetKindAndOptions()
+	if err != nil {
+		return err
+	}
 	b, err := New(LocalConfig{
 		Root:    dir.DefinitionRootPath(),
-		Builder: def.Kind,
-		Args:    Args(def.KindOptions),
+		Builder: kind,
+		Args:    Args(options),
 		Auth: &RegistryAuth{
 			Token: registry.Token,
 			Repo:  registry.Repo,
