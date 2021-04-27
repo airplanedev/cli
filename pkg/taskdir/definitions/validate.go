@@ -1,4 +1,4 @@
-package taskdir
+package definitions
 
 import (
 	"github.com/alecthomas/jsonschema"
@@ -23,7 +23,7 @@ func (this ErrSchemaValidation) Error() string {
 
 // ValidateYAML checks that YAML data matches the schema defined by schemaObj
 // Returns ErrInvalidYAML if not valid YAML and ErrSchemaValidation if YAML doesn't match schemaObj
-func ValidateYAML(data []byte, schemaObj interface{}) error {
+func validateYAML(data []byte, schemaObj interface{}) error {
 	var obj interface{}
 	if err := yaml.Unmarshal(data, &obj); err != nil {
 		return errors.WithStack(ErrInvalidYAML{})

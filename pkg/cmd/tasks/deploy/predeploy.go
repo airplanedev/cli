@@ -9,13 +9,13 @@ import (
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/configs"
 	"github.com/airplanedev/cli/pkg/logger"
-	"github.com/airplanedev/cli/pkg/taskdir"
+	"github.com/airplanedev/cli/pkg/taskdir/definitions"
 	"github.com/airplanedev/cli/pkg/utils"
 	"github.com/pkg/errors"
 )
 
 // ensureConfigsExist checks for config references in env and asks users to create any missing ones
-func ensureConfigsExist(ctx context.Context, client *api.Client, def taskdir.Definition) error {
+func ensureConfigsExist(ctx context.Context, client *api.Client, def definitions.Definition) error {
 	// Check if configs exist
 	for k, v := range def.Env {
 		if v.Config != nil {

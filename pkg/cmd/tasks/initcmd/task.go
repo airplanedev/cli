@@ -9,6 +9,7 @@ import (
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/taskdir"
+	"github.com/airplanedev/cli/pkg/taskdir/definitions"
 	"github.com/pkg/errors"
 )
 
@@ -42,7 +43,7 @@ func initFromTask(ctx context.Context, cfg config) error {
 		return errors.Wrap(err, "getting unique slug")
 	}
 
-	def := taskdir.Definition{
+	def := definitions.Definition{
 		Slug:           r.Slug,
 		Name:           task.Name,
 		Description:    task.Description,

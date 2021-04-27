@@ -7,10 +7,11 @@ import (
 	"github.com/airplanedev/cli/pkg/configs"
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/taskdir"
+	"github.com/airplanedev/cli/pkg/taskdir/definitions"
 	"github.com/pkg/errors"
 )
 
-func Local(ctx context.Context, client *api.Client, dir taskdir.TaskDirectory, def taskdir.Definition, taskID string) error {
+func Local(ctx context.Context, client *api.Client, dir taskdir.TaskDirectory, def definitions.Definition, taskID string) error {
 	registry, err := client.GetRegistryToken(ctx)
 	if err != nil {
 		return errors.Wrap(err, "getting registry token")
@@ -51,7 +52,7 @@ func Local(ctx context.Context, client *api.Client, dir taskdir.TaskDirectory, d
 
 // Retreives a build env from def - looks for env vars starting with BUILD_ and either uses the
 // string literal or looks up the config value.
-func getBuildEnv(ctx context.Context, client *api.Client, def taskdir.Definition) (map[string]string, error) {
+func getBuildEnv(ctx context.Context, client *api.Client, def definitions.Definition) (map[string]string, error) {
 	buildEnv := make(map[string]string)
 	for k, v := range def.Env {
 		if v.Value != nil {

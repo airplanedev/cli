@@ -5,12 +5,12 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/airplanedev/cli/pkg/taskdir"
+	"github.com/airplanedev/cli/pkg/taskdir/definitions"
 	"github.com/pkg/errors"
 )
 
 type RuntimeScaffolder interface {
-	GenerateFiles(def taskdir.Definition, filemap map[string][]byte) error
+	GenerateFiles(def definitions.Definition, filemap map[string][]byte) error
 }
 
 // Deno
@@ -21,7 +21,7 @@ type DenoScaffolder struct {
 
 var _ RuntimeScaffolder = DenoScaffolder{}
 
-func (this DenoScaffolder) GenerateFiles(def taskdir.Definition, filemap map[string][]byte) error {
+func (this DenoScaffolder) GenerateFiles(def definitions.Definition, filemap map[string][]byte) error {
 	// Entrypoint
 	filemap[path.Join(def.Root, this.Entrypoint)] = []byte(`console.log("Hello world!");
 `)
@@ -36,7 +36,7 @@ type DockerfileScaffolder struct {
 
 var _ RuntimeScaffolder = DockerfileScaffolder{}
 
-func (this DockerfileScaffolder) GenerateFiles(def taskdir.Definition, filemap map[string][]byte) error {
+func (this DockerfileScaffolder) GenerateFiles(def definitions.Definition, filemap map[string][]byte) error {
 	// Dockerfile
 	filemap[path.Join(def.Root, this.Dockerfile)] = []byte(`FROM ubuntu:20.10
 
@@ -53,7 +53,7 @@ type GoScaffolder struct {
 
 var _ RuntimeScaffolder = GoScaffolder{}
 
-func (this GoScaffolder) GenerateFiles(def taskdir.Definition, filemap map[string][]byte) error {
+func (this GoScaffolder) GenerateFiles(def definitions.Definition, filemap map[string][]byte) error {
 	// Entrypoint
 	filemap[path.Join(def.Root, this.Entrypoint)] = []byte(`package main
 
@@ -77,7 +77,7 @@ type NodeScaffolder struct {
 
 var _ RuntimeScaffolder = NodeScaffolder{}
 
-func (this NodeScaffolder) GenerateFiles(def taskdir.Definition, filemap map[string][]byte) error {
+func (this NodeScaffolder) GenerateFiles(def definitions.Definition, filemap map[string][]byte) error {
 	// Entrypoint
 	filemap[path.Join(def.Root, this.Entrypoint)] = []byte(`const main = (args) => {
 	console.log("Hello world!")
@@ -109,7 +109,7 @@ type PythonScaffolder struct {
 
 var _ RuntimeScaffolder = PythonScaffolder{}
 
-func (this PythonScaffolder) GenerateFiles(def taskdir.Definition, filemap map[string][]byte) error {
+func (this PythonScaffolder) GenerateFiles(def definitions.Definition, filemap map[string][]byte) error {
 	// Entrypoint
 	filemap[path.Join(def.Root, this.Entrypoint)] = []byte(`print("Hello world!")
 `)

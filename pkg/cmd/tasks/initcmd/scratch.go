@@ -10,6 +10,7 @@ import (
 	"github.com/airplanedev/cli/pkg/cmd/tasks/initcmd/scaffolders"
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/taskdir"
+	"github.com/airplanedev/cli/pkg/taskdir/definitions"
 	"github.com/pkg/errors"
 )
 
@@ -47,7 +48,7 @@ func initFromScratch(ctx context.Context, cfg config) error {
 		return errors.Wrap(err, "getting unique slug")
 	}
 
-	def := taskdir.Definition{
+	def := definitions.Definition{
 		Slug:        r.Slug,
 		Name:        name,
 		Description: description,
@@ -164,7 +165,7 @@ func pickString(msg string, opts ...survey.AskOpt) (string, error) {
 
 // For the various runtimes, we pre-populate basic versions of e.g. package.json to reduce how much
 // the user has to set up.
-func writeRuntimeFiles(def taskdir.Definition, scaffolder scaffolders.RuntimeScaffolder) error {
+func writeRuntimeFiles(def definitions.Definition, scaffolder scaffolders.RuntimeScaffolder) error {
 	files := map[string][]byte{}
 	if err := scaffolder.GenerateFiles(def, files); err != nil {
 		return err
