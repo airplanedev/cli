@@ -74,14 +74,14 @@ func initFromScratch(ctx context.Context, cfg config) error {
 		return err
 	}
 
-	fileNameStr := "  - " + strings.Join(fileNames, "\n  - ")
+	fileNames = append([]string{file}, fileNames...)
+	fileNameList := "  - " + strings.Join(fileNames, "\n  - ")
 	logger.Log(`
 A skeleton Airplane task definition for '%s' has been created, along with other starter files:
-  - %s
 %s
 
 Once you are ready, deploy it to Airplane with:
-  airplane deploy -f %s`, name, file, fileNameStr, file)
+  airplane deploy -f %s`, name, fileNameList, file)
 
 	return nil
 }
