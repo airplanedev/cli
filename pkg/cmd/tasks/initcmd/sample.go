@@ -41,9 +41,7 @@ func initFromSample(ctx context.Context, cfg config) error {
 		return errors.Wrap(err, "getting unique slug")
 	}
 	if r.Slug != def.Slug {
-		if err := dir.WriteSlug(r.Slug); err != nil {
-			return err
-		}
+		def.Slug = r.Slug
 	}
 
 	var outputdir string
