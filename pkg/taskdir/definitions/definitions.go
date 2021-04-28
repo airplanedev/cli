@@ -39,7 +39,7 @@ func NewDefinitionFromTask(task api.Task) (Definition, error) {
 		docker := DockerDefinition{
 			Dockerfile: task.KindOptions["dockerfile"],
 		}
-		def.Docker = &docker
+		def.Dockerfile = &docker
 
 	} else if task.Kind == "go" {
 		godef := GoDefinition{
@@ -80,9 +80,9 @@ func (this Definition) GetKindAndOptions() (string, api.KindOptions, error) {
 		return "deno", api.KindOptions{
 			"entrypoint": this.Deno.Entrypoint,
 		}, nil
-	} else if this.Docker != nil {
+	} else if this.Dockerfile != nil {
 		return "docker", api.KindOptions{
-			"dockerfile": this.Docker.Dockerfile,
+			"dockerfile": this.Dockerfile.Dockerfile,
 		}, nil
 	} else if this.Go != nil {
 		return "go", api.KindOptions{

@@ -54,7 +54,7 @@ func (d Definition_0_1) upgrade() (Definition, error) {
 		docker := DockerDefinition{
 			Dockerfile: d.BuilderConfig["dockerfile"],
 		}
-		def.Docker = &docker
+		def.Dockerfile = &docker
 
 	} else if d.Builder == "go" {
 		godef := GoDefinition{

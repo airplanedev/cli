@@ -91,7 +91,7 @@ func defaultRuntimeConfig(runtime runtimeKind, def *definitions.Definition) (sca
 		def.Deno.Entrypoint = "main.ts"
 		return scaffolders.DenoScaffolder{Entrypoint: "main.ts"}, nil
 	case runtimeKindDockerfile:
-		def.Docker.Dockerfile = "Dockerfile"
+		def.Dockerfile.Dockerfile = "Dockerfile"
 		return scaffolders.DockerfileScaffolder{Dockerfile: "Dockerfile"}, nil
 	case runtimeKindGo:
 		def.Go.Entrypoint = "main.go"

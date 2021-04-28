@@ -16,12 +16,12 @@ type Definition_0_2 struct {
 	Repo             string               `yaml:"repo,omitempty"`
 	Timeout          int                  `yaml:"timeout,omitempty"`
 
-	Manual *ManualDefinition `yaml:"manual,omitempty"`
-	Deno   *DenoDefinition   `yaml:"deno,omitempty"`
-	Docker *DockerDefinition `yaml:"docker,omitempty"`
-	Go     *GoDefinition     `yaml:"go,omitempty"`
-	Node   *NodeDefinition   `yaml:"node,omitempty"`
-	Python *PythonDefinition `yaml:"python,omitempty"`
+	Manual     *ManualDefinition `yaml:"manual,omitempty"`
+	Deno       *DenoDefinition   `yaml:"deno,omitempty"`
+	Dockerfile *DockerDefinition `yaml:"dockerfile,omitempty"`
+	Go         *GoDefinition     `yaml:"go,omitempty"`
+	Node       *NodeDefinition   `yaml:"node,omitempty"`
+	Python     *PythonDefinition `yaml:"python,omitempty"`
 
 	// Root is a directory path relative to the parent directory of this
 	// task definition which defines what directory should be included
