@@ -268,8 +268,10 @@ func waitForBuild(ctx context.Context, client *api.Client, buildID string) error
 				switch b.Build.Status {
 				case api.BuildCancelled:
 					logger.Log("\nBuild " + logger.Bold(logger.Yellow("cancelled")))
+					return errors.New("Build cancelled")
 				case api.BuildFailed:
 					logger.Log("\nBuild " + logger.Bold(logger.Red("failed")))
+					return errors.New("Build failed")
 				case api.BuildSucceeded:
 					logger.Log("\nBuild " + logger.Bold(logger.Green("succeeded")))
 				}
