@@ -233,7 +233,7 @@ func uploadArchive(ctx context.Context, client *api.Client, archivePath string) 
 }
 
 func waitForBuild(ctx context.Context, client *api.Client, buildID string) error {
-	buildLog(logger.Gray("Waiting for build to be assigned..."))
+	buildLog(logger.Gray("Waiting for builder..."))
 
 	t := time.NewTicker(time.Second)
 
@@ -272,8 +272,10 @@ func waitForBuild(ctx context.Context, client *api.Client, buildID string) error
 				switch b.Build.Status {
 				case api.BuildCancelled:
 					logger.Log("\nBuild " + logger.Bold(logger.Yellow("cancelled")))
+					return errors.New("Build cancelled")
 				case api.BuildFailed:
 					logger.Log("\nBuild " + logger.Bold(logger.Red("failed")))
+					return errors.New("Build failed")
 				case api.BuildSucceeded:
 					logger.Log("\nBuild " + logger.Bold(logger.Green("succeeded")))
 				}

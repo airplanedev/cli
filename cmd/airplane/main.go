@@ -32,10 +32,10 @@ func main() {
 			logger.Debug("Error: %+v", err)
 		}
 		logger.Log("")
-		if err, ok := errors.Cause(err).(utils.ErrorExplained); ok {
-			logger.Log(logger.Red(err.Error()))
+		if exerr, ok := errors.Cause(err).(utils.ErrorExplained); ok {
+			logger.Log(logger.Red(exerr.Error()))
 			logger.Log("")
-			logger.Log(err.ExplainError())
+			logger.Log(exerr.ExplainError())
 		} else {
 			logger.Log(logger.Red("Error: %s", errors.Cause(err).Error()))
 		}
