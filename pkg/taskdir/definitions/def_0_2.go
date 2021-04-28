@@ -8,8 +8,6 @@ type Definition_0_2 struct {
 	Slug           string             `yaml:"slug"`
 	Name           string             `yaml:"name"`
 	Description    string             `yaml:"description,omitempty"`
-	Image          string             `yaml:"image,omitempty"`
-	Command        []string           `yaml:"command,omitempty"`
 	Arguments      []string           `yaml:"arguments,omitempty"`
 	Parameters     api.Parameters     `yaml:"parameters,omitempty"`
 	Constraints    api.RunConstraints `yaml:"constraints,omitempty"`
@@ -36,7 +34,8 @@ type Definition_0_2 struct {
 }
 
 type ManualDefinition struct {
-	Config map[string]string
+	Image   string   `yaml:"image,omitempty"`
+	Command []string `yaml:"command,omitempty"`
 }
 
 type DenoDefinition struct {

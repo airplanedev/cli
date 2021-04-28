@@ -80,6 +80,13 @@ func run(ctx context.Context, cfg config) error {
 		return err
 	}
 
+	var image string
+	var command []string
+	if def.Manual != nil {
+		image = def.Manual.Image
+		command = def.Manual.Command
+	}
+
 	var taskID string
 	var taskRevisionID string
 	task, err := client.GetTask(ctx, def.Slug)
@@ -90,8 +97,8 @@ func run(ctx context.Context, cfg config) error {
 			Slug:           def.Slug,
 			Name:           def.Name,
 			Description:    def.Description,
-			Image:          def.Image,
-			Command:        def.Command,
+			Image:          image,
+			Command:        command,
 			Arguments:      def.Arguments,
 			Parameters:     def.Parameters,
 			Constraints:    def.Constraints,
@@ -115,8 +122,8 @@ func run(ctx context.Context, cfg config) error {
 			Slug:           def.Slug,
 			Name:           def.Name,
 			Description:    def.Description,
-			Image:          def.Image,
-			Command:        def.Command,
+			Image:          image,
+			Command:        command,
 			Arguments:      def.Arguments,
 			Parameters:     def.Parameters,
 			Constraints:    def.Constraints,

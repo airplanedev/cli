@@ -15,50 +15,64 @@ import (
 // and therefore isolated to a specific environment.
 type Definition Definition_0_2
 
-func (this Definition) FromKindAndOptions(kind string, options api.KindOptions) error {
-	if kind == "deno" {
-		deno := DenoDefinition{
-			Entrypoint: options["entrypoint"],
-		}
-		this.Deno = &deno
-
-	} else if kind == "docker" {
-		docker := DockerDefinition{
-			Dockerfile: options["dockerfile"],
-		}
-		this.Docker = &docker
-
-	} else if kind == "go" {
-		godef := GoDefinition{
-			Entrypoint: options["entrypoint"],
-		}
-		this.Go = &godef
-
-	} else if kind == "node" {
-		node := NodeDefinition{
-			Entrypoint:  options["entrypoint"],
-			Language:    options["language"],
-			NodeVersion: options["nodeVersion"],
-		}
-		this.Node = &node
-
-	} else if kind == "python" {
-		python := PythonDefinition{
-			Entrypoint: options["entrypoint"],
-		}
-		this.Python = &python
-
-	} else if kind == "" {
-		manual := ManualDefinition{
-			Config: options,
-		}
-		this.Manual = &manual
-
-	} else {
-		return errors.Errorf("unknown kind specified: %s", kind)
+func NewDefinitionFromTask(task api.Task) (Definition, error) {
+	def := Definition{
+		Slug:           task.Slug,
+		Name:           task.Name,
+		Description:    task.Description,
+		Arguments:      task.Arguments,
+		Parameters:     task.Parameters,
+		Constraints:    task.Constraints,
+		Env:            task.Env,
+		ResourceLimits: task.ResourceLimits,
+		Repo:           task.Repo,
+		Timeout:        task.Timeout,
 	}
 
-	return nil
+	if task.Kind == "deno" {
+		deno := DenoDefinition{
+			Entrypoint: task.KindOptions["entrypoint"],
+		}
+		def.Deno = &deno
+
+	} else if task.Kind == "docker" {
+		docker := DockerDefinition{
+			Dockerfile: task.KindOptions["dockerfile"],
+		}
+		def.Docker = &docker
+
+	} else if task.Kind == "go" {
+		godef := GoDefinition{
+			Entrypoint: task.KindOptions["entrypoint"],
+		}
+		def.Go = &godef
+
+	} else if task.Kind == "node" {
+		node := NodeDefinition{
+			Entrypoint:  task.KindOptions["entrypoint"],
+			Language:    task.KindOptions["language"],
+			NodeVersion: task.KindOptions["nodeVersion"],
+		}
+		def.Node = &node
+
+	} else if task.Kind == "python" {
+		python := PythonDefinition{
+			Entrypoint: task.KindOptions["entrypoint"],
+		}
+		def.Python = &python
+
+	} else if task.Kind == "" {
+		manual := ManualDefinition{
+			Image:   task.Image,
+			Command: task.Command,
+		}
+		def.Manual = &manual
+
+	} else {
+		return Definition{}, errors.Errorf("unknown kind specified: %s", task.Kind)
+	}
+
+	return def, nil
 }
 
 func (this Definition) GetKindAndOptions() (string, api.KindOptions, error) {
@@ -85,7 +99,7 @@ func (this Definition) GetKindAndOptions() (string, api.KindOptions, error) {
 			"entrypoint": this.Python.Entrypoint,
 		}, nil
 	} else if this.Manual != nil {
-		return "", api.KindOptions(this.Manual.Config), nil
+		return "", api.KindOptions{}, nil
 	}
 
 	return "", api.KindOptions{}, errors.New("No kind specified")

@@ -56,8 +56,11 @@ func initFromScratch(ctx context.Context, cfg config) error {
 	var scaffolder scaffolders.RuntimeScaffolder
 	if runtime == runtimeKindManual {
 		// TODO: let folks enter an image
-		def.Image = "alpine:3"
-		def.Command = []string{"echo", `"Hello World"`}
+		manual := definitions.ManualDefinition{
+			Image:   "alpine:3",
+			Command: []string{"echo", `"Hello World"`},
+		}
+		def.Manual = &manual
 	} else {
 		if scaffolder, err = defaultRuntimeConfig(runtime, &def); err != nil {
 			return err

@@ -35,8 +35,6 @@ func (d Definition_0_1) upgrade() (Definition, error) {
 		Slug:           d.Slug,
 		Name:           d.Name,
 		Description:    d.Description,
-		Image:          d.Image,
-		Command:        d.Command,
 		Arguments:      d.Arguments,
 		Parameters:     d.Parameters,
 		Constraints:    d.Constraints,
@@ -81,7 +79,8 @@ func (d Definition_0_1) upgrade() (Definition, error) {
 
 	} else if d.Builder == "" {
 		manual := ManualDefinition{
-			Config: d.BuilderConfig,
+			Image:   d.Image,
+			Command: d.Command,
 		}
 		def.Manual = &manual
 	}
