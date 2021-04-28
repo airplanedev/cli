@@ -9,38 +9,38 @@ import (
 
 // CreateTaskRequest creates a new task.
 type CreateTaskRequest struct {
-	Slug           string            `json:"slug"`
-	Name           string            `json:"name"`
-	Description    string            `json:"description"`
-	Image          string            `json:"image"`
-	Command        []string          `json:"command"`
-	Arguments      []string          `json:"arguments"`
-	Parameters     Parameters        `json:"parameters"`
-	Constraints    RunConstraints    `json:"constraints"`
-	Env            TaskEnv           `json:"env"`
-	ResourceLimits map[string]string `json:"resourceLimits"`
-	Kind           string            `json:"kind"`
-	KindOptions    map[string]string `json:"kindOptions"`
-	Repo           string            `json:"repo"`
+	Slug             string            `json:"slug"`
+	Name             string            `json:"name"`
+	Description      string            `json:"description"`
+	Image            string            `json:"image"`
+	Command          []string          `json:"command"`
+	Arguments        []string          `json:"arguments"`
+	Parameters       Parameters        `json:"parameters"`
+	Constraints      RunConstraints    `json:"constraints"`
+	Env              TaskEnv           `json:"env"`
+	ResourceRequests map[string]string `json:"resourceRequests"`
+	Kind             string            `json:"kind"`
+	KindOptions      map[string]string `json:"kindOptions"`
+	Repo             string            `json:"repo"`
 	// TODO(amir): friendly type here (120s, 5m ...)
 	Timeout int `json:"timeout"`
 }
 
 // UpdateTaskRequest updates a task.
 type UpdateTaskRequest struct {
-	Slug           string            `json:"slug" yaml:"-"`
-	Name           string            `json:"name" yaml:"name"`
-	Description    string            `json:"description" yaml:"description"`
-	Image          string            `json:"image" yaml:"image"`
-	Command        []string          `json:"command" yaml:"command"`
-	Arguments      []string          `json:"arguments" yaml:"arguments"`
-	Parameters     Parameters        `json:"parameters" yaml:"parameters"`
-	Constraints    RunConstraints    `json:"constraints" yaml:"constraints"`
-	Env            TaskEnv           `json:"env" yaml:"env"`
-	ResourceLimits map[string]string `json:"resourceLimits" yaml:"resourceLimits"`
-	Kind           string            `json:"kind" yaml:"builder"`
-	KindOptions    map[string]string `json:"kindOptions" yaml:"builderConfig"`
-	Repo           string            `json:"repo" yaml:"repo"`
+	Slug             string            `json:"slug" yaml:"-"`
+	Name             string            `json:"name" yaml:"name"`
+	Description      string            `json:"description" yaml:"description"`
+	Image            string            `json:"image" yaml:"image"`
+	Command          []string          `json:"command" yaml:"command"`
+	Arguments        []string          `json:"arguments" yaml:"arguments"`
+	Parameters       Parameters        `json:"parameters" yaml:"parameters"`
+	Constraints      RunConstraints    `json:"constraints" yaml:"constraints"`
+	Env              TaskEnv           `json:"env" yaml:"env"`
+	ResourceRequests map[string]string `json:"resourceRequests" yaml:"resourceRequests"`
+	Kind             string            `json:"kind" yaml:"builder"`
+	KindOptions      map[string]string `json:"kindOptions" yaml:"builderConfig"`
+	Repo             string            `json:"repo" yaml:"repo"`
 	// TODO(amir): friendly type here (120s, 5m ...)
 	Timeout int `json:"timeout" yaml:"timeout"`
 }
@@ -243,26 +243,26 @@ func (this *EnvVarValue) UnmarshalYAML(node *yaml.Node) error {
 
 // Task represents a task.
 type Task struct {
-	ID             string         `json:"taskID" yaml:"id"`
-	Name           string         `json:"name" yaml:"name"`
-	Slug           string         `json:"slug" yaml:"slug"`
-	Description    string         `json:"description" yaml:"description"`
-	Image          string         `json:"image" yaml:"image"`
-	Command        []string       `json:"command" yaml:"command"`
-	Arguments      []string       `json:"arguments" yaml:"arguments"`
-	Parameters     Parameters     `json:"parameters" yaml:"parameters"`
-	Constraints    RunConstraints `json:"constraints" yaml:"constraints"`
-	Env            TaskEnv        `json:"env" yaml:"env"`
-	ResourceLimits ResourceLimits `json:"resourceLimits" yaml:"resourceLimits"`
-	Kind           string         `json:"kind" yaml:"kind"`
-	KindOptions    KindOptions    `json:"kindOptions" yaml:"kindOptions"`
-	Repo           string         `json:"repo" yaml:"repo"`
-	Timeout        int            `json:"timeout" yaml:"timeout"`
+	ID               string           `json:"taskID" yaml:"id"`
+	Name             string           `json:"name" yaml:"name"`
+	Slug             string           `json:"slug" yaml:"slug"`
+	Description      string           `json:"description" yaml:"description"`
+	Image            string           `json:"image" yaml:"image"`
+	Command          []string         `json:"command" yaml:"command"`
+	Arguments        []string         `json:"arguments" yaml:"arguments"`
+	Parameters       Parameters       `json:"parameters" yaml:"parameters"`
+	Constraints      RunConstraints   `json:"constraints" yaml:"constraints"`
+	Env              TaskEnv          `json:"env" yaml:"env"`
+	ResourceRequests ResourceRequests `json:"resourceRequests" yaml:"resourceRequests"`
+	Kind             string           `json:"kind" yaml:"kind"`
+	KindOptions      KindOptions      `json:"kindOptions" yaml:"kindOptions"`
+	Repo             string           `json:"repo" yaml:"repo"`
+	Timeout          int              `json:"timeout" yaml:"timeout"`
 }
 
 type KindOptions map[string]string
 
-type ResourceLimits map[string]string
+type ResourceRequests map[string]string
 
 // Values represent parameters values.
 //

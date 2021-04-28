@@ -5,16 +5,16 @@ import (
 )
 
 type Definition_0_2 struct {
-	Slug           string             `yaml:"slug"`
-	Name           string             `yaml:"name"`
-	Description    string             `yaml:"description,omitempty"`
-	Arguments      []string           `yaml:"arguments,omitempty"`
-	Parameters     api.Parameters     `yaml:"parameters,omitempty"`
-	Constraints    api.RunConstraints `yaml:"constraints,omitempty"`
-	Env            api.TaskEnv        `yaml:"env,omitempty"`
-	ResourceLimits api.ResourceLimits `yaml:"resourceLimits,omitempty"`
-	Repo           string             `yaml:"repo,omitempty"`
-	Timeout        int                `yaml:"timeout,omitempty"`
+	Slug             string               `yaml:"slug"`
+	Name             string               `yaml:"name"`
+	Description      string               `yaml:"description,omitempty"`
+	Arguments        []string             `yaml:"arguments,omitempty"`
+	Parameters       api.Parameters       `yaml:"parameters,omitempty"`
+	Constraints      api.RunConstraints   `yaml:"constraints,omitempty"`
+	Env              api.TaskEnv          `yaml:"env,omitempty"`
+	ResourceRequests api.ResourceRequests `yaml:"resourceRequests,omitempty"`
+	Repo             string               `yaml:"repo,omitempty"`
+	Timeout          int                  `yaml:"timeout,omitempty"`
 
 	Manual *ManualDefinition `yaml:"manual,omitempty"`
 	Deno   *DenoDefinition   `yaml:"deno,omitempty"`

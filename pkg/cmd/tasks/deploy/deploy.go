@@ -94,20 +94,20 @@ func run(ctx context.Context, cfg config) error {
 		// This task already exists, so we update it:
 		logger.Log("Updating task...")
 		res, err := client.UpdateTask(ctx, api.UpdateTaskRequest{
-			Slug:           def.Slug,
-			Name:           def.Name,
-			Description:    def.Description,
-			Image:          image,
-			Command:        command,
-			Arguments:      def.Arguments,
-			Parameters:     def.Parameters,
-			Constraints:    def.Constraints,
-			Env:            def.Env,
-			ResourceLimits: def.ResourceLimits,
-			Kind:           kind,
-			KindOptions:    kindOptions,
-			Repo:           def.Repo,
-			Timeout:        def.Timeout,
+			Slug:             def.Slug,
+			Name:             def.Name,
+			Description:      def.Description,
+			Image:            image,
+			Command:          command,
+			Arguments:        def.Arguments,
+			Parameters:       def.Parameters,
+			Constraints:      def.Constraints,
+			Env:              def.Env,
+			ResourceRequests: def.ResourceRequests,
+			Kind:             kind,
+			KindOptions:      kindOptions,
+			Repo:             def.Repo,
+			Timeout:          def.Timeout,
 		})
 		if err != nil {
 			return errors.Wrapf(err, "updating task %s", def.Slug)
@@ -119,20 +119,20 @@ func run(ctx context.Context, cfg config) error {
 		// A task with this slug does not exist, so we should create one.
 		logger.Log("Creating task...")
 		res, err := client.CreateTask(ctx, api.CreateTaskRequest{
-			Slug:           def.Slug,
-			Name:           def.Name,
-			Description:    def.Description,
-			Image:          image,
-			Command:        command,
-			Arguments:      def.Arguments,
-			Parameters:     def.Parameters,
-			Constraints:    def.Constraints,
-			Env:            def.Env,
-			ResourceLimits: def.ResourceLimits,
-			Kind:           kind,
-			KindOptions:    kindOptions,
-			Repo:           def.Repo,
-			Timeout:        def.Timeout,
+			Slug:             def.Slug,
+			Name:             def.Name,
+			Description:      def.Description,
+			Image:            image,
+			Command:          command,
+			Arguments:        def.Arguments,
+			Parameters:       def.Parameters,
+			Constraints:      def.Constraints,
+			Env:              def.Env,
+			ResourceRequests: def.ResourceRequests,
+			Kind:             kind,
+			KindOptions:      kindOptions,
+			Repo:             def.Repo,
+			Timeout:          def.Timeout,
 		})
 		if err != nil {
 			return errors.Wrapf(err, "creating task %s", def.Slug)

@@ -17,16 +17,16 @@ type Definition Definition_0_2
 
 func NewDefinitionFromTask(task api.Task) (Definition, error) {
 	def := Definition{
-		Slug:           task.Slug,
-		Name:           task.Name,
-		Description:    task.Description,
-		Arguments:      task.Arguments,
-		Parameters:     task.Parameters,
-		Constraints:    task.Constraints,
-		Env:            task.Env,
-		ResourceLimits: task.ResourceLimits,
-		Repo:           task.Repo,
-		Timeout:        task.Timeout,
+		Slug:             task.Slug,
+		Name:             task.Name,
+		Description:      task.Description,
+		Arguments:        task.Arguments,
+		Parameters:       task.Parameters,
+		Constraints:      task.Constraints,
+		Env:              task.Env,
+		ResourceRequests: task.ResourceRequests,
+		Repo:             task.Repo,
+		Timeout:          task.Timeout,
 	}
 
 	if task.Kind == "deno" {

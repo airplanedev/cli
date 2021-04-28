@@ -14,7 +14,7 @@ type Definition_0_1 struct {
 	Parameters     api.Parameters     `yaml:"parameters,omitempty"`
 	Constraints    api.RunConstraints `yaml:"constraints,omitempty"`
 	Env            api.TaskEnv        `yaml:"env,omitempty"`
-	ResourceLimits api.ResourceLimits `yaml:"resourceLimits,omitempty"`
+	ResourceLimits map[string]string  `yaml:"resourceLimits,omitempty"`
 	Builder        string             `yaml:"builder,omitempty"`
 	BuilderConfig  api.KindOptions    `yaml:"builderConfig,omitempty"`
 	Repo           string             `yaml:"repo,omitempty"`
@@ -32,17 +32,16 @@ type Definition_0_1 struct {
 
 func (d Definition_0_1) upgrade() (Definition, error) {
 	def := Definition_0_2{
-		Slug:           d.Slug,
-		Name:           d.Name,
-		Description:    d.Description,
-		Arguments:      d.Arguments,
-		Parameters:     d.Parameters,
-		Constraints:    d.Constraints,
-		Env:            d.Env,
-		ResourceLimits: d.ResourceLimits,
-		Repo:           d.Repo,
-		Timeout:        d.Timeout,
-		Root:           d.Root,
+		Slug:        d.Slug,
+		Name:        d.Name,
+		Description: d.Description,
+		Arguments:   d.Arguments,
+		Parameters:  d.Parameters,
+		Constraints: d.Constraints,
+		Env:         d.Env,
+		Repo:        d.Repo,
+		Timeout:     d.Timeout,
+		Root:        d.Root,
 	}
 
 	if d.Builder == "deno" {
