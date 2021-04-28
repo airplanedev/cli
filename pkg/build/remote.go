@@ -229,7 +229,7 @@ func uploadArchive(ctx context.Context, client *api.Client, archivePath string) 
 }
 
 func waitForBuild(ctx context.Context, client *api.Client, buildID string) error {
-	buildLog(logger.Gray("Waiting for build to be assigned..."))
+	buildLog(logger.Gray("Waiting for builder..."))
 
 	t := time.NewTicker(time.Second)
 
