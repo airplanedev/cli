@@ -110,6 +110,33 @@ func (this Definition) Validate() (Definition, error) {
 		return this, errors.New("Expected a task slug")
 	}
 
+	numDefs := 0
+	if this.Manual != nil {
+		numDefs++
+	}
+	if this.Deno != nil {
+		numDefs++
+	}
+	if this.Dockerfile != nil {
+		numDefs++
+	}
+	if this.Go != nil {
+		numDefs++
+	}
+	if this.Node != nil {
+		numDefs++
+	}
+	if this.Python != nil {
+		numDefs++
+	}
+
+	if numDefs == 0 {
+		return this, errors.New("No task type defined")
+	}
+	if numDefs > 1 {
+		return this, errors.New("Too many task types defined")
+	}
+
 	// TODO: validate the rest of the fields!
 
 	return this, nil
