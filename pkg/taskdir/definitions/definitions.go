@@ -2,6 +2,7 @@ package definitions
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/pkg/errors"
@@ -110,31 +111,31 @@ func (this Definition) Validate() (Definition, error) {
 		return this, errors.New("Expected a task slug")
 	}
 
-	numDefs := 0
+	defs := []string{}
 	if this.Manual != nil {
-		numDefs++
+		defs = append(defs, "manual")
 	}
 	if this.Deno != nil {
-		numDefs++
+		defs = append(defs, "deno")
 	}
 	if this.Dockerfile != nil {
-		numDefs++
+		defs = append(defs, "dockerfile")
 	}
 	if this.Go != nil {
-		numDefs++
+		defs = append(defs, "go")
 	}
 	if this.Node != nil {
-		numDefs++
+		defs = append(defs, "node")
 	}
 	if this.Python != nil {
-		numDefs++
+		defs = append(defs, "python")
 	}
 
-	if numDefs == 0 {
+	if len(defs) == 0 {
 		return this, errors.New("No task type defined")
 	}
-	if numDefs > 1 {
-		return this, errors.New("Too many task types defined")
+	if len(defs) > 1 {
+		return this, errors.Errorf("Too many task types defined: %s", strings.Join(defs, ", "))
 	}
 
 	// TODO: validate the rest of the fields!
