@@ -135,7 +135,7 @@ func (this Definition) Validate() (Definition, error) {
 		return this, errors.New("No task type defined")
 	}
 	if len(defs) > 1 {
-		return this, errors.Errorf("Too many task types defined: %s", strings.Join(defs, ", "))
+		return this, errors.Errorf("Too many task types defined: only one of (%s) expected", strings.Join(defs, ", "))
 	}
 
 	// TODO: validate the rest of the fields!
