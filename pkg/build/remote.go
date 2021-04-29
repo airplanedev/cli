@@ -74,11 +74,11 @@ func archiveTaskDir(dir taskdir.TaskDirectory, archivePath string) error {
 	if err != nil {
 		return err
 	}
-	builder, _, err := def.GetKindAndOptions()
+	kind, _, err := def.GetKindAndOptions()
 	if err != nil {
 		return err
 	}
-	arch.Tar.IncludeFunc, err = getIgnoreFunc(dir.DefinitionRootPath(), builder)
+	arch.Tar.IncludeFunc, err = getIgnoreFunc(dir.DefinitionRootPath(), kind)
 	if err != nil {
 		return err
 	}
@@ -95,8 +95,8 @@ func archiveTaskDir(dir taskdir.TaskDirectory, archivePath string) error {
 //
 // This is modeled off of docker/cli.
 // See: https://github.com/docker/cli/blob/a32cd16160f1b41c1c4ae7bee4dac929d1484e59/vendor/github.com/docker/docker/pkg/archive/archive.go#L738
-func getIgnoreFunc(taskRootPath string, builder string) (func(filePath string, info os.FileInfo) (bool, error), error) {
-	excludes, err := getIgnorePatterns(taskRootPath, builder)
+func getIgnoreFunc(taskRootPath string, kind api.TaskKind) (func(filePath string, info os.FileInfo) (bool, error), error) {
+	excludes, err := getIgnorePatterns(taskRootPath, kind)
 	if err != nil {
 		return nil, err
 	}
@@ -146,7 +146,7 @@ func getIgnoreFunc(taskRootPath string, builder string) (func(filePath string, i
 	}, nil
 }
 
-func getIgnorePatterns(path string, builder string) ([]string, error) {
+func getIgnorePatterns(path string, kind api.TaskKind) ([]string, error) {
 	// reference: https://docs.docker.com/engine/reference/builder/#dockerignore-file
 	excludes, err := dockerBuild.ReadDockerignore(path)
 	if err != nil {
@@ -164,7 +164,7 @@ func getIgnorePatterns(path string, builder string) ([]string, error) {
 		"bin",
 	}
 	// For inspiration, see: https://github.com/github/gitignore
-	switch BuilderName(builder) {
+	switch BuilderName(kind) {
 	case BuilderNameGo:
 		// https://github.com/github/gitignore/blob/master/Go.gitignore
 		return append(defaultExcludes, []string{
@@ -189,7 +189,7 @@ func getIgnorePatterns(path string, builder string) ([]string, error) {
 	case BuilderNameDocker:
 		return defaultExcludes, nil
 	default:
-		return nil, errors.Errorf("build: unknown builder type %s", builder)
+		return nil, errors.Errorf("build: unknown builder type %s", kind)
 	}
 }
 

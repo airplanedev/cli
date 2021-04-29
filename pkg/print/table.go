@@ -49,7 +49,7 @@ func (t Table) tasks(tasks []api.Task) {
 	tw.SetCaption(true, "* indicates a required parameter")
 
 	for _, t := range tasks {
-		var builder = t.Kind
+		var builder = string(t.Kind)
 		if builder == "" {
 			builder = "manual"
 		}

@@ -17,7 +17,7 @@ type printTask struct {
 	Constraints      api.RunConstraints   `json:"constraints" yaml:"constraints"`
 	Env              api.TaskEnv          `json:"env" yaml:"env"`
 	ResourceRequests api.ResourceRequests `json:"resourceRequests" yaml:"resourceRequests"`
-	Kind             string               `json:"builder" yaml:"builder"`
+	Kind             api.TaskKind         `json:"builder" yaml:"builder"`
 	KindOptions      api.KindOptions      `json:"builderConfig" yaml:"builderConfig"`
 	Repo             string               `json:"repo" yaml:"repo"`
 	Timeout          int                  `json:"timeout" yaml:"timeout"`

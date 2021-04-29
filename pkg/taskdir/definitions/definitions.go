@@ -29,25 +29,25 @@ func NewDefinitionFromTask(task api.Task) (Definition, error) {
 		Timeout:          task.Timeout,
 	}
 
-	if task.Kind == "deno" {
+	if task.Kind == api.TaskKindDeno {
 		deno := DenoDefinition{
 			Entrypoint: task.KindOptions["entrypoint"],
 		}
 		def.Deno = &deno
 
-	} else if task.Kind == "docker" {
+	} else if task.Kind == api.TaskKindDocker {
 		docker := DockerDefinition{
 			Dockerfile: task.KindOptions["dockerfile"],
 		}
 		def.Dockerfile = &docker
 
-	} else if task.Kind == "go" {
+	} else if task.Kind == api.TaskKindGo {
 		godef := GoDefinition{
 			Entrypoint: task.KindOptions["entrypoint"],
 		}
 		def.Go = &godef
 
-	} else if task.Kind == "node" {
+	} else if task.Kind == api.TaskKindNode {
 		node := NodeDefinition{
 			Entrypoint:  task.KindOptions["entrypoint"],
 			Language:    task.KindOptions["language"],
@@ -55,13 +55,13 @@ func NewDefinitionFromTask(task api.Task) (Definition, error) {
 		}
 		def.Node = &node
 
-	} else if task.Kind == "python" {
+	} else if task.Kind == api.TaskKindPython {
 		python := PythonDefinition{
 			Entrypoint: task.KindOptions["entrypoint"],
 		}
 		def.Python = &python
 
-	} else if task.Kind == "" {
+	} else if task.Kind == api.TaskKindManual {
 		manual := ManualDefinition{
 			Image:   task.Image,
 			Command: task.Command,
@@ -75,31 +75,31 @@ func NewDefinitionFromTask(task api.Task) (Definition, error) {
 	return def, nil
 }
 
-func (this Definition) GetKindAndOptions() (string, api.KindOptions, error) {
+func (this Definition) GetKindAndOptions() (api.TaskKind, api.KindOptions, error) {
 	if this.Deno != nil {
-		return "deno", api.KindOptions{
+		return api.TaskKindDeno, api.KindOptions{
 			"entrypoint": this.Deno.Entrypoint,
 		}, nil
 	} else if this.Dockerfile != nil {
-		return "docker", api.KindOptions{
+		return api.TaskKindDocker, api.KindOptions{
 			"dockerfile": this.Dockerfile.Dockerfile,
 		}, nil
 	} else if this.Go != nil {
-		return "go", api.KindOptions{
+		return api.TaskKindGo, api.KindOptions{
 			"entrypoint": this.Go.Entrypoint,
 		}, nil
 	} else if this.Node != nil {
-		return "node", api.KindOptions{
+		return api.TaskKindNode, api.KindOptions{
 			"entrypoint":  this.Node.Entrypoint,
 			"language":    this.Node.Language,
 			"nodeVersion": this.Node.NodeVersion,
 		}, nil
 	} else if this.Python != nil {
-		return "python", api.KindOptions{
+		return api.TaskKindPython, api.KindOptions{
 			"entrypoint": this.Python.Entrypoint,
 		}, nil
 	} else if this.Manual != nil {
-		return "", api.KindOptions{}, nil
+		return api.TaskKindManual, api.KindOptions{}, nil
 	}
 
 	return "", api.KindOptions{}, errors.New("No kind specified")
