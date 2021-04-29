@@ -144,7 +144,7 @@ func run(ctx context.Context, cfg config) error {
 		return errors.Wrap(err, "getting task")
 	}
 
-	if kind != "" {
+	if build.NeedsBuilding(kind) {
 		switch builder {
 		case build.BuilderKindLocal:
 			if err := build.Local(ctx, client, dir, def, taskID); err != nil {

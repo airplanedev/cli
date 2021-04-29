@@ -12,6 +12,7 @@ import (
 	"strings"
 	"unicode"
 
+	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
@@ -312,6 +313,15 @@ const (
 	BuilderNameNode   BuilderName = "node"
 	BuilderNameDocker BuilderName = "docker"
 )
+
+func NeedsBuilding(kind api.TaskKind) bool {
+	switch BuilderName(kind) {
+	case BuilderNameGo, BuilderNameDeno, BuilderNamePython, BuilderNameNode, BuilderNameDocker:
+		return true
+	default:
+		return false
+	}
+}
 
 func BuildDockerfile(c DockerfileConfig) (string, error) {
 	switch BuilderName(c.Builder) {
