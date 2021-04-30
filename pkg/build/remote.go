@@ -21,7 +21,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func Remote(ctx context.Context, debug bool, dir taskdir.TaskDirectory, client *api.Client, taskRevisionID string) error {
+func Remote(ctx context.Context, dir taskdir.TaskDirectory, client *api.Client, taskRevisionID string, debug bool) error {
 	tmpdir, err := ioutil.TempDir("", "airplane-builds-")
 	if err != nil {
 		return errors.Wrap(err, "creating temporary directory for remote build")
@@ -236,6 +236,10 @@ func waitForBuild(ctx context.Context, debug bool, client *api.Client, buildID s
 	buildLog(logger.Gray("Waiting for builder..."))
 
 	t := time.NewTicker(time.Second)
+	options := api.LogOptions{Level: api.LogLevelInfo}
+	if debug {
+		options.Level = api.LogLevelDebug
+	}
 
 	var since time.Time
 	var logs []api.LogItem
@@ -244,7 +248,8 @@ func waitForBuild(ctx context.Context, debug bool, client *api.Client, buildID s
 		case <-ctx.Done():
 			return ctx.Err()
 		case <-t.C:
-			r, err := client.GetBuildLogs(ctx, buildID, since, debug)
+			options.Since = since
+			r, err := client.GetBuildLogs(ctx, buildID, options)
 			if err != nil {
 				return errors.Wrap(err, "getting build logs")
 			}

@@ -20,11 +20,10 @@ import (
 
 // Config is the execute config.
 type config struct {
-	root  *cli.Config
-	slug  string
-	args  []string
-	file  string
-	debug bool
+	root *cli.Config
+	slug string
+	args []string
+	file string
 }
 
 // New returns a new execute cobra command.
@@ -63,7 +62,6 @@ func New(c *cli.Config) *cobra.Command {
 	}
 
 	cmd.Flags().StringVarP(&cfg.file, "file", "f", "", "Path to a task definition file.")
-	cmd.Flags().BoolVarP(&cfg.debug, "debug", "d", false, "True to output more logs.")
 
 	return cmd
 }
@@ -124,7 +122,7 @@ func run(ctx context.Context, cfg config) error {
 
 	logger.Log(logger.Gray("Running: %s", task.Name))
 
-	w, err := client.Watcher(ctx, req, cfg.debug)
+	w, err := client.Watcher(ctx, req, cfg.root.DebugMode)
 	if err != nil {
 		return err
 	}

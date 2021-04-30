@@ -102,8 +102,8 @@ type logsClientMock struct {
 	getOutputs func(runID string) (GetOutputsResponse, error)
 }
 
-func (lcm logsClientMock) GetLogs(ctx context.Context, runID string, since time.Time, debug bool) (GetLogsResponse, error) {
-	return lcm.getLogs(runID, since)
+func (lcm logsClientMock) GetLogs(ctx context.Context, runID string, options LogOptions) (GetLogsResponse, error) {
+	return lcm.getLogs(runID, options.Since)
 }
 
 func (lcm logsClientMock) GetRun(ctx context.Context, runID string) (GetRunResponse, error) {
