@@ -60,11 +60,6 @@ type UpdateTaskResponse struct {
 	TaskRevisionID string `json:"taskRevisionID"`
 }
 
-type LogOptions struct {
-	Since time.Time
-	Level LogLevel
-}
-
 // GetLogsResponse represents a get logs response.
 type GetLogsResponse struct {
 	RunID string    `json:"runID"`

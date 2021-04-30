@@ -122,7 +122,7 @@ func run(ctx context.Context, cfg config) error {
 
 	logger.Log(logger.Gray("Running: %s", task.Name))
 
-	w, err := client.Watcher(ctx, req, cfg.root.DebugMode)
+	w, err := client.Watcher(ctx, req)
 	if err != nil {
 		return err
 	}

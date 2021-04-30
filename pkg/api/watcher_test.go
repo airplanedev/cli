@@ -73,7 +73,7 @@ func TestWatcher(t *testing.T) {
 		ctx, cancel := context.WithCancel(ctx)
 		defer cancel()
 
-		var w = newWatcher(ctx, lcm, "run_id", false)
+		var w = newWatcher(ctx, lcm, "run_id")
 		var state RunState
 		var printed []string
 
@@ -102,8 +102,8 @@ type logsClientMock struct {
 	getOutputs func(runID string) (GetOutputsResponse, error)
 }
 
-func (lcm logsClientMock) GetLogs(ctx context.Context, runID string, options LogOptions) (GetLogsResponse, error) {
-	return lcm.getLogs(runID, options.Since)
+func (lcm logsClientMock) GetLogs(ctx context.Context, runID string, since time.Time) (GetLogsResponse, error) {
+	return lcm.getLogs(runID, since)
 }
 
 func (lcm logsClientMock) GetRun(ctx context.Context, runID string) (GetRunResponse, error) {

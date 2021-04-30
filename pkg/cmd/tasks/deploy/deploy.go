@@ -147,11 +147,11 @@ func run(ctx context.Context, cfg config) error {
 	if build.NeedsBuilding(kind) {
 		switch builder {
 		case build.BuilderKindLocal:
-			if err := build.Local(ctx, client, dir, def, taskID, cfg.root.DebugMode); err != nil {
+			if err := build.Local(ctx, client, dir, def, taskID); err != nil {
 				return err
 			}
 		case build.BuilderKindRemote:
-			if err := build.Remote(ctx, dir, client, taskRevisionID, cfg.root.DebugMode); err != nil {
+			if err := build.Remote(ctx, dir, client, taskRevisionID); err != nil {
 				return err
 			}
 		}

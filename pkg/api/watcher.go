@@ -17,7 +17,7 @@ var (
 
 // LogsClient represents a logs client.
 type logsClient interface {
-	GetLogs(ctx context.Context, runID string, options LogOptions) (GetLogsResponse, error)
+	GetLogs(ctx context.Context, runID string, t time.Time) (GetLogsResponse, error)
 	GetOutputs(ctx context.Context, runID string) (GetOutputsResponse, error)
 	GetRun(ctx context.Context, runID string) (GetRunResponse, error)
 }
@@ -69,24 +69,19 @@ func (r RunState) lastTimestamp() time.Time {
 
 // Watcher represents a run watcher.
 type Watcher struct {
-	ctx      context.Context
-	client   logsClient
-	runID    string
-	logLevel LogLevel
-	state    chan RunState
+	ctx    context.Context
+	client logsClient
+	runID  string
+	state  chan RunState
 }
 
 // NewWatcher returns a new watcher with the given runID and context.
-func newWatcher(ctx context.Context, client logsClient, runID string, debug bool) *Watcher {
+func newWatcher(ctx context.Context, client logsClient, runID string) *Watcher {
 	w := &Watcher{
-		ctx:      ctx,
-		client:   client,
-		runID:    runID,
-		logLevel: LogLevelInfo,
-		state:    make(chan RunState),
-	}
-	if debug {
-		w.logLevel = LogLevelDebug
+		ctx:    ctx,
+		client: client,
+		runID:  runID,
+		state:  make(chan RunState),
 	}
 	go w.watch()
 	return w
@@ -171,7 +166,7 @@ func (w *Watcher) fetch(ctx context.Context, prev RunState) (RunState, error) {
 	})
 
 	eg.Go(func() error {
-		resp, err := w.client.GetLogs(subctx, w.runID, LogOptions{Since: since, Level: w.logLevel})
+		resp, err := w.client.GetLogs(subctx, w.runID, since)
 		if err != nil {
 			return errors.Wrap(err, "get logs")
 		}
