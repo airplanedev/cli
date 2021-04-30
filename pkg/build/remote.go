@@ -206,7 +206,7 @@ func uploadArchive(ctx context.Context, client *api.Client, archivePath string) 
 	}
 	sizeBytes := int(info.Size())
 
-	buildLog(logger.Gray("Uploading %s build archive...", humanize.Bytes(uint64(sizeBytes))))
+	buildLog(api.LogLevelInfo, logger.Gray("Uploading %s build archive...", humanize.Bytes(uint64(sizeBytes))))
 
 	upload, err := client.CreateBuildUpload(ctx, api.CreateBuildUploadRequest{
 		SizeBytes: sizeBytes,
@@ -233,7 +233,7 @@ func uploadArchive(ctx context.Context, client *api.Client, archivePath string) 
 }
 
 func waitForBuild(ctx context.Context, client *api.Client, buildID string) error {
-	buildLog(logger.Gray("Waiting for builder..."))
+	buildLog(api.LogLevelInfo, logger.Gray("Waiting for builder..."))
 
 	t := time.NewTicker(time.Second)
 
@@ -259,7 +259,7 @@ func waitForBuild(ctx context.Context, client *api.Client, buildID string) error
 					text = logger.Gray(strings.TrimPrefix(text, "[builder] "))
 				}
 
-				buildLog(text)
+				buildLog(l.Level, text)
 			}
 			logs = append(logs, newLogs...)
 
@@ -286,6 +286,10 @@ func waitForBuild(ctx context.Context, client *api.Client, buildID string) error
 	}
 }
 
-func buildLog(msg string, args ...interface{}) {
-	logger.Log("["+logger.Yellow("build")+"] "+msg, args...)
+func buildLog(level api.LogLevel, msg string, args ...interface{}) {
+	if level == api.LogLevelDebug {
+		logger.Log("["+logger.Yellow("build")+"] ["+logger.Blue("debug")+"] "+msg, args...)
+	} else {
+		logger.Log("["+logger.Yellow("build")+"] "+msg, args...)
+	}
 }
