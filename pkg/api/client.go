@@ -144,12 +144,12 @@ func (c Client) RunTask(ctx context.Context, req RunTaskRequest) (res RunTaskRes
 }
 
 // Watcher runs a task with the given arguments and returns a run watcher.
-func (c Client) Watcher(ctx context.Context, req RunTaskRequest) (*Watcher, error) {
+func (c Client) Watcher(ctx context.Context, req RunTaskRequest, debug bool) (*Watcher, error) {
 	resp, err := c.RunTask(ctx, req)
 	if err != nil {
 		return nil, err
 	}
-	return newWatcher(ctx, c, resp.RunID), nil
+	return newWatcher(ctx, c, resp.RunID, debug), nil
 }
 
 // GetRun returns a run by id.
@@ -160,11 +160,15 @@ func (c Client) GetRun(ctx context.Context, id string) (res GetRunResponse, err 
 }
 
 // GetLogs returns the logs by runID and since timestamp.
-func (c Client) GetLogs(ctx context.Context, runID string, since time.Time) (res GetLogsResponse, err error) {
+func (c Client) GetLogs(ctx context.Context, runID string, since time.Time, debug bool) (res GetLogsResponse, err error) {
 	q := url.Values{"runID": []string{runID}}
 
 	if !since.IsZero() {
 		q.Set("since", since.Format(time.RFC3339))
+	}
+
+	if debug {
+		q.Set("debug", "true")
 	}
 
 	err = c.do(ctx, "GET", "/runs/getLogs?"+q.Encode(), nil, &res)
@@ -234,12 +238,15 @@ func (c Client) DeleteAPIKey(ctx context.Context, req DeleteAPIKeyRequest) (err 
 	return
 }
 
-func (c Client) GetBuildLogs(ctx context.Context, buildID string, since time.Time) (res GetBuildLogsResponse, err error) {
+func (c Client) GetBuildLogs(ctx context.Context, buildID string, since time.Time, debug bool) (res GetBuildLogsResponse, err error) {
 	q := url.Values{
 		"buildID": []string{buildID},
 	}
 	if !since.IsZero() {
 		q.Set("since", since.Format(time.RFC3339))
+	}
+	if debug {
+		q.Set("debug", "true")
 	}
 	err = c.do(ctx, "GET", "/builds/getLogs?"+q.Encode(), nil, &res)
 	return

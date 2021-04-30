@@ -17,7 +17,7 @@ var (
 
 // LogsClient represents a logs client.
 type logsClient interface {
-	GetLogs(ctx context.Context, runID string, t time.Time) (GetLogsResponse, error)
+	GetLogs(ctx context.Context, runID string, t time.Time, debug bool) (GetLogsResponse, error)
 	GetOutputs(ctx context.Context, runID string) (GetOutputsResponse, error)
 	GetRun(ctx context.Context, runID string) (GetRunResponse, error)
 }
@@ -72,15 +72,17 @@ type Watcher struct {
 	ctx    context.Context
 	client logsClient
 	runID  string
+	debug  bool
 	state  chan RunState
 }
 
 // NewWatcher returns a new watcher with the given runID and context.
-func newWatcher(ctx context.Context, client logsClient, runID string) *Watcher {
+func newWatcher(ctx context.Context, client logsClient, runID string, debug bool) *Watcher {
 	w := &Watcher{
 		ctx:    ctx,
 		client: client,
 		runID:  runID,
+		debug:  debug,
 		state:  make(chan RunState),
 	}
 	go w.watch()
@@ -166,7 +168,7 @@ func (w *Watcher) fetch(ctx context.Context, prev RunState) (RunState, error) {
 	})
 
 	eg.Go(func() error {
-		resp, err := w.client.GetLogs(subctx, w.runID, since)
+		resp, err := w.client.GetLogs(subctx, w.runID, since, w.debug)
 		if err != nil {
 			return errors.Wrap(err, "get logs")
 		}

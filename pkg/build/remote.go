@@ -21,7 +21,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func Remote(ctx context.Context, dir taskdir.TaskDirectory, client *api.Client, taskRevisionID string) error {
+func Remote(ctx context.Context, debug bool, dir taskdir.TaskDirectory, client *api.Client, taskRevisionID string) error {
 	tmpdir, err := ioutil.TempDir("", "airplane-builds-")
 	if err != nil {
 		return errors.Wrap(err, "creating temporary directory for remote build")
@@ -47,7 +47,7 @@ func Remote(ctx context.Context, dir taskdir.TaskDirectory, client *api.Client, 
 	}
 	logger.Debug("Created build with id=%s", build.Build.ID)
 
-	if err := waitForBuild(ctx, client, build.Build.ID); err != nil {
+	if err := waitForBuild(ctx, debug, client, build.Build.ID); err != nil {
 		return err
 	}
 
@@ -232,7 +232,7 @@ func uploadArchive(ctx context.Context, client *api.Client, archivePath string) 
 	return upload.Upload.ID, nil
 }
 
-func waitForBuild(ctx context.Context, client *api.Client, buildID string) error {
+func waitForBuild(ctx context.Context, debug bool, client *api.Client, buildID string) error {
 	buildLog(logger.Gray("Waiting for builder..."))
 
 	t := time.NewTicker(time.Second)
@@ -244,7 +244,7 @@ func waitForBuild(ctx context.Context, client *api.Client, buildID string) error
 		case <-ctx.Done():
 			return ctx.Err()
 		case <-t.C:
-			r, err := client.GetBuildLogs(ctx, buildID, since)
+			r, err := client.GetBuildLogs(ctx, buildID, since, debug)
 			if err != nil {
 				return errors.Wrap(err, "getting build logs")
 			}
@@ -258,7 +258,6 @@ func waitForBuild(ctx context.Context, client *api.Client, buildID string) error
 				if strings.HasPrefix(l.Text, "[builder] ") {
 					text = logger.Gray(strings.TrimPrefix(text, "[builder] "))
 				}
-
 				buildLog(text)
 			}
 			logs = append(logs, newLogs...)

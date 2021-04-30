@@ -91,7 +91,15 @@ type LogItem struct {
 	Timestamp time.Time `json:"timestamp"`
 	InsertID  string    `json:"insertID"`
 	Text      string    `json:"text"`
+	Level     LogLevel  `json:"level"`
 }
+
+type LogLevel string
+
+const (
+	LogLevelInfo  LogLevel = "info"
+	LogLevelDebug LogLevel = "debug"
+)
 
 // RegistryTokenResponse represents a registry token response.
 type RegistryTokenResponse struct {

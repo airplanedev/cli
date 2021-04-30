@@ -11,7 +11,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func Local(ctx context.Context, client *api.Client, dir taskdir.TaskDirectory, def definitions.Definition, taskID string) error {
+func Local(ctx context.Context, debug bool, client *api.Client, dir taskdir.TaskDirectory, def definitions.Definition, taskID string) error {
 	registry, err := client.GetRegistryToken(ctx)
 	if err != nil {
 		return errors.Wrap(err, "getting registry token")

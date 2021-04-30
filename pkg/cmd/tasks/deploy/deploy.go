@@ -20,6 +20,7 @@ type config struct {
 	root    *cli.Config
 	file    string
 	builder string
+	debug   bool
 }
 
 func New(c *cli.Config) *cobra.Command {
@@ -42,6 +43,7 @@ func New(c *cli.Config) *cobra.Command {
 
 	cmd.Flags().StringVarP(&cfg.file, "file", "f", "", "Path to a task definition file.")
 	cmd.Flags().StringVar(&cfg.builder, "builder", string(build.BuilderKindRemote), "Where to build the task's Docker image. Accepts: [local, remote]")
+	cmd.Flags().BoolVarP(&cfg.debug, "debug", "d", false, "True to output more logs.")
 
 	cli.Must(cmd.MarkFlagRequired("file"))
 
@@ -147,11 +149,11 @@ func run(ctx context.Context, cfg config) error {
 	if build.NeedsBuilding(kind) {
 		switch builder {
 		case build.BuilderKindLocal:
-			if err := build.Local(ctx, client, dir, def, taskID); err != nil {
+			if err := build.Local(ctx, cfg.debug, client, dir, def, taskID); err != nil {
 				return err
 			}
 		case build.BuilderKindRemote:
-			if err := build.Remote(ctx, dir, client, taskRevisionID); err != nil {
+			if err := build.Remote(ctx, cfg.debug, dir, client, taskRevisionID); err != nil {
 				return err
 			}
 		}
