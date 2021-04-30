@@ -7,10 +7,12 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-type ErrInvalidYAML struct{}
+type ErrInvalidYAML struct {
+	Msg string
+}
 
 func (this ErrInvalidYAML) Error() string {
-	return "invalid YAML"
+	return this.Msg
 }
 
 type ErrSchemaValidation struct {
@@ -26,7 +28,7 @@ func (this ErrSchemaValidation) Error() string {
 func validateYAML(data []byte, schemaObj interface{}) error {
 	var obj interface{}
 	if err := yaml.Unmarshal(data, &obj); err != nil {
-		return errors.WithStack(ErrInvalidYAML{})
+		return errors.WithStack(ErrInvalidYAML{Msg: err.Error()})
 	}
 
 	r := &jsonschema.Reflector{PreferYAMLSchema: true}
