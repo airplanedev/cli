@@ -3,6 +3,7 @@
 # Inspired by:
 # - https://github.com/denoland/deno_install/blob/master/install.sh
 #   Copyright 2019 the Deno authors. All rights reserved. MIT license.
+# - https://github.com/superfly/flyctl/blob/master/installers/install.sh
 
 set -e
 
