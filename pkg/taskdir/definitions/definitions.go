@@ -154,7 +154,7 @@ func UnmarshalDefinition(buf []byte, defPath string) (Definition, error) {
 		// Print any "expected" validation errors
 		switch err := errors.Cause(err).(type) {
 		case ErrInvalidYAML:
-			return Definition{}, newErrReadDefinition(fmt.Sprintf("Error reading %s: invalid YAML", defPath))
+			return Definition{}, newErrReadDefinition(fmt.Sprintf("Error reading %s, invalid YAML:\n  %s", defPath, err))
 		case ErrSchemaValidation:
 			errorMsgs := []string{}
 			for _, verr := range err.Errors {

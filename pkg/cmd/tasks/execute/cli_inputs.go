@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"regexp"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/airplanedev/cli/pkg/api"
@@ -56,6 +57,9 @@ func promptForParamValues(client *api.Client, task api.Task, paramValues map[str
 		}
 		if !param.Constraints.Optional {
 			opts = append(opts, survey.WithValidator(survey.Required))
+		}
+		if param.Constraints.Regex != "" {
+			opts = append(opts, survey.WithValidator(regexValidator(param.Constraints.Regex)))
 		}
 		var inputValue string
 		if err := survey.AskOne(prompt, &inputValue, opts...); err != nil {
@@ -118,5 +122,23 @@ func validateInput(param api.Parameter) func(interface{}) error {
 			return errors.Errorf("unexpected answer of type %s", reflect.TypeOf(a).Name())
 		}
 		return params.ValidateInput(param, v)
+	}
+}
+
+// regexValidator returns a Survey validator from the pattern
+func regexValidator(pattern string) func(interface{}) error {
+	return func(val interface{}) error {
+		str, ok := val.(string)
+		if !ok {
+			return errors.New("expected string")
+		}
+		matched, err := regexp.MatchString(pattern, str)
+		if err != nil {
+			return errors.Errorf("errored matching against regex: %s", err)
+		}
+		if !matched {
+			return errors.Errorf("must match regex pattern: %s", pattern)
+		}
+		return nil
 	}
 }
