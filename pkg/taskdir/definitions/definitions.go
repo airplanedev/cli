@@ -69,6 +69,14 @@ func NewDefinitionFromTask(task api.Task) (Definition, error) {
 		}
 		def.Manual = &manual
 
+	} else if task.Kind == api.TaskKindSQL {
+		sql := SQLDefinition{
+			Query:  task.KindOptions["query"],
+			Driver: task.KindOptions["driver"],
+			DSN:    task.KindOptions["dsn"],
+		}
+		def.SQL = &sql
+
 	} else {
 		return Definition{}, errors.Errorf("unknown kind specified: %s", task.Kind)
 	}
@@ -101,6 +109,12 @@ func (this Definition) GetKindAndOptions() (api.TaskKind, api.KindOptions, error
 		}, nil
 	} else if this.Manual != nil {
 		return api.TaskKindManual, api.KindOptions{}, nil
+	} else if this.SQL != nil {
+		return api.TaskKindSQL, api.KindOptions{
+			"query":  this.SQL.Query,
+			"driver": this.SQL.Driver,
+			"dsn":    this.SQL.DSN,
+		}, nil
 	}
 
 	return "", api.KindOptions{}, errors.New("No kind specified")
@@ -129,6 +143,9 @@ func (this Definition) Validate() (Definition, error) {
 	}
 	if this.Python != nil {
 		defs = append(defs, "python")
+	}
+	if this.SQL != nil {
+		defs = append(defs, "sql")
 	}
 
 	if len(defs) == 0 {
