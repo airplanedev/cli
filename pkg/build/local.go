@@ -9,9 +9,12 @@ import (
 	"github.com/airplanedev/cli/pkg/taskdir"
 	"github.com/airplanedev/cli/pkg/taskdir/definitions"
 	"github.com/pkg/errors"
+	"github.com/segmentio/ksuid"
 )
 
 func Local(ctx context.Context, client *api.Client, dir taskdir.TaskDirectory, def definitions.Definition, taskID string) error {
+	var id = "bld_" + ksuid.New().String()
+
 	registry, err := client.GetRegistryToken(ctx)
 	if err != nil {
 		return errors.Wrap(err, "getting registry token")
@@ -41,7 +44,7 @@ func Local(ctx context.Context, client *api.Client, dir taskdir.TaskDirectory, d
 	}
 
 	logger.Log("Building...")
-	bo, err := b.Build(ctx, taskID, "latest")
+	bo, err := b.Build(ctx, taskID, id)
 	if err != nil {
 		return errors.Wrap(err, "build")
 	}
