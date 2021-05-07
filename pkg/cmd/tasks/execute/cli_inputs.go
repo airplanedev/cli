@@ -94,11 +94,17 @@ func promptForParam(param api.Parameter) (survey.Prompt, error) {
 	}
 	switch param.Type {
 	case api.TypeBoolean:
+		var dv interface{}
+		if defaultValue == "" {
+			dv = nil
+		} else {
+			dv = defaultValue
+		}
 		return &survey.Select{
 			Message: message,
 			Help:    param.Desc,
 			Options: []string{params.YesString, params.NoString},
-			Default: defaultValue,
+			Default: dv,
 		}, nil
 	default:
 		return &survey.Input{
