@@ -93,36 +93,31 @@ func defaultRuntimeConfig(runtime runtimeKind, def *definitions.Definition) (sca
 	// TODO: let folks configure the following configuration
 	switch runtime {
 	case runtimeKindDeno:
-		deno := definitions.DenoDefinition{
+		def.Deno = &definitions.DenoDefinition{
 			Entrypoint: "main.ts",
 		}
-		def.Deno = &deno
 		return scaffolders.DenoScaffolder{Entrypoint: "main.ts"}, nil
 	case runtimeKindDockerfile:
-		docker := definitions.DockerDefinition{
+		def.Dockerfile = &definitions.DockerDefinition{
 			Dockerfile: "Dockerfile",
 		}
-		def.Dockerfile = &docker
 		return scaffolders.DockerfileScaffolder{Dockerfile: "Dockerfile"}, nil
 	case runtimeKindGo:
-		godef := definitions.GoDefinition{
+		def.Go = &definitions.GoDefinition{
 			Entrypoint: "main.go",
 		}
-		def.Go = &godef
 		return scaffolders.GoScaffolder{Entrypoint: "main.go"}, nil
 	case runtimeKindNode:
-		node := definitions.NodeDefinition{
+		def.Node = &definitions.NodeDefinition{
 			Entrypoint:  "main.js",
 			Language:    "javascript",
 			NodeVersion: "15",
 		}
-		def.Node = &node
 		return scaffolders.NodeScaffolder{Entrypoint: "main.js"}, nil
 	case runtimeKindPython:
-		python := definitions.PythonDefinition{
+		def.Python = &definitions.PythonDefinition{
 			Entrypoint: "main.py",
 		}
-		def.Python = &python
 		return scaffolders.PythonScaffolder{Entrypoint: "main.py"}, nil
 	default:
 		return nil, errors.Errorf("unknown runtime: %s", runtime)
