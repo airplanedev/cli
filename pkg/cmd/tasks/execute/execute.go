@@ -192,7 +192,10 @@ func flagset(task api.Task, args api.Values) *flag.FlagSet {
 		logger.Log("")
 	}
 
-	for _, p := range task.Parameters {
+	for i := range task.Parameters {
+		// Scope p here (& not above) so we can use it in the closure.
+		// See also: https://github.com/golang/go/wiki/CommonMistakes#using-goroutines-on-loop-iterator-variables
+		p := task.Parameters[i]
 		set.Func(p.Slug, p.Desc, func(v string) (err error) {
 			args[p.Slug], err = params.ParseInput(p, v)
 			if err != nil {
