@@ -193,6 +193,7 @@ func flagset(task api.Task, args api.Values) *flag.FlagSet {
 	}
 
 	for _, p := range task.Parameters {
+		p := p
 		set.Func(p.Slug, p.Desc, func(v string) (err error) {
 			args[p.Slug], err = params.ParseInput(p, v)
 			if err != nil {
