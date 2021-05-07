@@ -72,9 +72,12 @@ func initFromScratch(ctx context.Context, cfg config) error {
 		return err
 	}
 
-	fileNames, err := writeRuntimeFiles(def, scaffolder)
-	if err != nil {
-		return err
+	var fileNames []string
+	if scaffolder != nil {
+		fileNames, err = writeRuntimeFiles(def, scaffolder)
+		if err != nil {
+			return err
+		}
 	}
 
 	fileNames = append([]string{file}, fileNames...)

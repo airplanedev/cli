@@ -70,7 +70,9 @@ func promptForParamValues(client *api.Client, task api.Task, paramValues map[str
 		if err != nil {
 			return err
 		}
-		paramValues[param.Slug] = value
+		if value != nil {
+			paramValues[param.Slug] = value
+		}
 	}
 	confirmed := false
 	if err := survey.AskOne(&survey.Confirm{
