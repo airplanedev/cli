@@ -54,6 +54,8 @@ const (
 	TaskKindManual TaskKind = ""
 	TaskKindNode   TaskKind = "node"
 	TaskKindPython TaskKind = "python"
+
+	TaskKindSQL TaskKind = "sql"
 )
 
 type UpdateTaskResponse struct {

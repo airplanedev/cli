@@ -23,6 +23,8 @@ type Definition_0_2 struct {
 	Node       *NodeDefinition   `yaml:"node,omitempty"`
 	Python     *PythonDefinition `yaml:"python,omitempty"`
 
+	SQL *SQLDefinition `yaml:"sql,omitempty"`
+
 	// Root is a directory path relative to the parent directory of this
 	// task definition which defines what directory should be included
 	// in the task's Docker image.
@@ -58,6 +60,12 @@ type NodeDefinition struct {
 
 type PythonDefinition struct {
 	Entrypoint string `yaml:"entrypoint"`
+}
+
+type SQLDefinition struct {
+	Query  string `yaml:"query"`
+	Driver string `yaml:"driver"`
+	DSN    string `yaml:"dsn"`
 }
 
 func (d Definition_0_2) upgrade() (Definition, error) {
