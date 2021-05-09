@@ -13,6 +13,7 @@ type Definition_0_2 struct {
 	Constraints      api.RunConstraints   `yaml:"constraints,omitempty"`
 	Env              api.TaskEnv          `yaml:"env,omitempty"`
 	ResourceRequests api.ResourceRequests `yaml:"resourceRequests,omitempty"`
+	Resources        api.Resources        `yaml:"resources,omitempty"`
 	Repo             string               `yaml:"repo,omitempty"`
 	Timeout          int                  `yaml:"timeout,omitempty"`
 
