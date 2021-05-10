@@ -111,9 +111,7 @@ func (this Definition) GetKindAndOptions() (api.TaskKind, api.KindOptions, error
 		return api.TaskKindManual, api.KindOptions{}, nil
 	} else if this.SQL != nil {
 		return api.TaskKindSQL, api.KindOptions{
-			"query":  this.SQL.Query,
-			"driver": this.SQL.Driver,
-			"dsn":    this.SQL.DSN,
+			"query": this.SQL.Query,
 		}, nil
 	}
 

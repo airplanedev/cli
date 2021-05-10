@@ -63,9 +63,7 @@ type PythonDefinition struct {
 }
 
 type SQLDefinition struct {
-	Query  string `yaml:"query"`
-	Driver string `yaml:"driver"`
-	DSN    string `yaml:"dsn"`
+	Query string `yaml:"query"`
 }
 
 func (d Definition_0_2) upgrade() (Definition, error) {
