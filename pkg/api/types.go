@@ -381,8 +381,9 @@ type GetBuildResponse struct {
 }
 
 type CreateBuildRequest struct {
-	TaskRevisionID string `json:"taskRevisionID"`
-	SourceUploadID string `json:"sourceUploadID"`
+	TaskID         string  `json:"taskID"`
+	SourceUploadID string  `json:"sourceUploadID"`
+	Env            TaskEnv `json:"env"`
 }
 
 type CreateBuildResponse struct {

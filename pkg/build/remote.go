@@ -21,7 +21,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func Remote(ctx context.Context, dir taskdir.TaskDirectory, client *api.Client, taskRevisionID string) error {
+func Remote(ctx context.Context, dir taskdir.TaskDirectory, client *api.Client, taskID string, env api.TaskEnv) error {
 	tmpdir, err := ioutil.TempDir("", "airplane-builds-")
 	if err != nil {
 		return errors.Wrap(err, "creating temporary directory for remote build")
@@ -39,8 +39,9 @@ func Remote(ctx context.Context, dir taskdir.TaskDirectory, client *api.Client, 
 	}
 
 	build, err := client.CreateBuild(ctx, api.CreateBuildRequest{
-		TaskRevisionID: taskRevisionID,
+		TaskID:         taskID,
 		SourceUploadID: uploadID,
+		Env:            env,
 	})
 	if err != nil {
 		return errors.Wrap(err, "creating build")
