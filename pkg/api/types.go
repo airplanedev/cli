@@ -19,6 +19,7 @@ type CreateTaskRequest struct {
 	Constraints      RunConstraints    `json:"constraints"`
 	Env              TaskEnv           `json:"env"`
 	ResourceRequests map[string]string `json:"resourceRequests"`
+	Resources        map[string]string `json:"resources"`
 	Kind             TaskKind          `json:"kind"`
 	KindOptions      map[string]string `json:"kindOptions"`
 	Repo             string            `json:"repo"`
@@ -38,6 +39,7 @@ type UpdateTaskRequest struct {
 	Constraints      RunConstraints    `json:"constraints" yaml:"constraints"`
 	Env              TaskEnv           `json:"env" yaml:"env"`
 	ResourceRequests map[string]string `json:"resourceRequests" yaml:"resourceRequests"`
+	Resources        map[string]string `json:"resources" yaml:"resources"`
 	Kind             TaskKind          `json:"kind" yaml:"builder"`
 	KindOptions      map[string]string `json:"kindOptions" yaml:"builderConfig"`
 	Repo             string            `json:"repo" yaml:"repo"`
@@ -284,6 +286,8 @@ type Task struct {
 type KindOptions map[string]string
 
 type ResourceRequests map[string]string
+
+type Resources map[string]string
 
 // Values represent parameters values.
 //
