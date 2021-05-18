@@ -21,7 +21,7 @@ type CreateTaskRequest struct {
 	ResourceRequests map[string]string `json:"resourceRequests"`
 	Resources        map[string]string `json:"resources"`
 	Kind             TaskKind          `json:"kind"`
-	KindOptions      map[string]string `json:"kindOptions"`
+	KindOptions      KindOptions       `json:"kindOptions"`
 	Repo             string            `json:"repo"`
 	// TODO(amir): friendly type here (120s, 5m ...)
 	Timeout int `json:"timeout"`
@@ -41,7 +41,7 @@ type UpdateTaskRequest struct {
 	ResourceRequests map[string]string `json:"resourceRequests" yaml:"resourceRequests"`
 	Resources        map[string]string `json:"resources" yaml:"resources"`
 	Kind             TaskKind          `json:"kind" yaml:"builder"`
-	KindOptions      map[string]string `json:"kindOptions" yaml:"builderConfig"`
+	KindOptions      KindOptions       `json:"kindOptions" yaml:"builderConfig"`
 	Repo             string            `json:"repo" yaml:"repo"`
 	// TODO(amir): friendly type here (120s, 5m ...)
 	Timeout int `json:"timeout" yaml:"timeout"`
@@ -283,7 +283,7 @@ type Task struct {
 	Timeout          int              `json:"timeout" yaml:"timeout"`
 }
 
-type KindOptions map[string]string
+type KindOptions map[string]interface{}
 
 type ResourceRequests map[string]string
 

@@ -26,10 +26,18 @@ func Local(ctx context.Context, client *api.Client, dir taskdir.TaskDirectory, d
 	if err != nil {
 		return err
 	}
+	args := make(map[string]string, len(options))
+	for k, v := range options {
+		if sv, ok := v.(string); !ok {
+			return errors.New("unexpected non-string option for builder arg")
+		} else {
+			args[k] = sv
+		}
+	}
 	b, err := New(LocalConfig{
 		Root:    dir.DefinitionRootPath(),
 		Builder: string(kind),
-		Args:    Args(options),
+		Args:    args,
 		Auth: &RegistryAuth{
 			Token: registry.Token,
 			Repo:  registry.Repo,

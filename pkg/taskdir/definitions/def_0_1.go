@@ -2,6 +2,8 @@ package definitions
 
 import (
 	"github.com/airplanedev/cli/pkg/api"
+	"github.com/mitchellh/mapstructure"
+	"github.com/pkg/errors"
 )
 
 type Definition_0_1 struct {
@@ -45,43 +47,40 @@ func (d Definition_0_1) upgrade() (Definition, error) {
 	}
 
 	if d.Builder == "deno" {
-		deno := DenoDefinition{
-			Entrypoint: d.BuilderConfig["entrypoint"],
+		def.Deno = &DenoDefinition{}
+		if err := mapstructure.Decode(d.BuilderConfig, &def.Deno); err != nil {
+			return Definition{}, errors.Wrap(err, "decoding Deno options")
 		}
-		def.Deno = &deno
 
 	} else if d.Builder == "docker" {
-		docker := DockerDefinition{
-			Dockerfile: d.BuilderConfig["dockerfile"],
+		def.Dockerfile = &DockerDefinition{}
+		if err := mapstructure.Decode(d.BuilderConfig, &def.Dockerfile); err != nil {
+			return Definition{}, errors.Wrap(err, "decoding Dockerfile options")
 		}
-		def.Dockerfile = &docker
 
 	} else if d.Builder == "go" {
-		godef := GoDefinition{
-			Entrypoint: d.BuilderConfig["entrypoint"],
+		def.Go = &GoDefinition{}
+		if err := mapstructure.Decode(d.BuilderConfig, &def.Go); err != nil {
+			return Definition{}, errors.Wrap(err, "decoding Go options")
 		}
-		def.Go = &godef
 
 	} else if d.Builder == "node" {
-		node := NodeDefinition{
-			Entrypoint:  d.BuilderConfig["entrypoint"],
-			Language:    d.BuilderConfig["language"],
-			NodeVersion: d.BuilderConfig["nodeVersion"],
+		def.Node = &NodeDefinition{}
+		if err := mapstructure.Decode(d.BuilderConfig, &def.Node); err != nil {
+			return Definition{}, errors.Wrap(err, "decoding Node options")
 		}
-		def.Node = &node
 
 	} else if d.Builder == "python" {
-		python := PythonDefinition{
-			Entrypoint: d.BuilderConfig["entrypoint"],
+		def.Python = &PythonDefinition{}
+		if err := mapstructure.Decode(d.BuilderConfig, &def.Python); err != nil {
+			return Definition{}, errors.Wrap(err, "decoding Python options")
 		}
-		def.Python = &python
 
 	} else if d.Builder == "" {
-		manual := ManualDefinition{
+		def.Manual = &ManualDefinition{
 			Image:   d.Image,
 			Command: d.Command,
 		}
-		def.Manual = &manual
 	}
 
 	return def.upgrade()

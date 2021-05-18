@@ -42,29 +42,29 @@ type ManualDefinition struct {
 }
 
 type DenoDefinition struct {
-	Entrypoint string `yaml:"entrypoint"`
+	Entrypoint string `yaml:"entrypoint" mapstructure:"entrypoint"`
 }
 
 type DockerDefinition struct {
-	Dockerfile string `yaml:"dockerfile"`
+	Dockerfile string `yaml:"dockerfile" mapstructure:"dockerfile"`
 }
 
 type GoDefinition struct {
-	Entrypoint string `yaml:"entrypoint"`
+	Entrypoint string `yaml:"entrypoint" mapstructure:"entrypoint"`
 }
 
 type NodeDefinition struct {
-	Entrypoint  string `yaml:"entrypoint"`
-	Language    string `yaml:"language"`
-	NodeVersion string `yaml:"nodeVersion"`
+	Entrypoint  string `yaml:"entrypoint" mapstructure:"entrypoint"`
+	Language    string `yaml:"language" mapstructure:"language"`
+	NodeVersion string `yaml:"nodeVersion" mapstructure:"nodeVersion"`
 }
 
 type PythonDefinition struct {
-	Entrypoint string `yaml:"entrypoint"`
+	Entrypoint string `yaml:"entrypoint" mapstructure:"entrypoint"`
 }
 
 type SQLDefinition struct {
-	Query string `yaml:"query"`
+	Query string `yaml:"query" mapstructure:"query"`
 }
 
 func (d Definition_0_2) upgrade() (Definition, error) {
