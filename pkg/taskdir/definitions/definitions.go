@@ -73,6 +73,12 @@ func NewDefinitionFromTask(task api.Task) (Definition, error) {
 			return Definition{}, errors.Wrap(err, "decoding SQL options")
 		}
 
+	} else if task.Kind == api.TaskKindREST {
+		def.REST = &RESTDefinition{}
+		if err := mapstructure.Decode(task.KindOptions, &def.REST); err != nil {
+			return Definition{}, errors.Wrap(err, "decoding REST options")
+		}
+
 	} else {
 		return Definition{}, errors.Errorf("unknown kind specified: %s", task.Kind)
 	}
@@ -114,6 +120,11 @@ func (this Definition) GetKindAndOptions() (api.TaskKind, api.KindOptions, error
 			return "", api.KindOptions{}, errors.Wrap(err, "decoding SQL definition")
 		}
 		return api.TaskKindSQL, options, nil
+	} else if this.REST != nil {
+		if err := mapstructure.Decode(this.REST, &options); err != nil {
+			return "", api.KindOptions{}, errors.Wrap(err, "decoding REST definition")
+		}
+		return api.TaskKindREST, options, nil
 	}
 
 	return "", api.KindOptions{}, errors.New("No kind specified")
@@ -145,6 +156,9 @@ func (this Definition) Validate() (Definition, error) {
 	}
 	if this.SQL != nil {
 		defs = append(defs, "sql")
+	}
+	if this.REST != nil {
+		defs = append(defs, "rest")
 	}
 
 	if len(defs) == 0 {

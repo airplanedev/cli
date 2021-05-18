@@ -24,7 +24,8 @@ type Definition_0_2 struct {
 	Node       *NodeDefinition   `yaml:"node,omitempty"`
 	Python     *PythonDefinition `yaml:"python,omitempty"`
 
-	SQL *SQLDefinition `yaml:"sql,omitempty"`
+	SQL  *SQLDefinition  `yaml:"sql,omitempty"`
+	REST *RESTDefinition `yaml:"rest,omitempty"`
 
 	// Root is a directory path relative to the parent directory of this
 	// task definition which defines what directory should be included
@@ -65,6 +66,15 @@ type PythonDefinition struct {
 
 type SQLDefinition struct {
 	Query string `yaml:"query" mapstructure:"query"`
+}
+
+type RESTDefinition struct {
+	Headers  []string               `yaml:"headers,omitempty" mapstructure:"headers"`
+	Method   string                 `yaml:"method" mapstructure:"method"`
+	Path     string                 `yaml:"path" mapstructure:"path"`
+	Params   map[string]interface{} `yaml:"params,omitempty" mapstructure:"params"`
+	Body     string                 `yaml:"body,omitempty" mapstructure:"body"`
+	JSONBody map[string]interface{} `yaml:"jsonBody,omitempty" mapstructure:"jsonBody"`
 }
 
 func (d Definition_0_2) upgrade() (Definition, error) {
