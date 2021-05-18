@@ -148,10 +148,6 @@ func New(c LocalConfig) (*Builder, error) {
 	}, nil
 }
 
-type BuildOutput struct {
-	Tag string
-}
-
 // Build runs the docker build.
 //
 // Depending on the configured `Config.Builder` the method verifies that
@@ -160,14 +156,14 @@ type BuildOutput struct {
 // The method creates a Dockerfile depending on the configured builder
 // and adds it to the tree, it passes the tree as the build context
 // and initializes the build.
-func (b *Builder) Build(ctx context.Context, taskID, version string) (BuildOutput, error) {
+func (b *Builder) Build(ctx context.Context, taskID, version string) (*Response, error) {
 	var repo = b.auth.Repo
 	var name = "task-" + sanitizeTaskID(taskID)
-	var tag = repo + "/" + name + ":" + version
+	var uri = repo + "/" + name + ":" + version
 
 	tree, err := NewTree()
 	if err != nil {
-		return BuildOutput{}, errors.Wrap(err, "new tree")
+		return nil, errors.Wrap(err, "new tree")
 	}
 	defer tree.Close()
 
@@ -177,21 +173,21 @@ func (b *Builder) Build(ctx context.Context, taskID, version string) (BuildOutpu
 		Args:    b.args,
 	})
 	if err != nil {
-		return BuildOutput{}, errors.Wrap(err, "creating dockerfile")
+		return nil, errors.Wrap(err, "creating dockerfile")
 	}
 	logger.Debug(strings.TrimSpace(dockerfile))
 
 	if err := tree.Write("Dockerfile", strings.NewReader(dockerfile)); err != nil {
-		return BuildOutput{}, errors.Wrap(err, "writing dockerfile")
+		return nil, errors.Wrap(err, "writing dockerfile")
 	}
 
 	if err := tree.Copy(b.root); err != nil {
-		return BuildOutput{}, errors.Wrapf(err, "copy %q", b.root)
+		return nil, errors.Wrapf(err, "copy %q", b.root)
 	}
 
 	bc, err := tree.Archive()
 	if err != nil {
-		return BuildOutput{}, errors.Wrap(err, "archive tree")
+		return nil, errors.Wrap(err, "archive tree")
 	}
 	defer bc.Close()
 
@@ -202,7 +198,7 @@ func (b *Builder) Build(ctx context.Context, taskID, version string) (BuildOutpu
 	}
 
 	opts := types.ImageBuildOptions{
-		Tags:        []string{tag},
+		Tags:        []string{uri},
 		BuildArgs:   buildArgs,
 		Platform:    "linux/amd64",
 		AuthConfigs: b.authconfigs(),
@@ -210,7 +206,7 @@ func (b *Builder) Build(ctx context.Context, taskID, version string) (BuildOutpu
 
 	resp, err := b.client.ImageBuild(ctx, bc, opts)
 	if err != nil {
-		return BuildOutput{}, errors.Wrap(err, "image build")
+		return nil, errors.Wrap(err, "image build")
 	}
 	defer resp.Body.Close()
 
@@ -218,27 +214,27 @@ func (b *Builder) Build(ctx context.Context, taskID, version string) (BuildOutpu
 	for scanner.Scan() {
 		var event *dockerJSONMessage.JSONMessage
 		if err := json.Unmarshal(scanner.Bytes(), &event); err != nil {
-			return BuildOutput{}, errors.Wrap(err, "unmarshalling docker build event")
+			return nil, errors.Wrap(err, "unmarshalling docker build event")
 		}
 
 		if err := event.Display(os.Stderr, isatty.IsTerminal(os.Stderr.Fd())); err != nil {
-			return BuildOutput{}, errors.Wrap(err, "docker build")
+			return nil, errors.Wrap(err, "docker build")
 		}
 	}
 
-	return BuildOutput{
-		Tag: tag,
+	return &Response{
+		ImageURL: uri,
 	}, nil
 }
 
 // Push pushes the given image.
-func (b *Builder) Push(ctx context.Context, tag string) error {
+func (b *Builder) Push(ctx context.Context, uri string) error {
 	authjson, err := json.Marshal(b.registryAuth())
 	if err != nil {
 		return err
 	}
 
-	resp, err := b.client.ImagePush(ctx, tag, types.ImagePushOptions{
+	resp, err := b.client.ImagePush(ctx, uri, types.ImagePushOptions{
 		RegistryAuth: base64.URLEncoding.EncodeToString(authjson),
 	})
 	if err != nil {
