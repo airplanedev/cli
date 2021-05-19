@@ -57,7 +57,7 @@ func remote(ctx context.Context, req Request) (*Response, error) {
 		return nil, err
 	}
 
-	imageURL := fmt.Sprintf("%s/task-%s:bld_%s",
+	imageURL := fmt.Sprintf("%s/task-%s:%s",
 		registry.Repo,
 		sanitizeTaskID(req.TaskID),
 		build.Build.ID,
