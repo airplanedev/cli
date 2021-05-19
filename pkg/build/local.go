@@ -28,7 +28,7 @@ func local(ctx context.Context, req Request) (*Response, error) {
 	args := make(map[string]string, len(options))
 	for k, v := range options {
 		if sv, ok := v.(string); !ok {
-			return errors.New("unexpected non-string option for builder arg")
+			return nil, errors.New("unexpected non-string option for builder arg")
 		} else {
 			args[k] = sv
 		}
