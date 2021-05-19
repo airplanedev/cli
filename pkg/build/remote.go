@@ -21,38 +21,51 @@ import (
 	"github.com/pkg/errors"
 )
 
-func Remote(ctx context.Context, dir taskdir.TaskDirectory, client *api.Client, taskID string, env api.TaskEnv) error {
+func remote(ctx context.Context, req Request) (*Response, error) {
+	registry, err := req.Client.GetRegistryToken(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "getting registry token")
+	}
+
 	tmpdir, err := ioutil.TempDir("", "airplane-builds-")
 	if err != nil {
-		return errors.Wrap(err, "creating temporary directory for remote build")
+		return nil, errors.Wrap(err, "creating temporary directory for remote build")
 	}
 	defer os.RemoveAll(tmpdir)
 
 	archivePath := path.Join(tmpdir, "archive.tar.gz")
-	if err := archiveTaskDir(dir, archivePath); err != nil {
-		return err
+	if err := archiveTaskDir(req.Dir, archivePath); err != nil {
+		return nil, err
 	}
 
-	uploadID, err := uploadArchive(ctx, client, archivePath)
+	uploadID, err := uploadArchive(ctx, req.Client, archivePath)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	build, err := client.CreateBuild(ctx, api.CreateBuildRequest{
-		TaskID:         taskID,
+	build, err := req.Client.CreateBuild(ctx, api.CreateBuildRequest{
+		TaskID:         req.TaskID,
 		SourceUploadID: uploadID,
-		Env:            env,
+		Env:            req.TaskEnv,
 	})
 	if err != nil {
-		return errors.Wrap(err, "creating build")
+		return nil, errors.Wrap(err, "creating build")
 	}
 	logger.Debug("Created build with id=%s", build.Build.ID)
 
-	if err := waitForBuild(ctx, client, build.Build.ID); err != nil {
-		return err
+	if err := waitForBuild(ctx, req.Client, build.Build.ID); err != nil {
+		return nil, err
 	}
 
-	return nil
+	imageURL := fmt.Sprintf("%s/task-%s:%s",
+		registry.Repo,
+		sanitizeTaskID(req.TaskID),
+		build.Build.ID,
+	)
+
+	return &Response{
+		ImageURL: imageURL,
+	}, nil
 }
 
 func archiveTaskDir(dir taskdir.TaskDirectory, archivePath string) error {

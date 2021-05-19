@@ -6,25 +6,24 @@ import (
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/configs"
 	"github.com/airplanedev/cli/pkg/logger"
-	"github.com/airplanedev/cli/pkg/taskdir"
 	"github.com/airplanedev/cli/pkg/taskdir/definitions"
 	"github.com/pkg/errors"
 )
 
-func Local(ctx context.Context, client *api.Client, dir taskdir.TaskDirectory, def definitions.Definition, taskID string) error {
-	registry, err := client.GetRegistryToken(ctx)
+func local(ctx context.Context, req Request) (*Response, error) {
+	registry, err := req.Client.GetRegistryToken(ctx)
 	if err != nil {
-		return errors.Wrap(err, "getting registry token")
+		return nil, errors.Wrap(err, "getting registry token")
 	}
 
-	buildEnv, err := getBuildEnv(ctx, client, def)
+	buildEnv, err := getBuildEnv(ctx, req.Client, req.Def)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	kind, options, err := def.GetKindAndOptions()
+	kind, options, err := req.Def.GetKindAndOptions()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	args := make(map[string]string, len(options))
 	for k, v := range options {
@@ -35,7 +34,7 @@ func Local(ctx context.Context, client *api.Client, dir taskdir.TaskDirectory, d
 		}
 	}
 	b, err := New(LocalConfig{
-		Root:    dir.DefinitionRootPath(),
+		Root:    req.Dir.DefinitionRootPath(),
 		Builder: string(kind),
 		Args:    args,
 		Auth: &RegistryAuth{
@@ -45,21 +44,21 @@ func Local(ctx context.Context, client *api.Client, dir taskdir.TaskDirectory, d
 		BuildEnv: buildEnv,
 	})
 	if err != nil {
-		return errors.Wrap(err, "new build")
+		return nil, errors.Wrap(err, "new build")
 	}
 
 	logger.Log("Building...")
-	bo, err := b.Build(ctx, taskID, "latest")
+	resp, err := b.Build(ctx, req.TaskID, "latest")
 	if err != nil {
-		return errors.Wrap(err, "build")
+		return nil, errors.Wrap(err, "build")
 	}
 
 	logger.Log("Pushing...")
-	if err := b.Push(ctx, bo.Tag); err != nil {
-		return errors.Wrap(err, "push")
+	if err := b.Push(ctx, resp.ImageURL); err != nil {
+		return nil, errors.Wrap(err, "push")
 	}
 
-	return nil
+	return resp, nil
 }
 
 // Retreives a build env from def - looks for env vars starting with BUILD_ and either uses the
