@@ -31,35 +31,26 @@ func NewDefinitionFromTask(task api.Task) (Definition, error) {
 		Timeout:          task.Timeout,
 	}
 
+	var taskDef interface{}
 	if task.Kind == api.TaskKindDeno {
 		def.Deno = &DenoDefinition{}
-		if err := mapstructure.Decode(task.KindOptions, &def.Deno); err != nil {
-			return Definition{}, errors.Wrap(err, "decoding Deno options")
-		}
+		taskDef = &def.Deno
 
 	} else if task.Kind == api.TaskKindDocker {
 		def.Dockerfile = &DockerDefinition{}
-		if err := mapstructure.Decode(task.KindOptions, &def.Dockerfile); err != nil {
-			return Definition{}, errors.Wrap(err, "decoding Dockerfile options")
-		}
+		taskDef = &def.Dockerfile
 
 	} else if task.Kind == api.TaskKindGo {
 		def.Go = &GoDefinition{}
-		if err := mapstructure.Decode(task.KindOptions, &def.Go); err != nil {
-			return Definition{}, errors.Wrap(err, "decoding Go options")
-		}
+		taskDef = &def.Go
 
 	} else if task.Kind == api.TaskKindNode {
 		def.Node = &NodeDefinition{}
-		if err := mapstructure.Decode(task.KindOptions, &def.Node); err != nil {
-			return Definition{}, errors.Wrap(err, "decoding Node options")
-		}
+		taskDef = &def.Node
 
 	} else if task.Kind == api.TaskKindPython {
 		def.Python = &PythonDefinition{}
-		if err := mapstructure.Decode(task.KindOptions, &def.Python); err != nil {
-			return Definition{}, errors.Wrap(err, "decoding Python options")
-		}
+		taskDef = &def.Python
 
 	} else if task.Kind == api.TaskKindManual {
 		def.Manual = &ManualDefinition{
@@ -69,18 +60,20 @@ func NewDefinitionFromTask(task api.Task) (Definition, error) {
 
 	} else if task.Kind == api.TaskKindSQL {
 		def.SQL = &SQLDefinition{}
-		if err := mapstructure.Decode(task.KindOptions, &def.SQL); err != nil {
-			return Definition{}, errors.Wrap(err, "decoding SQL options")
-		}
+		taskDef = &def.SQL
 
 	} else if task.Kind == api.TaskKindREST {
 		def.REST = &RESTDefinition{}
-		if err := mapstructure.Decode(task.KindOptions, &def.REST); err != nil {
-			return Definition{}, errors.Wrap(err, "decoding REST options")
-		}
+		taskDef = &def.REST
 
 	} else {
 		return Definition{}, errors.Errorf("unknown kind specified: %s", task.Kind)
+	}
+
+	if taskDef != nil {
+		if err := mapstructure.Decode(task.KindOptions, taskDef); err != nil {
+			return Definition{}, errors.Wrap(err, "decoding options")
+		}
 	}
 
 	return def, nil
