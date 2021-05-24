@@ -2,18 +2,12 @@
 package scaffold
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 
 	"github.com/airplanedev/cli/pkg/api"
-)
-
-var (
-	// ErrUnknown is returned when an attempt is made
-	// to generate code for unsupported language.
-	ErrUnknown = errors.New("scaffold: unknown language")
+	"github.com/airplanedev/cli/pkg/fs"
 )
 
 // Interface repersents a generator.
@@ -49,7 +43,7 @@ func Code(path string, t api.Task) ([]byte, error) {
 
 	g, ok := Lookup(ext)
 	if !ok {
-		return nil, ErrUnknown
+		return nil, fmt.Errorf("cannot scaffold for extension %s", ext)
 	}
 
 	code, err := g.Generate(t)
@@ -62,6 +56,10 @@ func Code(path string, t api.Task) ([]byte, error) {
 
 // Generate attempts to generate code for task and writes it to path.
 func Generate(path string, t api.Task) error {
+	if fs.Exists(path) {
+		return fmt.Errorf("path %s already exists", path)
+	}
+
 	code, err := Code(path, t)
 	if err != nil {
 		return err
