@@ -59,6 +59,7 @@ func node(root string, args Args) (string, error) {
 		cfg.Entrypoint = entrypoint
 	}
 
+	// TODO: insert shim!
 	// TODO: do we want to support buildDir and buildCommand still?
 	return templatize(`
 		FROM {{.Base}}
