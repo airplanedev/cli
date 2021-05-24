@@ -2,12 +2,14 @@ package build
 
 import (
 	"fmt"
+	"io/ioutil"
 	"path"
 	"path/filepath"
 	"strings"
 	"text/template"
 
 	"github.com/pkg/errors"
+	"github.com/tidwall/gjson"
 )
 
 // node creates a dockerfile for Node (typescript/javascript).
@@ -26,20 +28,15 @@ func node(root string, args Args) (string, error) {
 	if err := exist(entrypoint); err != nil {
 		return "", err
 	}
-	relentrypoint, err := filepath.Rel(root, entrypoint)
-	if err != nil {
-		return "", errors.Wrap(err, "entrypoint is not inside of root")
-	}
 
 	cfg := struct {
 		Base           string
-		Entrypoint     string
 		HasPackageJSON bool
 		HasPackageLock bool
 		HasYarnLock    bool
-		CreateTSConfig bool
 		HasTSConfig    bool
 		RunTSC         bool
+		Shim           string
 	}{
 		HasPackageJSON: exist(filepath.Join(root, "package.json")) == nil,
 		HasPackageLock: exist(filepath.Join(root, "package-lock.json")) == nil,
@@ -51,20 +48,55 @@ func node(root string, args Args) (string, error) {
 		return "", err
 	}
 
-	if strings.HasSuffix(relentrypoint, ".ts") {
-		cfg.RunTSC = true
-		cfg.HasTSConfig = exist(filepath.Join(root, "tsconfig.json")) == nil
-		// If a tsconfig.json was not provided, insert a default one:
-		cfg.CreateTSConfig = !cfg.HasTSConfig
-		// Point the entrypoint at the compiled JS version of the entrypoint.
-		// TODO: consider using ts-node
-		cfg.Entrypoint = filepath.Join(".airplane-build", strings.TrimSuffix(relentrypoint, ".ts")+".js")
-	} else {
-		cfg.Entrypoint = relentrypoint
+	if cfg.HasPackageJSON {
+		contents, err := ioutil.ReadFile(filepath.Join(root, "package.json"))
+		if err != nil {
+			return "", errors.Wrap(err, "opening package.json")
+		}
+		if typ := gjson.GetBytes(contents, "type").String(); typ != "module" {
+			return "", errors.Errorf("Node tasks must set type to 'module' in their package.json")
+		}
 	}
 
-	// TODO: insert shim!
+	relimport, err := filepath.Rel(root, entrypoint)
+	if err != nil {
+		return "", errors.Wrap(err, "entrypoint is not inside of root")
+	}
+
+	if strings.HasSuffix(entrypoint, ".ts") {
+		cfg.RunTSC = true
+		cfg.HasTSConfig = exist(filepath.Join(root, "tsconfig.json")) == nil
+		// Remove the `.ts` suffix, since tsc doesn't accept import paths `.ts` endings.
+		relimport = strings.TrimSuffix(relimport, ".ts")
+	}
+
+	// TODO: we likely need a TS shim for strict TS
+	// TODO: add some friendly errors to this shim for common errors.
+	shim := `// This file includes a shim that will execute your task code.
+import task from "../` + relimport + `"
+
+if (process.argv.length !== 3) {
+	console.log("airplane_output:error " + JSON.stringify({ "error": "Expected to receive a single argument (via {{JSON}}). Task CLI arguments may be misconfigured." }))
+	process.exit(1)
+}
+
+try {
+	await task(JSON.parse(process.argv[2]))
+} catch (err) {
+	console.error(err)
+	console.log("airplane_output:error " + JSON.stringify({ "error": String(err) }))
+	process.exit(1)
+}`
+	// To inline the shim into a Dockerfile, insert `\n\` characters:
+	cfg.Shim = strings.Join(strings.Split(shim, "\n"), "\\n\\\n")
+
 	// TODO: do we want to support buildDir and buildCommand still?
+	//
+	// So ESM resolution of file endings is experimental... you otherwise need to specify all file
+	// endings and TS does not do that for you... You have to use something like tsc-esm for that.
+	//
+	// Does this mean ESM is actually subpar? Should we use CommonJS and polyfill import/export
+	// syntax?
 	return templatize(`
 		FROM {{.Base}}
 
@@ -88,8 +120,6 @@ func node(root string, args Args) (string, error) {
 
 		{{if .HasTSConfig}}
 		COPY tsconfig.json .
-		{{else if .CreateTSConfig}}
-		RUN echo '{"include": ["*", "**/*"], "exclude": ["node_modules"]}' > tsconfig.json
 		{{end}}
 
 		{{if .HasPackageLock}}
@@ -101,10 +131,16 @@ func node(root string, args Args) (string, error) {
 		COPY . .
 
 		{{if .RunTSC}}
-		RUN mkdir .airplane-build && tsc --outDir .airplane-build --rootDir .
+		RUN mkdir .airplane-build && \
+			echo '{{.Shim}}' > .airplane-build/shim.ts && \
+			tsc --allowJs --module ESNext --target ESNext --esModuleInterop --outDir .airplane-build/dist --rootDir . .airplane-build/shim.ts && \
+			cp package.json .airplane-build/dist/package.json
+		ENTRYPOINT ["node", "--experimental-specifier-resolution=node", ".airplane-build/dist/.airplane-build/shim.js"]
+		{{else}}
+		RUN mkdir .airplane-build && \
+			echo '{{.Shim}}' > .airplane-build/shim.js
+		ENTRYPOINT ["node", "--experimental-specifier-resolution=node", ".airplane-build/shim.js"]
 		{{end}}
-
-		ENTRYPOINT ["node", "--input-type=module", "{{ .Entrypoint }}"]
 	`, cfg)
 }
 
