@@ -115,7 +115,7 @@ type Builder struct {
 // New returns a new local builder with c.
 func New(c LocalConfig) (*Builder, error) {
 	if !filepath.IsAbs(c.Root) {
-		return nil, fmt.Errorf("build: expected an absolute path, got %q", c.Root)
+		return nil, fmt.Errorf("build: expected an absolute root path, got %q", c.Root)
 	}
 
 	if c.Builder == "" {

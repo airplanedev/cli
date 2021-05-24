@@ -26,6 +26,10 @@ func node(root string, args Args) (string, error) {
 	if err := exist(entrypoint); err != nil {
 		return "", err
 	}
+	relentrypoint, err := filepath.Rel(root, entrypoint)
+	if err != nil {
+		return "", errors.Wrap(err, "entrypoint is not inside of root")
+	}
 
 	cfg := struct {
 		Base           string
@@ -47,16 +51,16 @@ func node(root string, args Args) (string, error) {
 		return "", err
 	}
 
-	if args["language"] == "typescript" {
+	if strings.HasSuffix(relentrypoint, ".ts") {
 		cfg.RunTSC = true
 		cfg.HasTSConfig = exist(filepath.Join(root, "tsconfig.json")) == nil
 		// If a tsconfig.json was not provided, insert a default one:
 		cfg.CreateTSConfig = !cfg.HasTSConfig
 		// Point the entrypoint at the compiled JS version of the entrypoint.
 		// TODO: consider using ts-node
-		cfg.Entrypoint = filepath.Join(".airplane-build", strings.TrimSuffix(entrypoint, ".ts")+".js")
+		cfg.Entrypoint = filepath.Join(".airplane-build", strings.TrimSuffix(relentrypoint, ".ts")+".js")
 	} else {
-		cfg.Entrypoint = entrypoint
+		cfg.Entrypoint = relentrypoint
 	}
 
 	// TODO: insert shim!
@@ -100,7 +104,7 @@ func node(root string, args Args) (string, error) {
 		RUN mkdir .airplane-build && tsc --outDir .airplane-build --rootDir .
 		{{end}}
 
-		ENTRYPOINT ["node", "--input-type=module", "{{ .Main }}"]
+		ENTRYPOINT ["node", "--input-type=module", "{{ .Entrypoint }}"]
 	`, cfg)
 }
 
