@@ -11,6 +11,7 @@ import (
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/cmd/auth/login"
+	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/scaffold"
 	_ "github.com/airplanedev/cli/pkg/scaffold/typescript"
 	"github.com/airplanedev/cli/pkg/utils"
@@ -57,9 +58,11 @@ func run(ctx context.Context, cfg config) error {
 		return err
 	}
 
-	if err := scaffold.Generate(cfg.file, task); err != nil {
+	err = scaffold.Generate(cfg.file, task)
+	if err != nil {
 		return err
 	}
 
+	logger.Log("Initialized a task at %s", cfg.file)
 	return nil
 }
