@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// node creates a dockerfile for Node (typescript/javascript).
 func node(root string, args Args) (string, error) {
 	var err error
 
@@ -116,7 +117,7 @@ func templatize(t string, data interface{}) (string, error) {
 	return buf.String(), nil
 }
 
-// Node creates a dockerfile for Node (typescript/javascript).
+// nodeOld creates a dockerfile for Node (typescript/javascript).
 //
 // TODO(amir): possibly just run `npm start` instead of exposing lots
 // of options to users?
