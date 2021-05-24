@@ -31,9 +31,10 @@ func New(c *cli.Config) *cobra.Command {
 	var cfg = config{root: c}
 
 	cmd := &cobra.Command{
-		Use:   "execute <slug>",
-		Short: "Execute a task",
-		Long:  "Execute a task by its slug with the provided parameters.",
+		Use:     "execute <slug>",
+		Short:   "Execute a task",
+		Aliases: []string{"exec"},
+		Long:    "Execute a task by its slug with the provided parameters.",
 		Example: heredoc.Doc(`
 			airplane execute -f ./airplane.yml [-- <parameters...>]
 			airplane execute hello_world [-- <parameters...>]
