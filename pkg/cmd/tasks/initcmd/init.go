@@ -6,112 +6,60 @@ package initcmd
 
 import (
 	"context"
-	"os"
 
-	"github.com/AlecAivazis/survey/v2"
 	"github.com/MakeNowJust/heredoc"
+	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/cmd/auth/login"
-	"github.com/airplanedev/cli/pkg/logger"
+	"github.com/airplanedev/cli/pkg/scaffold"
+	_ "github.com/airplanedev/cli/pkg/scaffold/typescript"
 	"github.com/airplanedev/cli/pkg/utils"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
 type config struct {
-	root *cli.Config
-	file string
-	from string
+	client *api.Client
+	file   string
+	slug   string
 }
 
 func New(c *cli.Config) *cobra.Command {
-	var cfg = config{root: c}
+	var cfg = config{client: c.Client}
 
 	cmd := &cobra.Command{
 		Use:   "init",
 		Short: "Initialize a task definition",
 		Example: heredoc.Doc(`
 			$ airplane tasks init
-			$ airplane tasks init -f ./airplane.yml
-			$ airplane tasks init --from hello_world
+			$ airplane tasks init --slug task-slug ./my/task.js
+			$ airplane tasks init --slug task-slug ./my/task.ts
 		`),
+		Args: cobra.ExactArgs(1),
 		PersistentPreRunE: utils.WithParentPersistentPreRunE(func(cmd *cobra.Command, args []string) error {
 			return login.EnsureLoggedIn(cmd.Root().Context(), c)
 		}),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			cfg.file = args[0]
 			return run(cmd.Root().Context(), cfg)
 		},
 	}
 
-	cmd.Flags().StringVarP(&cfg.file, "file", "f", "", "Path to a file to store task definition")
-	cmd.Flags().StringVar(&cfg.from, "from", "", "Slug of an existing task to generate from")
+	cmd.Flags().StringVar(&cfg.slug, "slug", "", "Slug of an existing task to generate from.")
 
 	return cmd
 }
 
 func run(ctx context.Context, cfg config) error {
-	var kind initKind
-	var err error
-	// If --from is provided, we already know the user wants to create
-	// from an existing task, so we don't need to prompt the user here.
-	if cfg.from == "" {
-		logger.Log("Airplane is a development platform for engineers building internal tools.\n")
-		logger.Log("This command will configure a task definition which Airplane uses to deploy your task.\n")
+	var client = cfg.client
 
-		if kind, err = pickInitKind(); err != nil {
-			return err
-		}
-	} else {
-		kind = initKindTask
+	task, err := client.GetTask(ctx, cfg.slug)
+	if err != nil {
+		return err
 	}
 
-	switch kind {
-	case initKindSample:
-		if err := initFromSample(ctx, cfg); err != nil {
-			return err
-		}
-	case initKindScratch:
-		if err := initFromScratch(ctx, cfg); err != nil {
-			return err
-		}
-	case initKindTask:
-		if err := initFromTask(ctx, cfg); err != nil {
-			return err
-		}
-	default:
-		return errors.Errorf("Unexpected unknown initKind choice: %s", kind)
+	if err := scaffold.Generate(cfg.file, task); err != nil {
+		return err
 	}
 
 	return nil
-}
-
-type initKind string
-
-const (
-	initKindSample  initKind = "Create from an Airplane-provided sample"
-	initKindScratch initKind = "Create from scratch"
-	initKindTask    initKind = "Import from an existing Airplane task"
-)
-
-func pickInitKind() (initKind, error) {
-	var kind string
-	if err := survey.AskOne(
-		&survey.Select{
-			Message: "How do you want to get started?",
-			// TODO: disable the search filter on this Select. Will require an upstream
-			// change to the survey repo.
-			Options: []string{
-				string(initKindSample),
-				string(initKindScratch),
-				string(initKindTask),
-			},
-			Default: string(initKindSample),
-		},
-		&kind,
-		survey.WithStdio(os.Stdin, os.Stderr, os.Stderr),
-	); err != nil {
-		return initKind(""), errors.Wrap(err, "selecting kind of init")
-	}
-
-	return initKind(kind), nil
 }
