@@ -54,8 +54,6 @@ func node(root string, args Args) (string, error) {
 	// import paths with `.ts` endings. `.js` endings are fine.
 	relimport = strings.TrimSuffix(relimport, ".ts")
 
-	// TODO: test this with strict ts
-	// TODO: add some friendly errors to this shim for common errors.
 	shim := `// This file includes a shim that will execute your task code.
 import task from "../` + relimport + `"
 
