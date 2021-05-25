@@ -34,14 +34,26 @@ func node(root string, args Args) (string, error) {
 		HasYarnLock    bool
 		Shim           string
 		IsTS           bool
+		TscTarget      string
+		TscLib         string
 	}{
 		HasPackageJSON: exist(filepath.Join(root, "package.json")) == nil,
 		HasPackageLock: exist(filepath.Join(root, "package-lock.json")) == nil,
 		HasYarnLock:    exist(filepath.Join(root, "yarn.lock")) == nil,
 		IsTS:           strings.HasSuffix(entrypoint, ".ts"),
+		// https://github.com/tsconfig/bases/blob/master/bases/node16.json
+		TscTarget: "es2020",
+		TscLib:    "es2020",
 	}
 
-	cfg.Base, err = getBaseNodeImage(args["nodeVersion"])
+	nodeVersion := args["nodeVersion"]
+	// For node version 12, 12.x, etc., we need to change the ECMAScript target.
+	// https://github.com/tsconfig/bases/blob/master/bases/node12.json
+	if strings.HasPrefix(nodeVersion, "12") {
+		cfg.TscTarget = "es2019"
+		cfg.TscLib = "es2019"
+	}
+	cfg.Base, err = getBaseNodeImage(nodeVersion)
 	if err != nil {
 		return "", err
 	}
@@ -76,7 +88,19 @@ main()`
 	// To inline the shim into a Dockerfile, insert `\n\` characters:
 	cfg.Shim = strings.Join(strings.Split(shim, "\n"), "\\n\\\n")
 
-	// TODO: do we want to support buildDir and buildCommand still?
+	// The following Dockerfile can build both JS and TS tasks. In general, we're
+	// aiming for recent EC202x support and for support for import/export syntax.
+	// The former is easier, since recent versions of Node have excellent coverage
+	// of the ECMAScript spec. The latter could be achieved through ECMAScript
+	// modules (ESM), but those are not well-supported within the Node community.
+	// Basic functionality of ESM is also still in the experimental stage, such as
+	// module resolution for relative paths (f.e. ./main.js vs. ./main). Therefore,
+	// we have to fallback to a separate build step to offer import/export support.
+	// We have a few options -- f.e. babel or esbuild -- but the easiest is simply
+	// using the tsc compiler for JS projects, too.
+	//
+	// Down the road, we may want to give customers more control over this build process
+	// in which case we could introduce an extra step for performing build commands.
 	return templatize(`
 		FROM {{.Base}}
 
@@ -110,8 +134,8 @@ main()`
 			tsc \
 				--allowJs \
 				--module commonjs \
-				--target es2020 \
-				--lib es2020 \
+				--target {{.TscTarget}} \
+				--lib {{.TscLib}} \
 				--esModuleInterop \
 				--outDir .airplane-build/dist \
 				--rootDir . \
