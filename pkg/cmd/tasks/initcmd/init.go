@@ -74,9 +74,10 @@ func run(ctx context.Context, cfg config) error {
 			return err
 		}
 
-		if u, ok := r.URL(buf); ok {
+		if u, ok := r.URL(buf); ok && u == task.URL {
 			logger.Log("%s is already linked to %s", cfg.file, cfg.slug)
-			logger.Log("URL: %s", u)
+			logger.Log("You can deploy this task with:")
+			logger.Log("  airplane deploy %s", cfg.file)
 			return nil
 		}
 
