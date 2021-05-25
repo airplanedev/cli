@@ -6,6 +6,7 @@ package initcmd
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/ioutil"
 
@@ -14,6 +15,7 @@ import (
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/cmd/auth/login"
+	"github.com/airplanedev/cli/pkg/cmd/tasks/initcmd/initcompat"
 	"github.com/airplanedev/cli/pkg/fs"
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/runtime"
@@ -27,6 +29,7 @@ type config struct {
 	client *api.Client
 	file   string
 	slug   string
+	from   string
 }
 
 func New(c *cli.Config) *cobra.Command {
@@ -39,18 +42,40 @@ func New(c *cli.Config) *cobra.Command {
 			$ airplane tasks init
 			$ airplane tasks init --slug task-slug ./my/task.js
 			$ airplane tasks init --slug task-slug ./my/task.ts
+			$ airplane tasks init -f ./airplane.yml
+			$ airplane tasks init --from hello_world
 		`),
-		Args: cobra.ExactArgs(1),
+		Args: cobra.RangeArgs(0, 1),
 		PersistentPreRunE: utils.WithParentPersistentPreRunE(func(cmd *cobra.Command, args []string) error {
 			return login.EnsureLoggedIn(cmd.Root().Context(), c)
 		}),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cfg.file = args[0]
-			return run(cmd.Root().Context(), cfg)
+			var ctx = cmd.Root().Context()
+
+			if cfg.slug != "" && len(args) == 0 {
+				return errors.New("<path> is required when providing a --slug")
+			}
+
+			if len(args) == 1 {
+				if cfg.slug == "" {
+					return errors.New("--slug is required when providing a <path>")
+				}
+				cfg.file = args[0]
+				return run(ctx, cfg)
+			}
+
+			// compat
+			return initcompat.Run(ctx, initcompat.Config{
+				Client: cfg.client,
+				From:   cfg.from,
+				File:   cfg.file,
+			})
 		},
 	}
 
 	cmd.Flags().StringVar(&cfg.slug, "slug", "", "Slug of an existing task to generate from.")
+	cmd.Flags().StringVar(&cfg.from, "from", "", "Slug of an existing task to generate from")
+	cmd.Flags().StringVarP(&cfg.file, "file", "f", "", "Path to a file to store task definition")
 
 	return cmd
 }
