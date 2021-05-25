@@ -18,7 +18,7 @@ func node(root string, args Args) (string, error) {
 	// in the same way. Tasks built with the latest CLI will set
 	// shim=true which enables the new code path.
 	if shim := args["shim"]; shim != "true" {
-		return nodeOld(root, args)
+		return nodeLegacyBuilder(root, args)
 	}
 
 	// Assert that the entrypoint file exists:
@@ -158,11 +158,11 @@ func templatize(t string, data interface{}) (string, error) {
 	return buf.String(), nil
 }
 
-// nodeOld creates a dockerfile for Node (typescript/javascript).
+// nodeLegacyBuilder creates a dockerfile for Node (typescript/javascript).
 //
 // TODO(amir): possibly just run `npm start` instead of exposing lots
 // of options to users?
-func nodeOld(root string, args Args) (string, error) {
+func nodeLegacyBuilder(root string, args Args) (string, error) {
 	var entrypoint = args["entrypoint"]
 	var main = filepath.Join(root, entrypoint)
 	var deps = filepath.Join(root, "package.json")
