@@ -267,6 +267,7 @@ func (this *EnvVarValue) UnmarshalYAML(node *yaml.Node) error {
 
 // Task represents a task.
 type Task struct {
+	URL              string           `json:"-" yaml:"-"`
 	ID               string           `json:"taskID" yaml:"id"`
 	Name             string           `json:"name" yaml:"name"`
 	Slug             string           `json:"slug" yaml:"slug"`
