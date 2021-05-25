@@ -40,7 +40,6 @@ func node(root string, args Args) (string, error) {
 		HasPackageJSON: exist(filepath.Join(root, "package.json")) == nil,
 		HasPackageLock: exist(filepath.Join(root, "package-lock.json")) == nil,
 		HasYarnLock:    exist(filepath.Join(root, "yarn.lock")) == nil,
-		IsTS:           strings.HasSuffix(entrypoint, ".ts"),
 		// https://github.com/tsconfig/bases/blob/master/bases/node16.json
 		TscTarget: "es2020",
 		TscLib:    "es2020",
@@ -121,15 +120,17 @@ main()`
 		{{end}}
 
 		{{if .HasPackageLock}}
-		RUN npm install package-lock.json
+		RUN npm install package-lock.json && npm install --save-dev @types/node
 		{{else if .HasYarnLock}}
-		RUN yarn install
+		RUN yarn install && yarn add -D @types/node
+		{{else}}
+		npm install @types/node
 		{{end}}
 
 		COPY . .
 
 		RUN mkdir -p .airplane-build/dist && \
-			echo '{{.Shim}}' > .airplane-build/shim.{{if .IsTS}}ts{{else}}js{{end}} && \
+			echo '{{.Shim}}' > .airplane-build/shim.ts && \
 			cp package.json .airplane-build/dist/package.json && \
 			tsc \
 				--allowJs \
@@ -139,7 +140,7 @@ main()`
 				--esModuleInterop \
 				--outDir .airplane-build/dist \
 				--rootDir . \
-				.airplane-build/shim.{{if .IsTS}}ts{{else}}js{{end}}
+				.airplane-build/shim.ts
 		ENTRYPOINT ["node", ".airplane-build/dist/.airplane-build/shim.js"]
 	`, cfg)
 }
