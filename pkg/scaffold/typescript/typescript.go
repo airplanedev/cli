@@ -16,7 +16,7 @@ func init() {
 
 // Code template.
 var code = template.Must(template.New("ts").Parse(`
-// airplane: {{ .Slug }}
+// airplane: {{ .URL }}
 
 type Params = {
   {{- range .Params }}
@@ -31,7 +31,7 @@ export default async function(args: Params){
 
 // Data represents the data template.
 type data struct {
-	Slug   string
+	URL    string
 	Params []param
 }
 
@@ -46,7 +46,7 @@ type Generator struct{}
 
 // Generate implementation.
 func (g Generator) Generate(t api.Task) ([]byte, error) {
-	var args = data{Slug: t.Slug}
+	var args = data{URL: t.URL}
 	var params = t.Parameters
 	var buf bytes.Buffer
 
