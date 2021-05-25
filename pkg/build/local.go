@@ -54,9 +54,9 @@ func local(ctx context.Context, req Request) (*Response, error) {
 	}
 
 	logger.Log("Pushing...")
-	// if err := b.Push(ctx, resp.ImageURL); err != nil {
-	// 	return nil, errors.Wrap(err, "push")
-	// }
+	if err := b.Push(ctx, resp.ImageURL); err != nil {
+		return nil, errors.Wrap(err, "push")
+	}
 
 	return resp, nil
 }
