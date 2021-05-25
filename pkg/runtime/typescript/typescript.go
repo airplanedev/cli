@@ -6,12 +6,12 @@ import (
 	"text/template"
 
 	"github.com/airplanedev/cli/pkg/api"
-	"github.com/airplanedev/cli/pkg/scaffold"
+	"github.com/airplanedev/cli/pkg/runtime"
 )
 
-// Init register the generator.
+// Init register the runtime.
 func init() {
-	scaffold.Register(".ts", Generator{})
+	runtime.Register(".ts", Runtime{})
 }
 
 // Code template.
@@ -40,11 +40,11 @@ type param struct {
 	Type string
 }
 
-// Generator implementaton.
-type Generator struct{}
+// Runtime implementaton.
+type Runtime struct{}
 
 // Generate implementation.
-func (g Generator) Generate(t api.Task) ([]byte, error) {
+func (r Runtime) Generate(t api.Task) ([]byte, error) {
 	var args = data{URL: t.URL}
 	var params = t.Parameters
 	var buf bytes.Buffer

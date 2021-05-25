@@ -1,5 +1,11 @@
-// Package scaffold generates code to match a task.
-package scaffold
+// Package runtime generates code to match a runtime.
+//
+// The runtime package is capable of writing airplane specific
+// comments that are used to link a task file to a remote task.
+//
+// All runtimes are also capable of generating initial code to
+// match the task, including the parameters.
+package runtime
 
 import (
 	"fmt"
@@ -10,7 +16,7 @@ import (
 	"github.com/airplanedev/cli/pkg/fs"
 )
 
-// Interface repersents a generator.
+// Interface repersents a runtime.
 type Interface interface {
 	// Generate accepts a task and generates code to match the task.
 	//
@@ -18,35 +24,35 @@ type Interface interface {
 	Generate(task api.Task) ([]byte, error)
 }
 
-// Languages is a collection of registered languages.
+// Runtimes is a collection of registered runtimes.
 //
-// The key is the file extension used for the language.
-var languages = make(map[string]Interface)
+// The key is the file extension used for the runtime.
+var runtimes = make(map[string]Interface)
 
-// Register registers the given ext with gen.
-func Register(ext string, gen Interface) {
-	if _, ok := languages[ext]; ok {
-		panic(fmt.Sprintf("scaffold: %s already registered", ext))
+// Register registers the given ext with r.
+func Register(ext string, r Interface) {
+	if _, ok := runtimes[ext]; ok {
+		panic(fmt.Sprintf("runtime: %s already registered", ext))
 	}
-	languages[ext] = gen
+	runtimes[ext] = r
 }
 
-// Lookup returns a generator by ext.
+// Lookup returns a runtikme by ext.
 func Lookup(ext string) (Interface, bool) {
-	gen, ok := languages[ext]
-	return gen, ok
+	r, ok := runtimes[ext]
+	return r, ok
 }
 
 // Code returns the code for path.
 func Code(path string, t api.Task) ([]byte, error) {
 	var ext = filepath.Ext(path)
 
-	g, ok := Lookup(ext)
+	r, ok := Lookup(ext)
 	if !ok {
 		return nil, fmt.Errorf("cannot scaffold for extension %s", ext)
 	}
 
-	code, err := g.Generate(t)
+	code, err := r.Generate(t)
 	if err != nil {
 		return nil, err
 	}

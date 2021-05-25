@@ -12,8 +12,8 @@ import (
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/cmd/auth/login"
 	"github.com/airplanedev/cli/pkg/logger"
-	"github.com/airplanedev/cli/pkg/scaffold"
-	_ "github.com/airplanedev/cli/pkg/scaffold/typescript"
+	"github.com/airplanedev/cli/pkg/runtime"
+	_ "github.com/airplanedev/cli/pkg/runtime/typescript"
 	"github.com/airplanedev/cli/pkg/utils"
 	"github.com/spf13/cobra"
 )
@@ -58,7 +58,7 @@ func run(ctx context.Context, cfg config) error {
 		return err
 	}
 
-	err = scaffold.Generate(cfg.file, task)
+	err = runtime.Generate(cfg.file, task)
 	if err != nil {
 		return err
 	}
