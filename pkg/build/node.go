@@ -5,7 +5,6 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
-	"text/template"
 
 	"github.com/pkg/errors"
 )
@@ -143,20 +142,6 @@ main()`
 				.airplane-build/shim.ts
 		ENTRYPOINT ["node", ".airplane-build/dist/.airplane-build/shim.js"]
 	`, cfg)
-}
-
-func templatize(t string, data interface{}) (string, error) {
-	tmpl, err := template.New("airplane").Parse(t)
-	if err != nil {
-		return "", errors.Wrap(err, "parsing template")
-	}
-
-	var buf strings.Builder
-	if err := tmpl.Execute(&buf, data); err != nil {
-		return "", err
-	}
-
-	return buf.String(), nil
 }
 
 // nodeLegacyBuilder creates a dockerfile for Node (typescript/javascript).

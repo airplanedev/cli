@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"os"
 	"path"
 	"path/filepath"
@@ -334,4 +335,18 @@ func BuildDockerfile(c DockerfileConfig) (string, error) {
 	default:
 		return "", errors.Errorf("build: unknown builder type %q", c.Builder)
 	}
+}
+
+func templatize(t string, data interface{}) (string, error) {
+	tmpl, err := template.New("airplane").Parse(t)
+	if err != nil {
+		return "", errors.Wrap(err, "parsing template")
+	}
+
+	var buf strings.Builder
+	if err := tmpl.Execute(&buf, data); err != nil {
+		return "", err
+	}
+
+	return buf.String(), nil
 }
