@@ -69,12 +69,12 @@ type SQLDefinition struct {
 }
 
 type RESTDefinition struct {
-	Headers   []string               `yaml:"headers,omitempty" mapstructure:"headers"`
-	Method    string                 `yaml:"method" mapstructure:"method"`
-	Path      string                 `yaml:"path" mapstructure:"path"`
-	URLParams map[string]interface{} `yaml:"urlParams,omitempty" mapstructure:"urlParams"`
-	Body      string                 `yaml:"body,omitempty" mapstructure:"body"`
-	JSONBody  interface{}            `yaml:"jsonBody,omitempty" mapstructure:"jsonBody"`
+	Headers   map[string]string `yaml:"headers,omitempty" mapstructure:"headers"`
+	Method    string            `yaml:"method" mapstructure:"method"`
+	Path      string            `yaml:"path" mapstructure:"path"`
+	URLParams map[string]string `yaml:"urlParams,omitempty" mapstructure:"urlParams"`
+	Body      string            `yaml:"body,omitempty" mapstructure:"body"`
+	JSONBody  interface{}       `yaml:"jsonBody,omitempty" mapstructure:"jsonBody"`
 }
 
 func (d Definition_0_2) upgrade() (Definition, error) {
