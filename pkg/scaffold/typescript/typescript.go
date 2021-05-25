@@ -15,8 +15,7 @@ func init() {
 }
 
 // Code template.
-var code = template.Must(template.New("ts").Parse(`
-// airplane: {{ .URL }}
+var code = template.Must(template.New("ts").Parse(`// airplane: {{ .URL }}
 
 type Params = {
   {{- range .Params }}
