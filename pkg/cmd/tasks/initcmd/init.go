@@ -76,8 +76,7 @@ func run(ctx context.Context, cfg config) error {
 
 		if u, ok := r.URL(buf); ok && u == task.URL {
 			logger.Log("%s is already linked to %s", cfg.file, cfg.slug)
-			logger.Log("You can deploy this task with:")
-			logger.Log("  airplane deploy %s", cfg.file)
+			suggestDeploy(cfg.file)
 			return nil
 		}
 
@@ -100,6 +99,7 @@ func run(ctx context.Context, cfg config) error {
 		}
 
 		logger.Log("Linked %s to %s", cfg.file, cfg.slug)
+		suggestDeploy(cfg.file)
 		return nil
 	}
 
@@ -113,7 +113,14 @@ func run(ctx context.Context, cfg config) error {
 	}
 
 	logger.Log("Initialized a task at %s", cfg.file)
+	suggestDeploy(cfg.file)
 	return nil
+}
+
+// SuggestDeploy suggests a deploy to the user.
+func suggestDeploy(file string) {
+	logger.Log("You can deploy this task with:")
+	logger.Log("  airplane deploy %s", file)
 }
 
 // Patch asks the user if he would like to patch a file
