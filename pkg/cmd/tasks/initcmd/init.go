@@ -6,11 +6,15 @@ package initcmd
 
 import (
 	"context"
+	"fmt"
+	"io/ioutil"
 
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/MakeNowJust/heredoc"
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/cmd/auth/login"
+	"github.com/airplanedev/cli/pkg/fs"
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/runtime"
 	_ "github.com/airplanedev/cli/pkg/runtime/typescript"
@@ -58,11 +62,68 @@ func run(ctx context.Context, cfg config) error {
 		return err
 	}
 
-	err = runtime.Generate(cfg.file, task)
+	r, ok := runtime.Lookup(cfg.file)
+	if !ok {
+		return fmt.Errorf("cannot find a runtime that matches %s", cfg.file)
+	}
+
+	if fs.Exists(cfg.file) {
+		buf, err := ioutil.ReadFile(cfg.file)
+		if err != nil {
+			return err
+		}
+
+		if u, ok := r.URL(buf); ok {
+			logger.Log("%s is already linked to %s", cfg.file, cfg.slug)
+			logger.Log("URL: %s", u)
+			return nil
+		}
+
+		patch, err := patch(cfg.slug, cfg.file)
+		if err != nil {
+			return err
+		}
+
+		if !patch {
+			logger.Log("You canceled linking %s to %s", cfg.file, cfg.slug)
+			return nil
+		}
+
+		code := []byte(r.Comment(task))
+		code = append(code, '\n', '\n')
+		code = append(code, buf...)
+
+		if err := ioutil.WriteFile(cfg.file, code, 0644); err != nil {
+			return err
+		}
+
+		logger.Log("Linked %s to %s", cfg.file, cfg.slug)
+		return nil
+	}
+
+	code, err := r.Generate(task)
 	if err != nil {
+		return err
+	}
+
+	if err := ioutil.WriteFile(cfg.file, code, 0644); err != nil {
 		return err
 	}
 
 	logger.Log("Initialized a task at %s", cfg.file)
 	return nil
+}
+
+// Patch asks the user if he would like to patch a file
+// and add the airplane special comment.
+func patch(slug, file string) (ok bool, err error) {
+	err = survey.AskOne(
+		&survey.Confirm{
+			Message: fmt.Sprintf("Would you like to link %s to %s?", file, slug),
+			Help:    "Linking this file will add a special airplane comment.",
+			Default: false,
+		},
+		&ok,
+	)
+	return
 }
