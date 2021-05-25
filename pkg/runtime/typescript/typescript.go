@@ -1,8 +1,11 @@
 package typescript
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
+	"net/url"
+	"strings"
 	"text/template"
 
 	"github.com/airplanedev/cli/pkg/api"
@@ -61,6 +64,35 @@ func (r Runtime) Generate(t api.Task) ([]byte, error) {
 	}
 
 	return buf.Bytes(), nil
+}
+
+// URL implementation.
+func (r Runtime) URL(code []byte) (string, bool) {
+	var s = bufio.NewScanner(bytes.NewReader(code))
+
+	for s.Scan() {
+		var line = strings.TrimSpace(s.Text())
+		var parts = strings.Fields(line)
+		var rawurl = parts[len(parts)-1]
+
+		if !strings.HasPrefix(line, "// airplane:") {
+			return "", false
+		}
+
+		u, err := url.Parse(rawurl)
+		if err != nil {
+			return "", false
+		}
+
+		return u.String(), true
+	}
+
+	return "", false
+}
+
+// Comment implementation.
+func (r Runtime) Comment(t api.Task) string {
+	return fmt.Sprintf("// airplane: %s", t.URL)
 }
 
 // Typeof translates the given type to typescript.

@@ -9,11 +9,9 @@ package runtime
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 
 	"github.com/airplanedev/cli/pkg/api"
-	"github.com/airplanedev/cli/pkg/fs"
 )
 
 // Interface repersents a runtime.
@@ -22,6 +20,17 @@ type Interface interface {
 	//
 	// An error is returned if the code cannot be generated.
 	Generate(task api.Task) ([]byte, error)
+
+	// URL returns the URL from the given code.
+	//
+	// If the comment was not found in code, the method
+	// returns empty string and false.
+	URL(code []byte) (string, bool)
+
+	// Comment returns a special airplane comment.
+	//
+	// The comment links a remote task to a file.
+	Comment(task api.Task) string
 }
 
 // Runtimes is a collection of registered runtimes.
@@ -37,39 +46,9 @@ func Register(ext string, r Interface) {
 	runtimes[ext] = r
 }
 
-// Lookup returns a runtikme by ext.
-func Lookup(ext string) (Interface, bool) {
+// Lookup returns a runtime by path.
+func Lookup(path string) (Interface, bool) {
+	ext := filepath.Ext(path)
 	r, ok := runtimes[ext]
 	return r, ok
-}
-
-// Code returns the code for path.
-func Code(path string, t api.Task) ([]byte, error) {
-	var ext = filepath.Ext(path)
-
-	r, ok := Lookup(ext)
-	if !ok {
-		return nil, fmt.Errorf("cannot scaffold for extension %s", ext)
-	}
-
-	code, err := r.Generate(t)
-	if err != nil {
-		return nil, err
-	}
-
-	return code, nil
-}
-
-// Generate attempts to generate code for task and writes it to path.
-func Generate(path string, t api.Task) error {
-	if fs.Exists(path) {
-		return fmt.Errorf("path %s already exists", path)
-	}
-
-	code, err := Code(path, t)
-	if err != nil {
-		return err
-	}
-
-	return os.WriteFile(path, code, 0644)
 }
