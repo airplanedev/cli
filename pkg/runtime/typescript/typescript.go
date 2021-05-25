@@ -77,8 +77,9 @@ func typeof(t api.Type) string {
 		return "boolean"
 	case api.TypeString:
 		return "string"
+	case api.TypeUpload:
+		return "string"
 	default:
-		// TODO(amir): ideally how do we convert upload this type in typescript.
 		return "unknown"
 	}
 }
