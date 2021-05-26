@@ -38,7 +38,7 @@ func promptForParamValues(client *api.Client, task api.Task, paramValues map[str
 	}
 
 	logger.Log("You are about to run %s:", logger.Bold(task.Name))
-	logger.Log(logger.Gray(client.TaskURL(task.ID)))
+	logger.Log(logger.Gray(client.TaskURL(task.Slug)))
 	logger.Log("")
 
 	for _, param := range task.Parameters {

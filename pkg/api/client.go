@@ -79,10 +79,10 @@ func (c Client) RunURL(id string) string {
 	return u.String()
 }
 
-// TaskURL returns a task URL for a task ID.
-func (c Client) TaskURL(id string) string {
+// TaskURL returns a task URL for a task slug.
+func (c Client) TaskURL(slug string) string {
 	u := c.appURL()
-	u.Path = "/tasks/" + id
+	u.Path = "/t/" + slug
 	return u.String()
 }
 
@@ -117,7 +117,7 @@ func (c Client) ListTasks(ctx context.Context) (res ListTasksResponse, err error
 		return
 	}
 	for j, t := range res.Tasks {
-		res.Tasks[j].URL = c.TaskURL(t.ID)
+		res.Tasks[j].URL = c.TaskURL(t.Slug)
 	}
 	return
 }
@@ -193,7 +193,7 @@ func (c Client) GetTask(ctx context.Context, slug string) (res Task, err error) 
 	if err != nil {
 		return
 	}
-	res.URL = c.TaskURL(res.ID)
+	res.URL = c.TaskURL(res.Slug)
 	return
 }
 

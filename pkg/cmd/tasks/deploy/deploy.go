@@ -88,6 +88,7 @@ func run(ctx context.Context, cfg config) error {
 	}
 
 	var taskID string
+	var slug string
 	task, err := client.GetTask(ctx, def.Slug)
 	if err == nil {
 		// This task already exists, so we update it:
@@ -114,6 +115,7 @@ func run(ctx context.Context, cfg config) error {
 		}
 
 		taskID = task.ID
+		slug = task.Slug
 	} else if aerr, ok := err.(api.Error); ok && aerr.Code == 404 {
 		// A task with this slug does not exist, so we should create one.
 		logger.Log("Creating task...")
@@ -139,6 +141,7 @@ func run(ctx context.Context, cfg config) error {
 		}
 
 		taskID = res.TaskID
+		slug = res.Slug
 	} else {
 		return errors.Wrap(err, "getting task")
 	}
@@ -184,7 +187,7 @@ func run(ctx context.Context, cfg config) error {
 	logger.Log(`
 To execute %s:
 - From the CLI: %s
-- From the UI: %s`, def.Name, cmd, client.TaskURL(taskID))
+- From the UI: %s`, def.Name, cmd, client.TaskURL(slug))
 
 	return nil
 }
