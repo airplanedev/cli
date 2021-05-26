@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"fmt"
 	"net/url"
+	"path"
 	"strings"
 	"text/template"
 
@@ -45,8 +46,8 @@ func (r Runtime) Generate(t api.Task) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// URL implementation.
-func (r Runtime) URL(code []byte) (string, bool) {
+// Slug implementation.
+func (r Runtime) Slug(code []byte) (string, bool) {
 	var s = bufio.NewScanner(bytes.NewReader(code))
 
 	for s.Scan() {
@@ -62,7 +63,8 @@ func (r Runtime) URL(code []byte) (string, bool) {
 			return "", false
 		}
 
-		return u.String(), true
+		_, slug := path.Split(u.Path)
+		return slug, len(slug) > 0
 	}
 
 	return "", false

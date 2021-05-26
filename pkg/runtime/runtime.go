@@ -21,11 +21,11 @@ type Interface interface {
 	// An error is returned if the code cannot be generated.
 	Generate(task api.Task) ([]byte, error)
 
-	// URL returns the URL from the given code.
+	// Slug returns the slug from the given code.
 	//
 	// If the comment was not found in code, the method
 	// returns empty string and false.
-	URL(code []byte) (string, bool)
+	Slug(code []byte) (string, bool)
 
 	// Comment returns a special airplane comment.
 	//
