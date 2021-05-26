@@ -49,10 +49,7 @@ func (t Table) tasks(tasks []api.Task) {
 	tw.SetCaption(true, "* indicates a required parameter")
 
 	for _, t := range tasks {
-		var builder = string(t.Kind)
-		if builder == "" {
-			builder = "manual"
-		}
+		builder := string(t.Kind)
 
 		var parametersStr string
 		if len(t.Parameters) > 0 {
@@ -91,9 +88,6 @@ func (t Table) tasks(tasks []api.Task) {
 // Task implementation.
 func (t Table) task(task api.Task) {
 	builderStr := task.Kind
-	if task.Kind == "" {
-		builderStr = "manual"
-	}
 
 	fmt.Fprintln(os.Stdout, "Name:       ", task.Name)
 	fmt.Fprintln(os.Stdout, "Slug:       ", task.Slug)

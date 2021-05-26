@@ -120,7 +120,7 @@ func New(c LocalConfig) (*Builder, error) {
 	}
 
 	if c.Builder == "" {
-		c.Builder = "dockerimage"
+		c.Builder = string(BuilderNameDockerfile)
 	}
 
 	if c.Args == nil {
@@ -304,11 +304,12 @@ func exist(paths ...string) error {
 type BuilderName string
 
 const (
-	BuilderNameGo         BuilderName = "go"
-	BuilderNameDeno       BuilderName = "deno"
-	BuilderNamePython     BuilderName = "python"
-	BuilderNameNode       BuilderName = "node"
-	BuilderNameDockerfile BuilderName = "dockerfile"
+	BuilderNameGo          BuilderName = "go"
+	BuilderNameDeno        BuilderName = "deno"
+	BuilderNamePython      BuilderName = "python"
+	BuilderNameNode        BuilderName = "node"
+	BuilderNameDockerfile  BuilderName = "dockerfile"
+	BuilderNameDockerimage BuilderName = "dockerimage"
 )
 
 func NeedsBuilding(kind api.TaskKind) bool {
