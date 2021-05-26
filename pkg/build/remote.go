@@ -200,7 +200,7 @@ func getIgnorePatterns(path string, kind api.TaskKind) ([]string, error) {
 			"dist",
 			".yarn",
 		}...), nil
-	case BuilderNameDocker:
+	case BuilderNameDockerfile:
 		return defaultExcludes, nil
 	default:
 		return nil, errors.Errorf("build: unknown builder type %s", kind)

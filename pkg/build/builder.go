@@ -301,9 +301,19 @@ func exist(paths ...string) error {
 	return nil
 }
 
+type BuilderName string
+
+const (
+	BuilderNameGo         BuilderName = "go"
+	BuilderNameDeno       BuilderName = "deno"
+	BuilderNamePython     BuilderName = "python"
+	BuilderNameNode       BuilderName = "node"
+	BuilderNameDockerfile BuilderName = "dockerfile"
+)
+
 func NeedsBuilding(kind api.TaskKind) bool {
-	switch kind {
-	case api.TaskKindGo, api.TaskKindDeno, api.TaskKindPython, api.TaskKindNode, api.TaskKindDockerfile:
+	switch BuilderName(kind) {
+	case BuilderNameGo, BuilderNameDeno, BuilderNamePython, BuilderNameNode, BuilderNameDockerfile:
 		return true
 	default:
 		return false
@@ -311,16 +321,16 @@ func NeedsBuilding(kind api.TaskKind) bool {
 }
 
 func BuildDockerfile(c DockerfileConfig) (string, error) {
-	switch c.Builder {
-	case api.TaskKindGo:
+	switch BuilderName(c.Builder) {
+	case BuilderNameGo:
 		return golang(c.Root, c.Args)
-	case api.TaskKindDeno:
+	case BuilderNameDeno:
 		return deno(c.Root, c.Args)
-	case api.TaskKindPython:
+	case BuilderNamePython:
 		return python(c.Root, c.Args)
-	case api.TaskKindNode:
+	case BuilderNameNode:
 		return node(c.Root, c.Args)
-	case api.TaskKindDockerfile:
+	case BuilderNameDockerfile:
 		return dockerfile(c.Root, c.Args)
 	default:
 		return "", errors.Errorf("build: unknown builder type %q", c.Builder)
