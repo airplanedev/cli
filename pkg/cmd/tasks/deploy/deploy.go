@@ -82,9 +82,9 @@ func run(ctx context.Context, cfg config) error {
 
 	var image string
 	var command []string
-	if def.Manual != nil {
-		image = def.Manual.Image
-		command = def.Manual.Command
+	if def.Dockerimage != nil {
+		image = def.Dockerimage.Image
+		command = def.Dockerimage.Command
 	}
 
 	var taskID string

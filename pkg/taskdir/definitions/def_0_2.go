@@ -17,12 +17,12 @@ type Definition_0_2 struct {
 	Repo             string               `yaml:"repo,omitempty"`
 	Timeout          int                  `yaml:"timeout,omitempty"`
 
-	Manual     *ManualDefinition `yaml:"manual,omitempty"`
-	Deno       *DenoDefinition   `yaml:"deno,omitempty"`
-	Dockerfile *DockerDefinition `yaml:"dockerfile,omitempty"`
-	Go         *GoDefinition     `yaml:"go,omitempty"`
-	Node       *NodeDefinition   `yaml:"node,omitempty"`
-	Python     *PythonDefinition `yaml:"python,omitempty"`
+	Deno        *DenoDefinition        `yaml:"deno,omitempty"`
+	Dockerimage *DockerimageDefinition `yaml:"dockerimage,omitempty"`
+	Dockerfile  *DockerfileDefinition  `yaml:"dockerfile,omitempty"`
+	Go          *GoDefinition          `yaml:"go,omitempty"`
+	Node        *NodeDefinition        `yaml:"node,omitempty"`
+	Python      *PythonDefinition      `yaml:"python,omitempty"`
 
 	SQL  *SQLDefinition  `yaml:"sql,omitempty"`
 	REST *RESTDefinition `yaml:"rest,omitempty"`
@@ -33,11 +33,11 @@ type Definition_0_2 struct {
 	//
 	// If not set, defaults to "." (in other words, the parent directory of this task definition).
 	//
-	// This field is ignored when using the pre-built image builder (aka "manual").
+	// This field is ignored when using the dockerimage builder.
 	Root string `yaml:"root,omitempty"`
 }
 
-type ManualDefinition struct {
+type DockerimageDefinition struct {
 	Image   string   `yaml:"image,omitempty"`
 	Command []string `yaml:"command,omitempty"`
 }
@@ -46,7 +46,7 @@ type DenoDefinition struct {
 	Entrypoint string `yaml:"entrypoint" mapstructure:"entrypoint"`
 }
 
-type DockerDefinition struct {
+type DockerfileDefinition struct {
 	Dockerfile string `yaml:"dockerfile" mapstructure:"dockerfile"`
 }
 

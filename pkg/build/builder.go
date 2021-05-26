@@ -77,10 +77,10 @@ type LocalConfig struct {
 
 	// Builder is the builder name to use.
 	//
-	// There are various built-in builders, along with the docker
-	// builder and manual builder.
+	// There are various built-in builders, along with the dockerfile
+	// builder and dockerimage builder.
 	//
-	// If empty, it assumes a manual builder.
+	// If empty, it assumes a dockerimage builder.
 	Builder string
 
 	// Args are the build arguments to use.
@@ -120,7 +120,7 @@ func New(c LocalConfig) (*Builder, error) {
 	}
 
 	if c.Builder == "" {
-		c.Builder = "manual"
+		c.Builder = "dockerimage"
 	}
 
 	if c.Args == nil {
@@ -301,19 +301,9 @@ func exist(paths ...string) error {
 	return nil
 }
 
-type BuilderName string
-
-const (
-	BuilderNameGo     BuilderName = "go"
-	BuilderNameDeno   BuilderName = "deno"
-	BuilderNamePython BuilderName = "python"
-	BuilderNameNode   BuilderName = "node"
-	BuilderNameDocker BuilderName = "docker"
-)
-
 func NeedsBuilding(kind api.TaskKind) bool {
-	switch BuilderName(kind) {
-	case BuilderNameGo, BuilderNameDeno, BuilderNamePython, BuilderNameNode, BuilderNameDocker:
+	switch kind {
+	case api.TaskKindGo, api.TaskKindDeno, api.TaskKindPython, api.TaskKindNode, api.TaskKindDockerfile:
 		return true
 	default:
 		return false
@@ -321,17 +311,17 @@ func NeedsBuilding(kind api.TaskKind) bool {
 }
 
 func BuildDockerfile(c DockerfileConfig) (string, error) {
-	switch BuilderName(c.Builder) {
-	case BuilderNameGo:
+	switch c.Builder {
+	case api.TaskKindGo:
 		return golang(c.Root, c.Args)
-	case BuilderNameDeno:
+	case api.TaskKindDeno:
 		return deno(c.Root, c.Args)
-	case BuilderNamePython:
+	case api.TaskKindPython:
 		return python(c.Root, c.Args)
-	case BuilderNameNode:
+	case api.TaskKindNode:
 		return node(c.Root, c.Args)
-	case BuilderNameDocker:
-		return docker(c.Root, c.Args)
+	case api.TaskKindDockerfile:
+		return dockerfile(c.Root, c.Args)
 	default:
 		return "", errors.Errorf("build: unknown builder type %q", c.Builder)
 	}

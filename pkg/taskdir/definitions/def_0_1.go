@@ -28,7 +28,7 @@ type Definition_0_1 struct {
 	//
 	// If not set, defaults to "." (in other words, the parent directory of this task definition).
 	//
-	// This field is ignored when using the pre-built image builder (aka "manual").
+	// This field is ignored when using the dockerimage builder.
 	Root string `yaml:"root,omitempty"`
 }
 
@@ -52,10 +52,16 @@ func (d Definition_0_1) upgrade() (Definition, error) {
 			return Definition{}, errors.Wrap(err, "decoding Deno options")
 		}
 
-	} else if d.Builder == "docker" {
-		def.Dockerfile = &DockerDefinition{}
+	} else if d.Builder == "dockerfile" {
+		def.Dockerfile = &DockerfileDefinition{}
 		if err := mapstructure.Decode(d.BuilderConfig, &def.Dockerfile); err != nil {
 			return Definition{}, errors.Wrap(err, "decoding Dockerfile options")
+		}
+
+	} else if d.Builder == "dockerimage" {
+		def.Dockerimage = &DockerimageDefinition{
+			Image:   d.Image,
+			Command: d.Command,
 		}
 
 	} else if d.Builder == "go" {
@@ -76,11 +82,6 @@ func (d Definition_0_1) upgrade() (Definition, error) {
 			return Definition{}, errors.Wrap(err, "decoding Python options")
 		}
 
-	} else if d.Builder == "" {
-		def.Manual = &ManualDefinition{
-			Image:   d.Image,
-			Command: d.Command,
-		}
 	}
 
 	return def.upgrade()

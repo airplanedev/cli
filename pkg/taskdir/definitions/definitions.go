@@ -36,8 +36,8 @@ func NewDefinitionFromTask(task api.Task) (Definition, error) {
 		def.Deno = &DenoDefinition{}
 		taskDef = &def.Deno
 
-	} else if task.Kind == api.TaskKindDocker {
-		def.Dockerfile = &DockerDefinition{}
+	} else if task.Kind == api.TaskKindDockerfile {
+		def.Dockerfile = &DockerfileDefinition{}
 		taskDef = &def.Dockerfile
 
 	} else if task.Kind == api.TaskKindGo {
@@ -52,8 +52,8 @@ func NewDefinitionFromTask(task api.Task) (Definition, error) {
 		def.Python = &PythonDefinition{}
 		taskDef = &def.Python
 
-	} else if task.Kind == api.TaskKindManual {
-		def.Manual = &ManualDefinition{
+	} else if task.Kind == api.TaskKindDockerimage {
+		def.Dockerimage = &DockerimageDefinition{
 			Image:   task.Image,
 			Command: task.Command,
 		}
@@ -90,7 +90,9 @@ func (this Definition) GetKindAndOptions() (api.TaskKind, api.KindOptions, error
 		if err := mapstructure.Decode(this.Dockerfile, &options); err != nil {
 			return "", api.KindOptions{}, errors.Wrap(err, "decoding Dockerfile definition")
 		}
-		return api.TaskKindDocker, options, nil
+		return api.TaskKindDockerfile, options, nil
+	} else if this.Dockerimage != nil {
+		return api.TaskKindDockerimage, api.KindOptions{}, nil
 	} else if this.Go != nil {
 		if err := mapstructure.Decode(this.Go, &options); err != nil {
 			return "", api.KindOptions{}, errors.Wrap(err, "decoding Go definition")
@@ -111,8 +113,6 @@ func (this Definition) GetKindAndOptions() (api.TaskKind, api.KindOptions, error
 			return "", api.KindOptions{}, errors.Wrap(err, "decoding Python definition")
 		}
 		return api.TaskKindPython, options, nil
-	} else if this.Manual != nil {
-		return api.TaskKindManual, api.KindOptions{}, nil
 	} else if this.SQL != nil {
 		if err := mapstructure.Decode(this.SQL, &options); err != nil {
 			return "", api.KindOptions{}, errors.Wrap(err, "decoding SQL definition")
@@ -134,14 +134,14 @@ func (this Definition) Validate() (Definition, error) {
 	}
 
 	defs := []string{}
-	if this.Manual != nil {
-		defs = append(defs, "manual")
-	}
 	if this.Deno != nil {
 		defs = append(defs, "deno")
 	}
 	if this.Dockerfile != nil {
 		defs = append(defs, "dockerfile")
+	}
+	if this.Dockerimage != nil {
+		defs = append(defs, "dockerimage")
 	}
 	if this.Go != nil {
 		defs = append(defs, "go")
