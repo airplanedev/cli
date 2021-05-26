@@ -74,6 +74,10 @@ func run(ctx context.Context, cfg config) error {
 		return err
 	}
 
+	if task.Kind != api.TaskKindNode {
+		return fmt.Errorf("cannot link %q to a non node.js task", cfg.file)
+	}
+
 	if fs.Exists(cfg.file) {
 		buf, err := ioutil.ReadFile(cfg.file)
 		if err != nil {
