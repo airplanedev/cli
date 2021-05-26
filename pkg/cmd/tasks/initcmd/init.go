@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"path/filepath"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/MakeNowJust/heredoc"
@@ -45,27 +46,32 @@ func New(c *cli.Config) *cobra.Command {
 			return login.EnsureLoggedIn(cmd.Root().Context(), c)
 		}),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			cfg.file = args[0]
 			return run(cmd.Root().Context(), cfg)
 		},
 	}
 
 	cmd.Flags().StringVar(&cfg.slug, "slug", "", "Slug of an existing task to generate from.")
-	cmd.Flags().StringVarP(&cfg.file, "file", "f", "", "Path to a file to store task definition")
 
 	return cmd
 }
 
 func run(ctx context.Context, cfg config) error {
+	var ext = filepath.Ext(cfg.file)
 	var client = cfg.client
 
-	task, err := client.GetTask(ctx, cfg.slug)
-	if err != nil {
-		return err
+	if ext == "" {
+		return fmt.Errorf("expected <path> %q to have a file extension", cfg.file)
 	}
 
 	r, ok := runtime.Lookup(cfg.file)
 	if !ok {
-		return fmt.Errorf("cannot find a runtime that matches %s", cfg.file)
+		return fmt.Errorf("unable to deploy task with %q file extension", ext)
+	}
+
+	task, err := client.GetTask(ctx, cfg.slug)
+	if err != nil {
+		return err
 	}
 
 	if fs.Exists(cfg.file) {
