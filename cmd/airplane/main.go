@@ -37,7 +37,7 @@ func main() {
 			logger.Log("")
 			logger.Log(exerr.ExplainError())
 		} else {
-			logger.Log(logger.Red("Error: %s", errors.Cause(err).Error()))
+			logger.Error(errors.Cause(err).Error())
 		}
 		logger.Log("")
 

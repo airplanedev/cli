@@ -113,6 +113,12 @@ func (c Client) UpdateTask(ctx context.Context, req UpdateTaskRequest) (res Upda
 // ListTasks lists all tasks.
 func (c Client) ListTasks(ctx context.Context) (res ListTasksResponse, err error) {
 	err = c.do(ctx, "GET", "/tasks/list", nil, &res)
+	if err != nil {
+		return
+	}
+	for j, t := range res.Tasks {
+		res.Tasks[j].URL = c.TaskURL(t.ID)
+	}
 	return
 }
 
@@ -184,6 +190,10 @@ func (c Client) GetOutputs(ctx context.Context, runID string) (res GetOutputsRes
 func (c Client) GetTask(ctx context.Context, slug string) (res Task, err error) {
 	q := url.Values{"slug": []string{slug}}
 	err = c.do(ctx, "GET", "/tasks/get?"+q.Encode(), nil, &res)
+	if err != nil {
+		return
+	}
+	res.URL = c.TaskURL(res.ID)
 	return
 }
 
