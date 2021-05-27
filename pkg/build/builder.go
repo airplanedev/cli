@@ -77,10 +77,10 @@ type LocalConfig struct {
 
 	// Builder is the builder name to use.
 	//
-	// There are various built-in builders, along with the dockerfile
-	// builder and dockerimage builder.
+	// There are various built-in builders, along with the docker_file
+	// builder and docker_image builder.
 	//
-	// If empty, it assumes a dockerimage builder.
+	// If empty, it assumes a docker_image builder.
 	Builder string
 
 	// Args are the build arguments to use.
@@ -120,7 +120,7 @@ func New(c LocalConfig) (*Builder, error) {
 	}
 
 	if c.Builder == "" {
-		c.Builder = string(BuilderNameDockerfile)
+		c.Builder = string(NameDockerfile)
 	}
 
 	if c.Args == nil {
@@ -301,20 +301,21 @@ func exist(paths ...string) error {
 	return nil
 }
 
-type BuilderName string
+// TODO: this can merge with TaskKind
+type Name string
 
 const (
-	BuilderNameGo          BuilderName = "go"
-	BuilderNameDeno        BuilderName = "deno"
-	BuilderNamePython      BuilderName = "python"
-	BuilderNameNode        BuilderName = "node"
-	BuilderNameDockerfile  BuilderName = "dockerfile"
-	BuilderNameDockerimage BuilderName = "dockerimage"
+	NameGo          Name = "go"
+	NameDeno        Name = "deno"
+	NamePython      Name = "python"
+	NameNode        Name = "node"
+	NameDockerfile  Name = "dockerfile"
+	NameDockerimage Name = "dockerimage"
 )
 
 func NeedsBuilding(kind api.TaskKind) bool {
-	switch BuilderName(kind) {
-	case BuilderNameGo, BuilderNameDeno, BuilderNamePython, BuilderNameNode, BuilderNameDockerfile:
+	switch Name(kind) {
+	case NameGo, NameDeno, NamePython, NameNode, NameDockerfile:
 		return true
 	default:
 		return false
@@ -322,16 +323,16 @@ func NeedsBuilding(kind api.TaskKind) bool {
 }
 
 func BuildDockerfile(c DockerfileConfig) (string, error) {
-	switch BuilderName(c.Builder) {
-	case BuilderNameGo:
+	switch Name(c.Builder) {
+	case NameGo:
 		return golang(c.Root, c.Args)
-	case BuilderNameDeno:
+	case NameDeno:
 		return deno(c.Root, c.Args)
-	case BuilderNamePython:
+	case NamePython:
 		return python(c.Root, c.Args)
-	case BuilderNameNode:
+	case NameNode:
 		return node(c.Root, c.Args)
-	case BuilderNameDockerfile:
+	case NameDockerfile:
 		return dockerfile(c.Root, c.Args)
 	default:
 		return "", errors.Errorf("build: unknown builder type %q", c.Builder)
