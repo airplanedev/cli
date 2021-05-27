@@ -90,7 +90,7 @@ func run(ctx context.Context, cfg config) error {
 	var taskID string
 	task, err := client.GetTask(ctx, def.Slug)
 	if err == nil {
-		// This task already exists, so update it.
+		// This task already exists, so we update it:
 		logger.Log("Updating task...")
 		_, err := client.UpdateTask(ctx, api.UpdateTaskRequest{
 			// Only update kind/kindOptions since the remote build will

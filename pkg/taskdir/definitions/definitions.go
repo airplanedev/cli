@@ -54,8 +54,10 @@ func NewDefinitionFromTask(task api.Task) (Definition, error) {
 
 	} else if task.Kind == api.TaskKindManual {
 		def.Manual = &ManualDefinition{
-			Image:   task.Image,
 			Command: task.Command,
+		}
+		if task.Image != nil {
+			def.Manual.Image = *task.Image
 		}
 
 	} else if task.Kind == api.TaskKindSQL {
