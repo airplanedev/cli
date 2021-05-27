@@ -77,10 +77,10 @@ type LocalConfig struct {
 
 	// Builder is the builder name to use.
 	//
-	// There are various built-in builders, along with the docker_file
-	// builder and docker_image builder.
+	// There are various built-in builders, along with the dockerfile
+	// builder and image builder.
 	//
-	// If empty, it assumes a docker_image builder.
+	// If empty, it assumes the "image" builder.
 	Builder string
 
 	// Args are the build arguments to use.
@@ -120,7 +120,7 @@ func New(c LocalConfig) (*Builder, error) {
 	}
 
 	if c.Builder == "" {
-		c.Builder = string(NameDockerfile)
+		c.Builder = string(NameImage)
 	}
 
 	if c.Args == nil {
