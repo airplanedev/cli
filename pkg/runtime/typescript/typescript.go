@@ -16,7 +16,7 @@ func init() {
 }
 
 // Code template.
-var code = template.Must(template.New("ts").Parse(`// airplane: {{ .URL }}
+var code = template.Must(template.New("ts").Parse(`{{.Comment}}
 
 type Params = {
   {{- range .Params }}
@@ -31,8 +31,8 @@ export default async function(args: Params){
 
 // Data represents the data template.
 type data struct {
-	URL    string
-	Params []param
+	Comment string
+	Params  []param
 }
 
 // Param represents the parameter.
@@ -48,7 +48,7 @@ type Runtime struct {
 
 // Generate implementation.
 func (r Runtime) Generate(t api.Task) ([]byte, error) {
-	var args = data{URL: t.URL}
+	var args = data{Comment: r.Comment(t)}
 	var params = t.Parameters
 	var buf bytes.Buffer
 

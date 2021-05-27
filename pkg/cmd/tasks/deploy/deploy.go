@@ -187,7 +187,7 @@ func run(ctx context.Context, cfg config) error {
 	logger.Log(`
 To execute %s:
 - From the CLI: %s
-- From the UI: %s`, def.Name, cmd, client.TaskURL(task.ID))
+- From the UI: %s`, def.Name, cmd, client.TaskURL(def.Slug))
 
 	return nil
 }

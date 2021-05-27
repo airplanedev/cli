@@ -74,13 +74,17 @@ func run(ctx context.Context, cfg config) error {
 		return err
 	}
 
+	if task.Kind != api.TaskKindNode {
+		return fmt.Errorf("cannot link %q to a non node.js task", cfg.file)
+	}
+
 	if fs.Exists(cfg.file) {
 		buf, err := ioutil.ReadFile(cfg.file)
 		if err != nil {
 			return err
 		}
 
-		if u, ok := r.URL(buf); ok && u == task.URL {
+		if slug, ok := r.Slug(buf); ok && slug == task.Slug {
 			logger.Log("%s is already linked to %s", cfg.file, cfg.slug)
 			suggestDeploy(cfg.file)
 			return nil

@@ -74,7 +74,7 @@ func run(ctx context.Context, cfg config) error {
 		return errors.Wrap(err, "get task")
 	}
 
-	taskURL := client.TaskURL(task.ID)
+	taskURL := client.TaskURL(task.Slug)
 	logger.Log("Opening %s", taskURL)
 	if !utils.Open(taskURL) {
 		logger.Log("Could not open browser - try copying and pasting the above URL")
