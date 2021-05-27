@@ -42,7 +42,7 @@ func GetVersions() (Versions, error) {
 	return versions, nil
 }
 
-func GetVersion(builder BuilderName, version string) (Version, error) {
+func GetVersion(builder Name, version string) (Version, error) {
 	versions, err := GetVersions()
 	if err != nil {
 		return Version{}, err

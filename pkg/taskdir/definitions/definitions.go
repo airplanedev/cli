@@ -52,8 +52,8 @@ func NewDefinitionFromTask(task api.Task) (Definition, error) {
 		def.Python = &PythonDefinition{}
 		taskDef = &def.Python
 
-	} else if task.Kind == api.TaskKindDockerimage {
-		def.Dockerimage = &DockerimageDefinition{
+	} else if task.Kind == api.TaskKindImage {
+		def.Image = &ImageDefinition{
 			Image:   task.Image,
 			Command: task.Command,
 		}
@@ -91,8 +91,8 @@ func (this Definition) GetKindAndOptions() (api.TaskKind, api.KindOptions, error
 			return "", api.KindOptions{}, errors.Wrap(err, "decoding Dockerfile definition")
 		}
 		return api.TaskKindDockerfile, options, nil
-	} else if this.Dockerimage != nil {
-		return api.TaskKindDockerimage, api.KindOptions{}, nil
+	} else if this.Image != nil {
+		return api.TaskKindImage, api.KindOptions{}, nil
 	} else if this.Go != nil {
 		if err := mapstructure.Decode(this.Go, &options); err != nil {
 			return "", api.KindOptions{}, errors.Wrap(err, "decoding Go definition")
@@ -140,8 +140,8 @@ func (this Definition) Validate() (Definition, error) {
 	if this.Dockerfile != nil {
 		defs = append(defs, "dockerfile")
 	}
-	if this.Dockerimage != nil {
-		defs = append(defs, "dockerimage")
+	if this.Image != nil {
+		defs = append(defs, "image")
 	}
 	if this.Go != nil {
 		defs = append(defs, "go")

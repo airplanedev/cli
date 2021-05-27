@@ -50,12 +50,12 @@ type UpdateTaskRequest struct {
 type TaskKind string
 
 const (
-	TaskKindDeno        TaskKind = "deno"
-	TaskKindDockerfile  TaskKind = "dockerfile"
-	TaskKindDockerimage TaskKind = "dockerimage"
-	TaskKindGo          TaskKind = "go"
-	TaskKindNode        TaskKind = "node"
-	TaskKindPython      TaskKind = "python"
+	TaskKindDeno       TaskKind = "deno"
+	TaskKindDockerfile TaskKind = "dockerfile"
+	TaskKindGo         TaskKind = "go"
+	TaskKindImage      TaskKind = "image"
+	TaskKindNode       TaskKind = "node"
+	TaskKindPython     TaskKind = "python"
 
 	TaskKindSQL  TaskKind = "sql"
 	TaskKindREST TaskKind = "rest"

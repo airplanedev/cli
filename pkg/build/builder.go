@@ -305,12 +305,12 @@ func exist(paths ...string) error {
 type Name string
 
 const (
-	NameGo          Name = "go"
-	NameDeno        Name = "deno"
-	NamePython      Name = "python"
-	NameNode        Name = "node"
-	NameDockerfile  Name = "dockerfile"
-	NameDockerimage Name = "dockerimage"
+	NameGo         Name = "go"
+	NameDeno       Name = "deno"
+	NameImage      Name = "image"
+	NamePython     Name = "python"
+	NameNode       Name = "node"
+	NameDockerfile Name = "dockerfile"
 )
 
 func NeedsBuilding(kind api.TaskKind) bool {

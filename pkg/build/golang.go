@@ -41,7 +41,7 @@ ENTRYPOINT ["/bin/main"]
 		return "", errors.Wrap(err, "parse template")
 	}
 
-	v, err := GetVersion(BuilderNameGo, "1")
+	v, err := GetVersion(NameGo, "1")
 	if err != nil {
 		return "", err
 	}

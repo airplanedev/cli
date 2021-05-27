@@ -27,7 +27,7 @@ func python(root string, args Args) (string, error) {
 		return "", err
 	}
 
-	v, err := GetVersion(BuilderNamePython, "3")
+	v, err := GetVersion(NamePython, "3")
 	if err != nil {
 		return "", err
 	}

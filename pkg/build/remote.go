@@ -178,19 +178,19 @@ func getIgnorePatterns(path string, kind api.TaskKind) ([]string, error) {
 		"bin",
 	}
 	// For inspiration, see: https://github.com/github/gitignore
-	switch BuilderName(kind) {
-	case BuilderNameGo:
+	switch Name(kind) {
+	case NameGo:
 		// https://github.com/github/gitignore/blob/master/Go.gitignore
 		return append(defaultExcludes, []string{
 			"vendor",
 		}...), nil
-	case BuilderNameDeno:
+	case NameDeno:
 		return defaultExcludes, nil
-	case BuilderNamePython:
+	case NamePython:
 		return append(defaultExcludes, []string{
 			".venv",
 		}...), nil
-	case BuilderNameNode:
+	case NameNode:
 		// https://github.com/github/gitignore/blob/master/Node.gitignore
 		return append(defaultExcludes, []string{
 			"node_modules",
@@ -200,7 +200,7 @@ func getIgnorePatterns(path string, kind api.TaskKind) ([]string, error) {
 			"dist",
 			".yarn",
 		}...), nil
-	case BuilderNameDockerfile:
+	case NameDockerfile:
 		return defaultExcludes, nil
 	default:
 		return nil, errors.Errorf("build: unknown builder type %s", kind)

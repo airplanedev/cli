@@ -28,7 +28,7 @@ type Definition_0_1 struct {
 	//
 	// If not set, defaults to "." (in other words, the parent directory of this task definition).
 	//
-	// This field is ignored when using the dockerimage builder.
+	// This field is ignored when using the "image" builder.
 	Root string `yaml:"root,omitempty"`
 }
 
@@ -58,8 +58,8 @@ func (d Definition_0_1) upgrade() (Definition, error) {
 			return Definition{}, errors.Wrap(err, "decoding Dockerfile options")
 		}
 
-	} else if d.Builder == "dockerimage" {
-		def.Dockerimage = &DockerimageDefinition{
+	} else if d.Builder == "image" {
+		def.Image = &ImageDefinition{
 			Image:   d.Image,
 			Command: d.Command,
 		}

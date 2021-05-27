@@ -29,7 +29,7 @@ ENTRYPOINT ["deno", "run", "-A", "{{ .Entrypoint }}"]
 		return "", errors.Wrap(err, "new template")
 	}
 
-	v, err := GetVersion(BuilderNameDeno, "1")
+	v, err := GetVersion(NameDeno, "1")
 	if err != nil {
 		return "", err
 	}

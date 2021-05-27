@@ -17,12 +17,12 @@ type Definition_0_2 struct {
 	Repo             string               `yaml:"repo,omitempty"`
 	Timeout          int                  `yaml:"timeout,omitempty"`
 
-	Deno        *DenoDefinition        `yaml:"deno,omitempty"`
-	Dockerimage *DockerimageDefinition `yaml:"dockerimage,omitempty"`
-	Dockerfile  *DockerfileDefinition  `yaml:"dockerfile,omitempty"`
-	Go          *GoDefinition          `yaml:"go,omitempty"`
-	Node        *NodeDefinition        `yaml:"node,omitempty"`
-	Python      *PythonDefinition      `yaml:"python,omitempty"`
+	Deno       *DenoDefinition       `yaml:"deno,omitempty"`
+	Image      *ImageDefinition      `yaml:"image,omitempty"`
+	Dockerfile *DockerfileDefinition `yaml:"dockerfile,omitempty"`
+	Go         *GoDefinition         `yaml:"go,omitempty"`
+	Node       *NodeDefinition       `yaml:"node,omitempty"`
+	Python     *PythonDefinition     `yaml:"python,omitempty"`
 
 	SQL  *SQLDefinition  `yaml:"sql,omitempty"`
 	REST *RESTDefinition `yaml:"rest,omitempty"`
@@ -33,11 +33,11 @@ type Definition_0_2 struct {
 	//
 	// If not set, defaults to "." (in other words, the parent directory of this task definition).
 	//
-	// This field is ignored when using the dockerimage builder.
+	// This field is ignored when using the "image" builder.
 	Root string `yaml:"root,omitempty"`
 }
 
-type DockerimageDefinition struct {
+type ImageDefinition struct {
 	Image   string   `yaml:"image,omitempty"`
 	Command []string `yaml:"command,omitempty"`
 }
