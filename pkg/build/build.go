@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/airplanedev/cli/pkg/api"
-	"github.com/airplanedev/cli/pkg/taskdir"
 	"github.com/airplanedev/cli/pkg/taskdir/definitions"
 )
 
@@ -13,7 +12,7 @@ import (
 type Request struct {
 	Builder BuilderKind
 	Client  *api.Client
-	Dir     taskdir.TaskDirectory
+	Root    string
 	Def     definitions.Definition
 	TaskID  string
 	TaskEnv api.TaskEnv
