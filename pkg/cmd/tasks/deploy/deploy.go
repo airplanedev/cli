@@ -80,34 +80,40 @@ func run(ctx context.Context, cfg config) error {
 		return err
 	}
 
-	var image string
+	var image *string
 	var command []string
 	if def.Manual != nil {
-		image = def.Manual.Image
+		image = &def.Manual.Image
 		command = def.Manual.Command
 	}
 
 	var taskID string
 	task, err := client.GetTask(ctx, def.Slug)
 	if err == nil {
-		// This task already exists, so we update it:
+		// This task already exists, so update it.
 		logger.Log("Updating task...")
 		_, err := client.UpdateTask(ctx, api.UpdateTaskRequest{
-			Slug:             def.Slug,
-			Name:             def.Name,
-			Description:      def.Description,
-			Image:            image,
-			Command:          command,
-			Arguments:        def.Arguments,
-			Parameters:       def.Parameters,
-			Constraints:      def.Constraints,
-			Env:              def.Env,
-			ResourceRequests: def.ResourceRequests,
-			Resources:        def.Resources,
-			Kind:             kind,
-			KindOptions:      kindOptions,
-			Repo:             def.Repo,
-			Timeout:          def.Timeout,
+			// Only update kind/kindOptions since the remote build will
+			// fetch this from the task.
+			Kind:        kind,
+			KindOptions: kindOptions,
+
+			// The following fields are not updated until after the build finishes.
+			//
+			// TODO: move kind/kindOptions to builds so we don't need to do this.
+			Slug:             task.Slug,
+			Name:             task.Name,
+			Description:      task.Description,
+			Image:            task.Image,
+			Command:          task.Command,
+			Arguments:        task.Arguments,
+			Parameters:       task.Parameters,
+			Constraints:      task.Constraints,
+			Env:              task.Env,
+			ResourceRequests: task.ResourceRequests,
+			Resources:        task.Resources,
+			Repo:             task.Repo,
+			Timeout:          task.Timeout,
 		})
 		if err != nil {
 			return errors.Wrapf(err, "updating task %s", def.Slug)
@@ -159,7 +165,7 @@ func run(ctx context.Context, cfg config) error {
 			Slug:             def.Slug,
 			Name:             def.Name,
 			Description:      def.Description,
-			Image:            resp.ImageURL,
+			Image:            &resp.ImageURL,
 			Command:          command,
 			Arguments:        def.Arguments,
 			Parameters:       def.Parameters,
