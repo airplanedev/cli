@@ -87,43 +87,11 @@ func run(ctx context.Context, cfg config) error {
 		command = def.Manual.Command
 	}
 
-	var taskID string
 	task, err := client.GetTask(ctx, def.Slug)
-	if err == nil {
-		// This task already exists, so we update it:
-		logger.Log("Updating task...")
-		_, err := client.UpdateTask(ctx, api.UpdateTaskRequest{
-			// Only update kind/kindOptions since the remote build will
-			// fetch this from the task.
-			Kind:        kind,
-			KindOptions: kindOptions,
-
-			// The following fields are not updated until after the build finishes.
-			//
-			// TODO: move kind/kindOptions to builds so we don't need to do this.
-			Slug:             task.Slug,
-			Name:             task.Name,
-			Description:      task.Description,
-			Image:            task.Image,
-			Command:          task.Command,
-			Arguments:        task.Arguments,
-			Parameters:       task.Parameters,
-			Constraints:      task.Constraints,
-			Env:              task.Env,
-			ResourceRequests: task.ResourceRequests,
-			Resources:        task.Resources,
-			Repo:             task.Repo,
-			Timeout:          task.Timeout,
-		})
-		if err != nil {
-			return errors.Wrapf(err, "updating task %s", def.Slug)
-		}
-
-		taskID = task.ID
-	} else if aerr, ok := err.(api.Error); ok && aerr.Code == 404 {
+	if aerr, ok := err.(api.Error); ok && aerr.Code == 404 {
 		// A task with this slug does not exist, so we should create one.
 		logger.Log("Creating task...")
-		res, err := client.CreateTask(ctx, api.CreateTaskRequest{
+		_, err := client.CreateTask(ctx, api.CreateTaskRequest{
 			Slug:             def.Slug,
 			Name:             def.Name,
 			Description:      def.Description,
@@ -144,43 +112,72 @@ func run(ctx context.Context, cfg config) error {
 			return errors.Wrapf(err, "creating task %s", def.Slug)
 		}
 
-		taskID = res.TaskID
+		task, err = client.GetTask(ctx, def.Slug)
+		if err != nil {
+			return errors.Wrap(err, "fetching created task")
+		}
 	} else {
 		return errors.Wrap(err, "getting task")
 	}
 
 	if build.NeedsBuilding(kind) {
+		// Before performing a remote build, we must first update kind/kindOptions
+		// since the remote build relies on pulling those from the tasks table (for now).
+		_, err := client.UpdateTask(ctx, api.UpdateTaskRequest{
+			Kind:        kind,
+			KindOptions: kindOptions,
+
+			// The following fields are not updated until after the build finishes.
+			Slug:             task.Slug,
+			Name:             task.Name,
+			Description:      task.Description,
+			Image:            task.Image,
+			Command:          task.Command,
+			Arguments:        task.Arguments,
+			Parameters:       task.Parameters,
+			Constraints:      task.Constraints,
+			Env:              task.Env,
+			ResourceRequests: task.ResourceRequests,
+			Resources:        task.Resources,
+			Repo:             task.Repo,
+			Timeout:          task.Timeout,
+		})
+		if err != nil {
+			return errors.Wrapf(err, "updating task %s", def.Slug)
+		}
+
 		resp, err := build.Run(ctx, build.Request{
 			Builder: builder,
 			Client:  client,
 			Dir:     dir,
 			Def:     def,
-			TaskID:  taskID,
+			TaskID:  task.ID,
 		})
 		if err != nil {
 			return err
 		}
+		image = &resp.ImageURL
+	}
 
-		_, err = client.UpdateTask(ctx, api.UpdateTaskRequest{
-			Slug:             def.Slug,
-			Name:             def.Name,
-			Description:      def.Description,
-			Image:            &resp.ImageURL,
-			Command:          command,
-			Arguments:        def.Arguments,
-			Parameters:       def.Parameters,
-			Constraints:      def.Constraints,
-			Env:              def.Env,
-			ResourceRequests: def.ResourceRequests,
-			Resources:        def.Resources,
-			Kind:             kind,
-			KindOptions:      kindOptions,
-			Repo:             def.Repo,
-			Timeout:          def.Timeout,
-		})
-		if err != nil {
-			return errors.Wrapf(err, "updating task %s", def.Slug)
-		}
+	_, err = client.UpdateTask(ctx, api.UpdateTaskRequest{
+		Slug:             def.Slug,
+		Name:             def.Name,
+		Description:      def.Description,
+		Image:            image,
+		Command:          command,
+		Arguments:        def.Arguments,
+		Parameters:       def.Parameters,
+		Constraints:      def.Constraints,
+		Env:              def.Env,
+		ResourceRequests: def.ResourceRequests,
+		Resources:        def.Resources,
+		Kind:             kind,
+		KindOptions:      kindOptions,
+		Repo:             def.Repo,
+		Timeout:          def.Timeout,
+	})
+	if err != nil {
+		return errors.Wrapf(err, "updating task %s", def.Slug)
 	}
 
 	cmd := fmt.Sprintf("airplane execute %s", def.Slug)
@@ -190,7 +187,7 @@ func run(ctx context.Context, cfg config) error {
 	logger.Log(`
 To execute %s:
 - From the CLI: %s
-- From the UI: %s`, def.Name, cmd, client.TaskURL(taskID))
+- From the UI: %s`, def.Name, cmd, client.TaskURL(task.ID))
 
 	return nil
 }
