@@ -17,22 +17,24 @@ import (
 )
 
 type config struct {
-	root    *cli.Config
+	client  *api.Client
 	file    string
 	builder string
 }
 
 func New(c *cli.Config) *cobra.Command {
-	var cfg = config{root: c}
+	var cfg = config{client: c.Client}
 
 	cmd := &cobra.Command{
 		Use:   "deploy",
 		Short: "Deploy a task",
 		Long:  "Deploy a task from a YAML-based task definition",
 		Example: heredoc.Doc(`
-			airplane tasks deploy -f my-task.yml
+			airplane tasks deploy my-task.yml
 		`),
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			cfg.file = args[0]
 			return run(cmd.Root().Context(), cfg)
 		},
 		PersistentPreRunE: utils.WithParentPersistentPreRunE(func(cmd *cobra.Command, args []string) error {
@@ -40,16 +42,13 @@ func New(c *cli.Config) *cobra.Command {
 		}),
 	}
 
-	cmd.Flags().StringVarP(&cfg.file, "file", "f", "", "Path to a task definition file.")
 	cmd.Flags().StringVar(&cfg.builder, "builder", string(build.BuilderKindRemote), "Where to build the task's Docker image. Accepts: [local, remote]")
-
-	cli.Must(cmd.MarkFlagRequired("file"))
 
 	return cmd
 }
 
 func run(ctx context.Context, cfg config) error {
-	var client = cfg.root.Client
+	var client = cfg.client
 
 	builder, err := build.ToBuilderKind(cfg.builder)
 	if err != nil {
