@@ -123,7 +123,7 @@ main()`
 		{{else if .HasYarnLock}}
 		RUN yarn install && yarn add -D @types/node
 		{{else}}
-		npm install @types/node
+		RUN npm install @types/node
 		{{end}}
 
 		COPY . .
@@ -243,7 +243,7 @@ func nodeLegacyBuilder(root string, args Args) (string, error) {
 
 func getBaseNodeImage(version string) (string, error) {
 	if version == "" {
-		version = "15"
+		version = "16"
 	}
 	v, err := GetVersion(BuilderNameNode, version)
 	if err != nil {

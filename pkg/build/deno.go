@@ -1,9 +1,9 @@
 package build
 
 import (
-	"html/template"
 	"path/filepath"
 	"strings"
+	"text/template"
 
 	"github.com/pkg/errors"
 )
