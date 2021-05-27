@@ -40,7 +40,7 @@ func main() {
 	if resp, err := build.Run(context.Background(), build.Request{
 		Builder: build.BuilderKindLocal,
 		Client:  client,
-		Dir:     dir,
+		Root:    dir.DefinitionRootPath(),
 		Def: definitions.Definition(definitions.Definition_0_2{
 			Node: &definitions.NodeDefinition{
 				Entrypoint: path,
