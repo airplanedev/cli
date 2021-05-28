@@ -2,7 +2,6 @@ package deploy
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
@@ -12,6 +11,7 @@ import (
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/runtime"
 	"github.com/airplanedev/cli/pkg/taskdir/definitions"
+	"github.com/pkg/errors"
 )
 
 // DeployFromScript deploys from the given script.
@@ -62,6 +62,36 @@ func deployFromScript(ctx context.Context, cfg config) error {
 
 	def.Node.Entrypoint = filepath.Base(abs)
 
+	kind, kindOptions, err := def.GetKindAndOptions()
+	if err != nil {
+		return err
+	}
+
+	// Before performing a remote build, we must first update kind/kindOptions
+	// since the remote build relies on pulling those from the tasks table (for now).
+	_, err = client.UpdateTask(ctx, api.UpdateTaskRequest{
+		Kind:        kind,
+		KindOptions: kindOptions,
+
+		// The following fields are not updated until after the build finishes.
+		Slug:             task.Slug,
+		Name:             task.Name,
+		Description:      task.Description,
+		Image:            task.Image,
+		Command:          task.Command,
+		Arguments:        task.Arguments,
+		Parameters:       task.Parameters,
+		Constraints:      task.Constraints,
+		Env:              task.Env,
+		ResourceRequests: task.ResourceRequests,
+		Resources:        task.Resources,
+		Repo:             task.Repo,
+		Timeout:          task.Timeout,
+	})
+	if err != nil {
+		return errors.Wrapf(err, "updating task %s", def.Slug)
+	}
+
 	resp, err := build.Run(ctx, build.Request{
 		Local:   cfg.local,
 		Client:  client,
@@ -70,11 +100,6 @@ func deployFromScript(ctx context.Context, cfg config) error {
 		Def:     def,
 		TaskEnv: def.Env,
 	})
-	if err != nil {
-		return err
-	}
-
-	kind, kindOptions, err := def.GetKindAndOptions()
 	if err != nil {
 		return err
 	}
