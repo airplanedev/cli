@@ -35,7 +35,9 @@ func deployFromScript(ctx context.Context, cfg config) error {
 
 	slug, ok := r.Slug(code)
 	if !ok {
-		return errors.New("")
+		return &unlinked{
+			path: cfg.file,
+		}
 	}
 
 	task, err := client.GetTask(ctx, slug)
@@ -81,7 +83,7 @@ func deployFromScript(ctx context.Context, cfg config) error {
 		Slug:             def.Slug,
 		Name:             def.Name,
 		Description:      def.Description,
-		Image:            resp.ImageURL,
+		Image:            &resp.ImageURL,
 		Command:          []string{"node", cfg.file},
 		Arguments:        def.Arguments,
 		Parameters:       def.Parameters,
