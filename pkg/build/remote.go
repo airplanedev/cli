@@ -14,7 +14,7 @@ import (
 	"github.com/airplanedev/archiver"
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/logger"
-	"github.com/airplanedev/cli/pkg/taskdir"
+	"github.com/airplanedev/cli/pkg/taskdir/definitions"
 	dockerBuild "github.com/docker/cli/cli/command/image/build"
 	dockerFileUtils "github.com/docker/docker/pkg/fileutils"
 	"github.com/dustin/go-humanize"
@@ -34,7 +34,7 @@ func remote(ctx context.Context, req Request) (*Response, error) {
 	defer os.RemoveAll(tmpdir)
 
 	archivePath := path.Join(tmpdir, "archive.tar.gz")
-	if err := archiveTaskDir(req.Dir, archivePath); err != nil {
+	if err := archiveTaskDir(req.Def, req.Root, archivePath); err != nil {
 		return nil, err
 	}
 
@@ -68,31 +68,28 @@ func remote(ctx context.Context, req Request) (*Response, error) {
 	}, nil
 }
 
-func archiveTaskDir(dir taskdir.TaskDirectory, archivePath string) error {
+func archiveTaskDir(def definitions.Definition, root string, archivePath string) error {
 	// mholt/archiver takes a list of "sources" (files/directories) that will
 	// be included in the root of the archive. In our case, we want the root of
 	// the archive to be the contents of the task directory, rather than the
 	// task directory itself.
 	var sources []string
-	if files, err := ioutil.ReadDir(dir.DefinitionRootPath()); err != nil {
+	if files, err := ioutil.ReadDir(root); err != nil {
 		return errors.Wrap(err, "inspecting files in task root")
 	} else {
 		for _, f := range files {
-			sources = append(sources, path.Join(dir.DefinitionRootPath(), f.Name()))
+			sources = append(sources, path.Join(root, f.Name()))
 		}
 	}
 
 	arch := archiver.NewTarGz()
 
-	def, err := dir.ReadDefinition()
-	if err != nil {
-		return err
-	}
 	kind, _, err := def.GetKindAndOptions()
 	if err != nil {
 		return err
 	}
-	arch.Tar.IncludeFunc, err = getIgnoreFunc(dir.DefinitionRootPath(), kind)
+
+	arch.Tar.IncludeFunc, err = getIgnoreFunc(root, kind)
 	if err != nil {
 		return err
 	}

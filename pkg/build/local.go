@@ -34,7 +34,7 @@ func local(ctx context.Context, req Request) (*Response, error) {
 		}
 	}
 	b, err := New(LocalConfig{
-		Root:    req.Dir.DefinitionRootPath(),
+		Root:    req.Root,
 		Builder: string(kind),
 		Args:    args,
 		Auth: &RegistryAuth{

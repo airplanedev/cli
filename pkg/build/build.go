@@ -2,18 +2,16 @@ package build
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/airplanedev/cli/pkg/api"
-	"github.com/airplanedev/cli/pkg/taskdir"
 	"github.com/airplanedev/cli/pkg/taskdir/definitions"
 )
 
 // Request represents a build request.
 type Request struct {
-	Builder BuilderKind
+	Local   bool
 	Client  *api.Client
-	Dir     taskdir.TaskDirectory
+	Root    string
 	Def     definitions.Definition
 	TaskID  string
 	TaskEnv api.TaskEnv
@@ -26,12 +24,8 @@ type Response struct {
 
 // Run runs the build and returns an image URL.
 func Run(ctx context.Context, req Request) (*Response, error) {
-	switch req.Builder {
-	case BuilderKindLocal:
+	if req.Local {
 		return local(ctx, req)
-	case BuilderKindRemote:
-		return remote(ctx, req)
-	default:
-		return nil, fmt.Errorf("build: unknown builder %q", req.Builder)
 	}
+	return remote(ctx, req)
 }
