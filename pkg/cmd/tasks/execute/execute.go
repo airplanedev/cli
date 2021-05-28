@@ -3,15 +3,20 @@ package execute
 import (
 	"context"
 	"flag"
+	"fmt"
+	"io/ioutil"
+	"path/filepath"
 	"strings"
 
 	"github.com/MakeNowJust/heredoc"
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/cmd/auth/login"
+	"github.com/airplanedev/cli/pkg/fs"
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/params"
 	"github.com/airplanedev/cli/pkg/print"
+	"github.com/airplanedev/cli/pkg/runtime"
 	"github.com/airplanedev/cli/pkg/taskdir"
 	"github.com/airplanedev/cli/pkg/utils"
 	"github.com/pkg/errors"
@@ -21,9 +26,8 @@ import (
 // Config is the execute config.
 type config struct {
 	root *cli.Config
-	slug string
-	args []string
 	file string
+	args []string
 }
 
 // New returns a new execute cobra command.
@@ -36,12 +40,15 @@ func New(c *cli.Config) *cobra.Command {
 		Aliases: []string{"exec"},
 		Long:    "Execute a task by its slug with the provided parameters.",
 		Example: heredoc.Doc(`
-			airplane execute -f ./airplane.yml [-- <parameters...>]
+			airplane execute ./airplane.yml [-- <parameters...>]
+			airplane execute ./task.js [-- <parameters...>]
+			airplane execute ./task.ts [-- <parameters...>]
 			airplane execute hello_world [-- <parameters...>]
 		`),
 		PersistentPreRunE: utils.WithParentPersistentPreRunE(func(cmd *cobra.Command, args []string) error {
 			return login.EnsureLoggedIn(cmd.Root().Context(), c)
 		}),
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			n := cmd.Flags().ArgsLenAtDash()
 			if n > 1 {
@@ -53,16 +60,14 @@ func New(c *cli.Config) *cobra.Command {
 				cfg.args = args[n:]
 			}
 
-			// If an arg was passed, before the --, then it is a task slug to execute.
+			// If an arg was passed, before the --, then it is a task file/slug to execute.
 			if len(args) > 0 && n != 0 {
-				cfg.slug = args[0]
+				cfg.file = args[0]
 			}
 
 			return run(cmd.Root().Context(), cfg)
 		},
 	}
-
-	cmd.Flags().StringVarP(&cfg.file, "file", "f", "", "Path to a task definition file.")
 
 	return cmd
 }
@@ -71,28 +76,9 @@ func New(c *cli.Config) *cobra.Command {
 func run(ctx context.Context, cfg config) error {
 	var client = cfg.root.Client
 
-	slug := cfg.slug
-	if slug == "" {
-		if cfg.file == "" {
-			return errors.New("expected either a task slug or --file")
-		}
-
-		dir, err := taskdir.Open(cfg.file)
-		if err != nil {
-			return err
-		}
-		defer dir.Close()
-
-		def, err := dir.ReadDefinition()
-		if err != nil {
-			return err
-		}
-
-		if def.Slug == "" {
-			return errors.Errorf("no task slug found in task definition at %s", cfg.file)
-		}
-
-		slug = def.Slug
+	slug, err := slugFrom(cfg.file)
+	if err != nil {
+		return err
 	}
 
 	task, err := client.GetTask(ctx, slug)
@@ -207,4 +193,61 @@ func flagset(task api.Task, args api.Values) *flag.FlagSet {
 	}
 
 	return set
+}
+
+// SlugFrom returns the slug from the given file.
+func slugFrom(file string) (string, error) {
+	if fs.Exists(file) {
+		switch ext := filepath.Ext(file); ext {
+		case ".yml", ".yaml":
+			return fromYaml(file)
+		case ".js", ".ts":
+			return fromScript(file)
+		case "":
+			return "", fmt.Errorf("the file %s must have an extension", file)
+		default:
+			return "", fmt.Errorf("the file %s has unrecognized extension", file)
+		}
+	}
+	return file, nil
+}
+
+// FromYaml attempts to extract a slug from a yaml definition.
+func fromYaml(file string) (string, error) {
+	dir, err := taskdir.Open(file)
+	if err != nil {
+		return "", err
+	}
+	defer dir.Close()
+
+	def, err := dir.ReadDefinition()
+	if err != nil {
+		return "", err
+	}
+
+	if def.Slug == "" {
+		return "", errors.Errorf("no task slug found in task definition at %s", file)
+	}
+
+	return def.Slug, nil
+}
+
+// FromScript attempts to extract a slug from a script.
+func fromScript(file string) (string, error) {
+	r, ok := runtime.Lookup(file)
+	if !ok {
+		return "", fmt.Errorf("%s tasks are not supported", file)
+	}
+
+	code, err := ioutil.ReadFile(file)
+	if err != nil {
+		return "", fmt.Errorf("cannot read file %s - %w", file, err)
+	}
+
+	slug, ok := r.Slug(code)
+	if !ok {
+		return "", fmt.Errorf("cannot find a slug in %s", file)
+	}
+
+	return slug, nil
 }
