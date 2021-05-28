@@ -11,15 +11,15 @@ type ErrInvalidYAML struct {
 	Msg string
 }
 
-func (this ErrInvalidYAML) Error() string {
-	return this.Msg
+func (err ErrInvalidYAML) Error() string {
+	return err.Msg
 }
 
 type ErrSchemaValidation struct {
 	Errors []gojsonschema.ResultError
 }
 
-func (this ErrSchemaValidation) Error() string {
+func (err ErrSchemaValidation) Error() string {
 	return "invalid YAML format"
 }
 
