@@ -60,7 +60,6 @@ func deployFromScript(ctx context.Context, cfg config) error {
 		return err
 	}
 
-	logger.Debug("def: %+v", def)
 	def.Node.Entrypoint = filepath.Base(abs)
 
 	resp, err := build.Run(ctx, build.Request{
