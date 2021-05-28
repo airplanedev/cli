@@ -45,6 +45,11 @@ func deployFromScript(ctx context.Context, cfg config) error {
 		return err
 	}
 
+	// TODO: move this into `runtime`
+	if task.Kind != api.TaskKindNode {
+		return fmt.Errorf("'%s' is a %s task. Expected a %s task.", task.Name, task.Kind, api.TaskKindNode)
+	}
+
 	def, err := definitions.NewDefinitionFromTask(task)
 	if err != nil {
 		return err
@@ -55,6 +60,7 @@ func deployFromScript(ctx context.Context, cfg config) error {
 		return err
 	}
 
+	logger.Debug("def: %+v", def)
 	def.Node.Entrypoint = filepath.Base(abs)
 
 	resp, err := build.Run(ctx, build.Request{
