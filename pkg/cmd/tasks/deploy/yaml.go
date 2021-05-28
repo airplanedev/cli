@@ -113,7 +113,7 @@ func deployFromYaml(ctx context.Context, cfg config) error {
 		resp, err := build.Run(ctx, build.Request{
 			Builder: builder,
 			Client:  client,
-			Dir:     dir,
+			Root:    dir.DefinitionRootPath(),
 			Def:     def,
 			TaskID:  task.ID,
 		})
