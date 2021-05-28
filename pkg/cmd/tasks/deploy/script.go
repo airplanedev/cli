@@ -60,7 +60,7 @@ func deployFromScript(ctx context.Context, cfg config) error {
 		return err
 	}
 
-	def.Node.Entrypoint = cfg.file
+	def.Node.Entrypoint = filepath.Base(abs)
 
 	resp, err := build.Run(ctx, build.Request{
 		Builder: buildkind,
@@ -84,7 +84,7 @@ func deployFromScript(ctx context.Context, cfg config) error {
 		Name:             def.Name,
 		Description:      def.Description,
 		Image:            &resp.ImageURL,
-		Command:          []string{"node", cfg.file},
+		Command:          []string{},
 		Arguments:        def.Arguments,
 		Parameters:       def.Parameters,
 		Constraints:      def.Constraints,
