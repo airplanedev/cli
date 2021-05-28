@@ -60,7 +60,7 @@ func deployFromScript(ctx context.Context, cfg config) error {
 		return err
 	}
 
-	def.Node = &definitions.NodeDefinition{}
+	def.Node.Entrypoint = cfg.file
 
 	resp, err := build.Run(ctx, build.Request{
 		Builder: buildkind,
