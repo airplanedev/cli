@@ -15,11 +15,6 @@ import (
 func deployFromYaml(ctx context.Context, cfg config) error {
 	var client = cfg.client
 
-	builder, err := build.ToBuilderKind(cfg.builder)
-	if err != nil {
-		return err
-	}
-
 	dir, err := taskdir.Open(cfg.file)
 	if err != nil {
 		return err
@@ -111,11 +106,11 @@ func deployFromYaml(ctx context.Context, cfg config) error {
 		}
 
 		resp, err := build.Run(ctx, build.Request{
-			Builder: builder,
-			Client:  client,
-			Root:    dir.DefinitionRootPath(),
-			Def:     def,
-			TaskID:  task.ID,
+			Local:  cfg.local,
+			Client: client,
+			Root:   dir.DefinitionRootPath(),
+			Def:    def,
+			TaskID: task.ID,
 		})
 		if err != nil {
 			return err

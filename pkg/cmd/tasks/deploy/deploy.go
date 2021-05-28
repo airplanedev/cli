@@ -6,7 +6,6 @@ import (
 
 	"github.com/MakeNowJust/heredoc"
 	"github.com/airplanedev/cli/pkg/api"
-	"github.com/airplanedev/cli/pkg/build"
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/cmd/auth/login"
 	"github.com/airplanedev/cli/pkg/utils"
@@ -14,9 +13,9 @@ import (
 )
 
 type config struct {
-	client  *api.Client
-	file    string
-	builder string
+	client *api.Client
+	file   string
+	local  bool
 }
 
 func New(c *cli.Config) *cobra.Command {
@@ -30,6 +29,7 @@ func New(c *cli.Config) *cobra.Command {
 			airplane tasks deploy my-task.yml
 			airplane tasks deploy task.ts
 			airplane tasks deploy task.js
+			airplane tasks deploy --local task.js
 		`),
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -41,7 +41,7 @@ func New(c *cli.Config) *cobra.Command {
 		}),
 	}
 
-	cmd.Flags().StringVar(&cfg.builder, "builder", string(build.BuilderKindRemote), "Where to build the task's Docker image. Accepts: [local, remote]")
+	cmd.Flags().BoolVarP(&cfg.local, "local", "L", false, "Add to build the docker image locally.")
 
 	return cmd
 }

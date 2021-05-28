@@ -50,11 +50,6 @@ func deployFromScript(ctx context.Context, cfg config) error {
 		return err
 	}
 
-	buildkind, err := build.ToBuilderKind(cfg.builder)
-	if err != nil {
-		return err
-	}
-
 	abs, err := filepath.Abs(cfg.file)
 	if err != nil {
 		return err
@@ -63,7 +58,7 @@ func deployFromScript(ctx context.Context, cfg config) error {
 	def.Node.Entrypoint = filepath.Base(abs)
 
 	resp, err := build.Run(ctx, build.Request{
-		Builder: buildkind,
+		Local:   cfg.local,
 		Client:  client,
 		TaskID:  task.ID,
 		Root:    filepath.Dir(abs),
