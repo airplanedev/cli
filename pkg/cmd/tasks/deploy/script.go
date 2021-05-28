@@ -50,7 +50,7 @@ func deployFromScript(ctx context.Context, cfg config) error {
 		return err
 	}
 
-	buildkind, err := build.ToBuilderKind("local")
+	buildkind, err := build.ToBuilderKind(cfg.builder)
 	if err != nil {
 		return err
 	}
