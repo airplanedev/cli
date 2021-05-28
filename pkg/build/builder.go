@@ -36,28 +36,6 @@ type RegistryAuth struct {
 	Repo  string
 }
 
-// BuilderKind represents where the Docker build should take place.
-//
-// For BuilderKindLocal, users need to have Docker installed and running.
-// For BuilderKindRemote, the build will happen on Airplane servers.
-type BuilderKind string
-
-const (
-	BuilderKindLocal  BuilderKind = "local"
-	BuilderKindRemote BuilderKind = "remote"
-)
-
-func ToBuilderKind(s string) (BuilderKind, error) {
-	switch s {
-	case string(BuilderKindLocal):
-		return BuilderKindLocal, nil
-	case string(BuilderKindRemote):
-		return BuilderKindRemote, nil
-	default:
-		return BuilderKind(""), errors.Errorf("Unknown builder: %s", s)
-	}
-}
-
 // Host returns the registry hostname.
 func (r RegistryAuth) host() string {
 	return strings.SplitN(r.Repo, "/", 2)[0]
@@ -65,11 +43,6 @@ func (r RegistryAuth) host() string {
 
 // LocalConfig configures a (local) builder.
 type LocalConfig struct {
-	// Kind describes how the build should be performed, such as
-	// whether it should use the local Docker daemon or a remote
-	// hosted builder.
-	Kind BuilderKind
-
 	// Root is the root directory.
 	//
 	// It must be an absolute path to the project directory.
