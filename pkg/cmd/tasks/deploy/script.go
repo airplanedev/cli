@@ -45,7 +45,7 @@ func deployFromScript(ctx context.Context, cfg config) error {
 		return err
 	}
 
-	// TODO: move this into `runtime`
+	// TODO: make the expected kind a property of the `runtime`
 	if task.Kind != api.TaskKindNode {
 		return fmt.Errorf("'%s' is a %s task. Expected a %s task.", task.Name, task.Kind, api.TaskKindNode)
 	}
