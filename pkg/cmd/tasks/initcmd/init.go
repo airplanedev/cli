@@ -52,6 +52,7 @@ func New(c *cli.Config) *cobra.Command {
 	}
 
 	cmd.Flags().StringVar(&cfg.slug, "slug", "", "Slug of an existing task to generate from.")
+	cmd.MarkFlagRequired("slug")
 
 	return cmd
 }
