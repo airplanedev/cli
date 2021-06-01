@@ -48,23 +48,10 @@ func New(c *cli.Config) *cobra.Command {
 		PersistentPreRunE: utils.WithParentPersistentPreRunE(func(cmd *cobra.Command, args []string) error {
 			return login.EnsureLoggedIn(cmd.Root().Context(), c)
 		}),
-		Args: cobra.ExactArgs(1),
+		Args: cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			n := cmd.Flags().ArgsLenAtDash()
-			if n > 1 {
-				return errors.Errorf("at most one arg expected, got: %d", n)
-			}
-
-			// If a '--' was used, then we have 0 or more args to pass to the task.
-			if n != -1 {
-				cfg.args = args[n:]
-			}
-
-			// If an arg was passed, before the --, then it is a task file/slug to execute.
-			if len(args) > 0 && n != 0 {
-				cfg.file = args[0]
-			}
-
+			cfg.file = args[0]
+			cfg.args = args[1:]
 			return run(cmd.Root().Context(), cfg)
 		},
 	}
