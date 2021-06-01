@@ -26,7 +26,7 @@ import (
 // Config is the execute config.
 type config struct {
 	root *cli.Config
-	file string
+	task string // Could be a file, yaml definition or a slug.
 	args []string
 }
 
@@ -50,7 +50,7 @@ func New(c *cli.Config) *cobra.Command {
 		}),
 		Args: cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cfg.file = args[0]
+			cfg.task = args[0]
 			cfg.args = args[1:]
 			return run(cmd.Root().Context(), cfg)
 		},
@@ -63,7 +63,7 @@ func New(c *cli.Config) *cobra.Command {
 func run(ctx context.Context, cfg config) error {
 	var client = cfg.root.Client
 
-	slug, err := slugFrom(cfg.file)
+	slug, err := slugFrom(cfg.task)
 	if err != nil {
 		return err
 	}
