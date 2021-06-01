@@ -75,7 +75,7 @@ func deployFromYaml(ctx context.Context, cfg config) error {
 		if err != nil {
 			return errors.Wrap(err, "fetching created task")
 		}
-	} else {
+	} else if err != nil {
 		return errors.Wrap(err, "getting task")
 	}
 
