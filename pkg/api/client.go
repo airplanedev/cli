@@ -190,6 +190,14 @@ func (c Client) GetOutputs(ctx context.Context, runID string) (res GetOutputsRes
 func (c Client) GetTask(ctx context.Context, slug string) (res Task, err error) {
 	q := url.Values{"slug": []string{slug}}
 	err = c.do(ctx, "GET", "/tasks/get?"+q.Encode(), nil, &res)
+
+	if err, ok := err.(Error); ok && err.Code == 404 {
+		return res, &TaskMissingError{
+			app:  c.appURL().String(),
+			slug: slug,
+		}
+	}
+
 	if err != nil {
 		return
 	}
