@@ -187,9 +187,9 @@ func slugFrom(file string) (string, error) {
 	if fs.Exists(file) {
 		switch ext := filepath.Ext(file); ext {
 		case ".yml", ".yaml":
-			return fromYaml(file)
+			return slugFromYaml(file)
 		case ".js", ".ts":
-			return fromScript(file)
+			return slugFromScript(file)
 		case "":
 			return "", fmt.Errorf("the file %s must have an extension", file)
 		default:
@@ -199,8 +199,8 @@ func slugFrom(file string) (string, error) {
 	return file, nil
 }
 
-// FromYaml attempts to extract a slug from a yaml definition.
-func fromYaml(file string) (string, error) {
+// slugFromYaml attempts to extract a slug from a yaml definition.
+func slugFromYaml(file string) (string, error) {
 	dir, err := taskdir.Open(file)
 	if err != nil {
 		return "", err
@@ -219,8 +219,8 @@ func fromYaml(file string) (string, error) {
 	return def.Slug, nil
 }
 
-// FromScript attempts to extract a slug from a script.
-func fromScript(file string) (string, error) {
+// slugFromScript attempts to extract a slug from a script.
+func slugFromScript(file string) (string, error) {
 	r, ok := runtime.Lookup(file)
 	if !ok {
 		return "", fmt.Errorf("%s tasks are not supported", file)
