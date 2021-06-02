@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
+	"strings"
 
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/build"
@@ -60,7 +61,17 @@ func deployFromScript(ctx context.Context, cfg config) error {
 		return err
 	}
 
-	def.Node.Entrypoint = filepath.Base(abs)
+	// Detect the root of the task, if found ensure
+	// that the entrypoint and the root are included
+	// in the build.
+	var taskroot = filepath.Dir(abs)
+
+	if root, ok := r.Root(abs); ok {
+		def.Node.Entrypoint = strings.TrimPrefix(abs, root)
+		taskroot = root
+	} else {
+		def.Node.Entrypoint = filepath.Base(abs)
+	}
 
 	kind, kindOptions, err := def.GetKindAndOptions()
 	if err != nil {
@@ -96,7 +107,7 @@ func deployFromScript(ctx context.Context, cfg config) error {
 		Local:   cfg.local,
 		Client:  client,
 		TaskID:  task.ID,
-		Root:    filepath.Dir(abs),
+		Root:    taskroot,
 		Def:     def,
 		TaskEnv: def.Env,
 	})
