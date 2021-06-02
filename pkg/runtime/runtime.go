@@ -70,7 +70,7 @@ const (
 
 // Pathof attempts to find the path of the given filename.
 //
-// The method recursively descends the path until the given
+// The method recursively visits parent dirs until the given
 // filename is found, ok reports if the filename is found
 // and the string is the path.
 func Pathof(parent, filename string) (string, bool) {
