@@ -47,7 +47,7 @@ func deployFromYaml(ctx context.Context, cfg config) error {
 	}
 
 	task, err := client.GetTask(ctx, def.Slug)
-	if aerr, ok := err.(api.Error); ok && aerr.Code == 404 {
+	if _, ok := err.(*api.TaskMissingError); ok {
 		// A task with this slug does not exist, so we should create one.
 		logger.Log("Creating task...")
 		_, err := client.CreateTask(ctx, api.CreateTaskRequest{
