@@ -32,6 +32,15 @@ type Interface interface {
 	//
 	// The comment links a remote task to a file.
 	Comment(task api.Task) string
+
+	// Root attempts to detect the root of the given task path.
+	//
+	// It returns the suggested root and `ok=true` if a suggestion
+	// was found otherwise it returns an empty string.
+	//
+	// Typically runtimes will look for a specific file such as
+	// `package.json` or `requirements.txt`, they'll use `runtime.Pathof()`.
+	Root(path string) (dir string, ok bool)
 }
 
 // Runtimes is a collection of registered runtimes.

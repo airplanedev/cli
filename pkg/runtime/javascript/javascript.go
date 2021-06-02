@@ -79,3 +79,8 @@ func (r Runtime) Slug(code []byte) (string, bool) {
 func (r Runtime) Comment(t api.Task) string {
 	return fmt.Sprintf("%s\n// %s", commentPrefix, t.URL)
 }
+
+// Root implementation.
+func (r Runtime) Root(path string) (dir string, ok bool) {
+	return runtime.Pathof(path, "package.json")
+}
