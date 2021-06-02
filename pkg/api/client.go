@@ -193,8 +193,8 @@ func (c Client) GetTask(ctx context.Context, slug string) (res Task, err error) 
 
 	if err, ok := err.(Error); ok && err.Code == 404 {
 		return res, &TaskMissingError{
-			app:  c.appURL().String(),
-			slug: slug,
+			appURL: c.appURL().String(),
+			slug:   slug,
 		}
 	}
 
