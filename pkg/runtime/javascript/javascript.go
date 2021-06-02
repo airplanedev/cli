@@ -18,6 +18,11 @@ func init() {
 	runtime.Register(".js", Runtime{})
 }
 
+// CommentPrefix.
+const (
+	commentPrefix = "// Linked to Airplane task, do not edit:"
+)
+
 // Code template.
 var code = template.Must(template.New("js").Parse(`{{.Comment}}
 
@@ -53,7 +58,7 @@ func (r Runtime) Slug(code []byte) (string, bool) {
 	for s.Scan() {
 		var line = strings.TrimSpace(s.Text())
 
-		if strings.HasPrefix(line, "// Linked to Airplane task:") {
+		if strings.HasPrefix(line, commentPrefix) {
 			continue
 		}
 
@@ -72,5 +77,5 @@ func (r Runtime) Slug(code []byte) (string, bool) {
 
 // Comment implementation.
 func (r Runtime) Comment(t api.Task) string {
-	return fmt.Sprintf("// Linked to Airplane task:\n// %s", t.URL)
+	return fmt.Sprintf("%s\n// %s", commentPrefix, t.URL)
 }
