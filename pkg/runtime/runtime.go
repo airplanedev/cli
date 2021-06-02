@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 
 	"github.com/airplanedev/cli/pkg/api"
+	"github.com/airplanedev/cli/pkg/fs"
 )
 
 // Interface repersents a runtime.
@@ -51,4 +52,28 @@ func Lookup(path string) (Interface, bool) {
 	ext := filepath.Ext(path)
 	r, ok := runtimes[ext]
 	return r, ok
+}
+
+const (
+	// Separator converted to string to abort pathof at root.
+	sep = string(filepath.Separator)
+)
+
+// Pathof attempts to find the path of the given filename.
+//
+// The method recursively descends the path until the given
+// filename is found, ok reports if the filename is found
+// and the string is the path.
+func Pathof(parent, filename string) (string, bool) {
+	var dst = filepath.Join(parent, filename)
+
+	if !fs.Exists(dst) {
+		if parent == sep {
+			return "", false
+		}
+		next := filepath.Dir(parent)
+		return Pathof(next, filename)
+	}
+
+	return parent, true
 }
