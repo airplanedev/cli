@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -116,6 +117,10 @@ func run(ctx context.Context, cfg config) error {
 
 	code, err := r.Generate(task)
 	if err != nil {
+		return err
+	}
+
+	if err := os.MkdirAll(filepath.Dir(cfg.file), 0700); err != nil {
 		return err
 	}
 
