@@ -125,7 +125,9 @@ func (this Definition) GetKindAndOptions() (api.TaskKind, api.KindOptions, error
 		if err := mapstructure.Decode(this.REST, &options); err != nil {
 			return "", api.KindOptions{}, errors.Wrap(err, "decoding REST definition")
 		}
-		// API server expects JSONBody as a string.
+		// API expects jsonBody to be a string, since it's handlebars-templated JSON and not always valid JSON. For
+		// convenience, we allow the YAML definition to be a structured object when the jsonBody is actually valid
+		// JSON. In that case, if it's not a string, we JSON-serialize it into a string.
 		if _, ok := options["jsonBody"].(string); options["jsonBody"] != nil && !ok {
 			jsonBody, err := json.Marshal(options["jsonBody"])
 			if err != nil {
