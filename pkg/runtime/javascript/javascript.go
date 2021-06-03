@@ -84,3 +84,8 @@ func (r Runtime) Comment(t api.Task) string {
 func (r Runtime) Root(path string) (dir string, ok bool) {
 	return runtime.Pathof(path, "package.json")
 }
+
+// Kind implementation.
+func (r Runtime) Kind() api.TaskKind {
+	return api.TaskKindNode
+}
