@@ -12,13 +12,16 @@ func python(root string, args Args) (string, error) {
 	var main = filepath.Join(root, entrypoint)
 	var reqs = filepath.Join(root, "requirements.txt")
 
-	if err := exist(reqs, main); err != nil {
+	if err := exist(main); err != nil {
 		return "", err
 	}
 
 	t, err := template.New("python").Parse(`
     FROM {{ .Base }}
     WORKDIR /airplane
+		{{if not .Requirements}}
+		RUN echo > requirements.txt
+		{{end}}
     COPY . .
     RUN pip install -r requirements.txt
     ENTRYPOINT ["python", "/airplane/{{ .Entrypoint }}"]
@@ -34,11 +37,13 @@ func python(root string, args Args) (string, error) {
 
 	var buf strings.Builder
 	if err := t.Execute(&buf, struct {
-		Base       string
-		Entrypoint string
+		Base         string
+		Entrypoint   string
+		Requirements bool
 	}{
-		Base:       v.String(),
-		Entrypoint: entrypoint,
+		Base:         v.String(),
+		Entrypoint:   entrypoint,
+		Requirements: exist(reqs) == nil,
 	}); err != nil {
 		return "", err
 	}
