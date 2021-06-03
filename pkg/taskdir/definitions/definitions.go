@@ -1,6 +1,7 @@
 package definitions
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -123,6 +124,14 @@ func (this Definition) GetKindAndOptions() (api.TaskKind, api.KindOptions, error
 	} else if this.REST != nil {
 		if err := mapstructure.Decode(this.REST, &options); err != nil {
 			return "", api.KindOptions{}, errors.Wrap(err, "decoding REST definition")
+		}
+		// API server expects JSONBody as a string.
+		if _, ok := options["jsonBody"].(string); options["jsonBody"] != nil && !ok {
+			jsonBody, err := json.Marshal(options["jsonBody"])
+			if err != nil {
+				return "", api.KindOptions{}, errors.Wrap(err, "marshalling JSON body")
+			}
+			options["jsonBody"] = string(jsonBody)
 		}
 		return api.TaskKindREST, options, nil
 	}
