@@ -73,6 +73,12 @@ func run(ctx context.Context, cfg config) error {
 		return errors.Wrap(err, "get task")
 	}
 
+	if task.Image == nil {
+		return &notDeployedError{
+			task: cfg.task,
+		}
+	}
+
 	req := api.RunTaskRequest{
 		TaskID:      task.ID,
 		ParamValues: make(api.Values),
@@ -237,4 +243,18 @@ func slugFromScript(file string) (string, error) {
 	}
 
 	return slug, nil
+}
+
+type notDeployedError struct {
+	task string
+}
+
+// Error implementation.
+func (err notDeployedError) Error() string {
+	return fmt.Sprintf("task %s was not deployed", err.task)
+}
+
+// ExplainError implementation.
+func (err notDeployedError) ExplainError() string {
+	return fmt.Sprintf("to deploy the task:\n\tairplane deploy %s", err.task)
 }
