@@ -3,9 +3,12 @@ package javascript
 import (
 	"bufio"
 	"bytes"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/url"
 	"path"
+	"path/filepath"
 	"strings"
 	"text/template"
 
@@ -81,8 +84,34 @@ func (r Runtime) Comment(t api.Task) string {
 }
 
 // Root implementation.
-func (r Runtime) Root(path string) (dir string, ok bool) {
-	return runtime.Pathof(path, "package.json")
+//
+// The method finds the nearest package.json, If the package.json contains
+// any airplane settings with `root` definition it will use that as the root.
+func (r Runtime) Root(path string) (string, error) {
+	dst, err := runtime.Pathof(path, "package.json")
+	if err != nil {
+		return "", err
+	}
+
+	pkgjson := filepath.Join(dst, "package.json")
+	buf, err := ioutil.ReadFile(pkgjson)
+	if err != nil {
+		return "", fmt.Errorf("javascript: reading %s - %w", dst, err)
+	}
+
+	var pkg struct {
+		Settings runtime.Settings `json:"airplane"`
+	}
+
+	if err := json.Unmarshal(buf, &pkg); err != nil {
+		return "", fmt.Errorf("javascript: reading %s - %w", dst, err)
+	}
+
+	if root := pkg.Settings.Root; root != "" {
+		return filepath.Join(dst, root), nil
+	}
+
+	return dst, nil
 }
 
 // Kind implementation.
