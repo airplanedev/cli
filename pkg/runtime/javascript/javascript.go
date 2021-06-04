@@ -26,8 +26,8 @@ const (
 // Code template.
 var code = template.Must(template.New("js").Parse(`{{.Comment}}
 
-export default async function(args){
-  console.log('arguments: ', args);
+export default async function(params){
+  console.log('parameters: ', params);
 }
 `))
 
@@ -83,4 +83,9 @@ func (r Runtime) Comment(t api.Task) string {
 // Root implementation.
 func (r Runtime) Root(path string) (dir string, ok bool) {
 	return runtime.Pathof(path, "package.json")
+}
+
+// Kind implementation.
+func (r Runtime) Kind() api.TaskKind {
+	return api.TaskKindNode
 }

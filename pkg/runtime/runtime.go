@@ -41,6 +41,12 @@ type Interface interface {
 	// Typically runtimes will look for a specific file such as
 	// `package.json` or `requirements.txt`, they'll use `runtime.Pathof()`.
 	Root(path string) (dir string, ok bool)
+
+	// Kind returns a task kind that matches the runtime.
+	//
+	// Generate and other methods should not be called
+	// for a task that doesn't match the returned kind.
+	Kind() api.TaskKind
 }
 
 // Runtimes is a collection of registered runtimes.
