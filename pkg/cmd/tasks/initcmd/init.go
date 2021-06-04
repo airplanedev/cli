@@ -76,8 +76,8 @@ func run(ctx context.Context, cfg config) error {
 		return err
 	}
 
-	if task.Kind != api.TaskKindNode {
-		return fmt.Errorf("cannot link %q to a non node.js task", cfg.file)
+	if task.Kind != r.Kind() {
+		return fmt.Errorf("cannot link %q to a %s task", cfg.file, r.Kind())
 	}
 
 	if fs.Exists(cfg.file) {

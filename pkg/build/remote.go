@@ -15,9 +15,9 @@ import (
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/taskdir/definitions"
-	dockerBuild "github.com/docker/cli/cli/command/image/build"
 	dockerFileUtils "github.com/docker/docker/pkg/fileutils"
 	"github.com/dustin/go-humanize"
+	"github.com/moby/buildkit/frontend/dockerfile/dockerignore"
 	"github.com/pkg/errors"
 )
 
@@ -146,6 +146,7 @@ func getIgnoreFunc(taskRootPath string, kind api.TaskKind) (func(filePath string
 				if strings.HasPrefix(pat.String()+string(filepath.Separator), relFilePath+string(filepath.Separator)) {
 					// There is a pattern in this directory that should be included, so
 					// we can't skip this directory.
+					logger.Debug("Including in build archive: %s", relFilePath)
 					return true, nil
 				}
 			}
@@ -153,26 +154,52 @@ func getIgnoreFunc(taskRootPath string, kind api.TaskKind) (func(filePath string
 			return false, nil
 		}
 
+		if !skip {
+			logger.Debug("Including in build archive: %s", relFilePath)
+		}
 		return !skip, nil
 	}, nil
 }
 
-func getIgnorePatterns(path string, kind api.TaskKind) ([]string, error) {
-	// reference: https://docs.docker.com/engine/reference/builder/#dockerignore-file
-	excludes, err := dockerBuild.ReadDockerignore(path)
-	if err != nil {
-		return nil, errors.Wrap(err, "reading .dockerignore")
-	}
+// readIgnorefile reads a .dockerignore-like file
+// Based off of github.com/docker/cli@v20.10.6/cli/command/image/build/dockerignore.go
+// Reference: https://docs.docker.com/engine/reference/builder/#dockerignore-file
+func readIgnorefile(contextDir, filename string) ([]string, error) {
+	var excludes []string
 
-	if len(excludes) > 0 {
+	f, err := os.Open(filepath.Join(contextDir, filename))
+	switch {
+	case os.IsNotExist(err):
 		return excludes, nil
+	case err != nil:
+		return nil, err
+	}
+	defer f.Close()
+
+	return dockerignore.ReadAll(f)
+}
+
+func getIgnorePatterns(path string, kind api.TaskKind) ([]string, error) {
+	// Prefer .airplaneignore over .dockerignore
+	for _, ignorefile := range []string{".airplaneignore", ".dockerignore"} {
+		excludes, err := readIgnorefile(path, ignorefile)
+		if err != nil {
+			return nil, errors.Wrapf(err, "reading %s", ignorefile)
+		}
+		if len(excludes) > 0 {
+			logger.Debug("Found %s - using %d exclude rule(s)", ignorefile, len(excludes))
+			return excludes, nil
+		}
 	}
 
 	// If a .dockerignore was not provided, use a default based on the builder.
 	defaultExcludes := []string{
 		".git",
-		"*.env",
-		"bin",
+		".gitmodules",
+		".hg",
+		".svn",
+		"**/*.env",
+		"**/bin",
 	}
 	// For inspiration, see: https://github.com/github/gitignore
 	switch Name(kind) {
@@ -185,17 +212,20 @@ func getIgnorePatterns(path string, kind api.TaskKind) ([]string, error) {
 		return defaultExcludes, nil
 	case NamePython:
 		return append(defaultExcludes, []string{
-			".venv",
+			"**/.venv",
+			"**/__pycache__",
 		}...), nil
 	case NameNode:
 		// https://github.com/github/gitignore/blob/master/Node.gitignore
 		return append(defaultExcludes, []string{
-			"node_modules",
-			".npm",
-			".next",
-			"out",
-			"dist",
-			".yarn",
+			"**/npm-debug.log",
+			"**/node_modules",
+			"**/.npm",
+			"**/.next",
+			"**/.now",
+			"**/out",
+			"**/dist",
+			"**/.yarn",
 		}...), nil
 	case NameDockerfile:
 		return defaultExcludes, nil
