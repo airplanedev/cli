@@ -107,7 +107,7 @@ func archiveTaskDir(def definitions.Definition, root string, archivePath string)
 // This is modeled off of docker/cli.
 // See: https://github.com/docker/cli/blob/a32cd16160f1b41c1c4ae7bee4dac929d1484e59/vendor/github.com/docker/docker/pkg/archive/archive.go#L738
 func getIgnoreFunc(taskRootPath string, kind api.TaskKind) (func(filePath string, info os.FileInfo) (bool, error), error) {
-	excludes, err := getIgnorePatterns(taskRootPath, kind)
+	excludes, err := getIgnorePatterns(taskRootPath)
 	if err != nil {
 		return nil, err
 	}
@@ -179,58 +179,48 @@ func readIgnorefile(contextDir, filename string) ([]string, error) {
 	return dockerignore.ReadAll(f)
 }
 
-func getIgnorePatterns(path string, kind api.TaskKind) ([]string, error) {
-	// Prefer .airplaneignore over .dockerignore
-	for _, ignorefile := range []string{".airplaneignore", ".dockerignore"} {
-		excludes, err := readIgnorefile(path, ignorefile)
-		if err != nil {
-			return nil, errors.Wrapf(err, "reading %s", ignorefile)
-		}
-		if len(excludes) > 0 {
-			logger.Debug("Found %s - using %d exclude rule(s)", ignorefile, len(excludes))
-			return excludes, nil
-		}
-	}
-
-	// If a .dockerignore was not provided, use a default based on the builder.
-	defaultExcludes := []string{
+func getIgnorePatterns(path string) ([]string, error) {
+	// Start with default set of excludes.
+	// We exclude the same files regardless of kind because you might have both JS and PY tasks and
+	// want pyc files excluded just the same.
+	// For inspiration, see:
+	// https://github.com/github/gitignore
+	// https://github.com/github/gitignore/blob/master/Go.gitignore
+	// https://github.com/github/gitignore/blob/master/Node.gitignore
+	excludes := []string{
+		"**/*.env",
+		"**/*.pyc",
+		"**/.next",
+		"**/.now",
+		"**/.npm",
+		"**/.venv",
+		"**/.yarn",
+		"**/__pycache__",
+		"**/bin",
+		"**/dist",
+		"**/node_modules",
+		"**/npm-debug.log",
+		"**/out",
 		".git",
 		".gitmodules",
 		".hg",
 		".svn",
-		"**/*.env",
-		"**/bin",
 	}
-	// For inspiration, see: https://github.com/github/gitignore
-	switch Name(kind) {
-	case NameGo:
-		// https://github.com/github/gitignore/blob/master/Go.gitignore
-		return append(defaultExcludes, []string{
-			"vendor",
-		}...), nil
-	case NameDeno:
-		return defaultExcludes, nil
-	case NamePython:
-		return append(defaultExcludes, []string{
-			"**/.venv",
-			"**/__pycache__",
-		}...), nil
-	case NameNode:
-		// https://github.com/github/gitignore/blob/master/Node.gitignore
-		return append(defaultExcludes, []string{
-			"**/npm-debug.log",
-			"**/node_modules",
-			"**/.npm",
-			"**/.next",
-			"**/.now",
-			"**/out",
-			"**/dist",
-			"**/.yarn",
-		}...), nil
-	case NameDockerfile:
-		return defaultExcludes, nil
-	default:
-		return nil, errors.Errorf("build: unknown builder type %s", kind)
+
+	// Allow user-specified ignore file. Note that users can re-INCLUDE files using !, so if our
+	// default excludes skip something necessary they can always add it back.
+
+	// Prefer .airplaneignore over .dockerignore
+	for _, ignorefile := range []string{".airplaneignore", ".dockerignore"} {
+		ex, err := readIgnorefile(path, ignorefile)
+		if err != nil {
+			return nil, errors.Wrapf(err, "reading %s", ignorefile)
+		}
+		if len(ex) > 0 {
+			logger.Debug("Found %s - using %d exclude rule(s)", ignorefile, len(ex))
+			excludes = append(excludes, ex...)
+			return excludes, nil
+		}
 	}
 }
 
