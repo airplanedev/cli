@@ -222,6 +222,7 @@ func getIgnorePatterns(path string) ([]string, error) {
 			return excludes, nil
 		}
 	}
+	return excludes, nil
 }
 
 func uploadArchive(ctx context.Context, client *api.Client, archivePath string) (string, error) {
