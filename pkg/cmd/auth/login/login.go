@@ -69,7 +69,7 @@ func isLoggedIn(c *cli.Config) bool {
 }
 
 func login(ctx context.Context, c *cli.Config) error {
-	srv, err := token.NewServer(ctx)
+	srv, err := token.NewServer(ctx, c.Client.LoginSuccessURL())
 	if err != nil {
 		return err
 	}

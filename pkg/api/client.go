@@ -72,6 +72,13 @@ func (c Client) LoginURL(uri string) string {
 	return u.String()
 }
 
+// LoginSuccessURL returns a URL showing a message that logging in was successful.
+func (c Client) LoginSuccessURL() string {
+	u := c.appURL()
+	u.Path = "/cli/success"
+	return u.String()
+}
+
 // RunURL returns a run URL for a run ID.
 func (c Client) RunURL(id string) string {
 	u := c.appURL()
