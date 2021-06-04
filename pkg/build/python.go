@@ -19,7 +19,7 @@ func python(root string, args Args) (string, error) {
 	t, err := template.New("python").Parse(`
     FROM {{ .Base }}
     WORKDIR /airplane
-		{{if not .Requirements}}
+		{{if not .HasRequirements}}
 		RUN echo > requirements.txt
 		{{end}}
     COPY . .
@@ -37,13 +37,13 @@ func python(root string, args Args) (string, error) {
 
 	var buf strings.Builder
 	if err := t.Execute(&buf, struct {
-		Base         string
-		Entrypoint   string
-		Requirements bool
+		Base            string
+		Entrypoint      string
+		HasRequirements bool
 	}{
-		Base:         v.String(),
-		Entrypoint:   entrypoint,
-		Requirements: exist(reqs) == nil,
+		Base:            v.String(),
+		Entrypoint:      entrypoint,
+		HasRequirements: exist(reqs) == nil,
 	}); err != nil {
 		return "", err
 	}
