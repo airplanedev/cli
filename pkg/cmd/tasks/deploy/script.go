@@ -65,7 +65,7 @@ func deployFromScript(ctx context.Context, cfg config) error {
 	// in the build.
 	var taskroot = filepath.Dir(abs)
 
-	if root, ok := r.Root(abs); ok {
+	if root, err := r.Root(abs); err == nil {
 		def.Node.Entrypoint = strings.TrimPrefix(abs, root)
 		taskroot = root
 	} else {
