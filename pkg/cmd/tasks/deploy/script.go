@@ -162,7 +162,7 @@ func (u unlinked) Error() string {
 // ExplainError implementation.
 func (u unlinked) ExplainError() string {
 	return fmt.Sprintf(
-		"You can link the file by running:\n\tairplane init --slug <slug> %s",
+		"You can link the file by running:\n  airplane init --slug <slug> %s",
 		u.path,
 	)
 }

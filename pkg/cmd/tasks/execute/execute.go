@@ -256,5 +256,5 @@ func (err notDeployedError) Error() string {
 
 // ExplainError implementation.
 func (err notDeployedError) ExplainError() string {
-	return fmt.Sprintf("to deploy the task:\n\tairplane deploy %s", err.task)
+	return fmt.Sprintf("to deploy the task:\n  airplane deploy %s", err.task)
 }
