@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	// ErrMissing is returend when a resource was not found.
+	// ErrMissing is returned when a resource was not found.
 	//
 	// It can be checked via `errors.Is(err, ErrMissing)`.
 	ErrMissing = errors.New("runtime: resource is missing")
