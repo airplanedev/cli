@@ -1,6 +1,7 @@
 package runtime
 
 import (
+	"errors"
 	"path/filepath"
 	"testing"
 
@@ -14,9 +15,9 @@ func TestRuntime(t *testing.T) {
 			var path = "testdata/my/task/with_package_json"
 			var filename = "package.json"
 
-			v, ok := Pathof(path, filename)
+			v, err := Pathof(path, filename)
 
-			assert.True(ok)
+			assert.Nil(err)
 			assert.Equal("with_package_json", filepath.Base(v))
 		})
 
@@ -25,21 +26,22 @@ func TestRuntime(t *testing.T) {
 			var path = "testdata/monorepo/my/task"
 			var filename = "package.json"
 
-			v, ok := Pathof(path, filename)
+			v, err := Pathof(path, filename)
 
-			assert.True(ok)
+			assert.Nil(err)
 			assert.Equal("monorepo", filepath.Base(v))
 		})
 
 		t.Run("missing package.json", func(t *testing.T) {
 			var assert = require.New(t)
-			var path = "testdata/monorepo/my/task"
+			var path = "testdata"
 			var filename = "package.json"
 
-			v, ok := Pathof(path, filename)
+			v, err := Pathof(path, filename)
 
-			assert.True(ok)
-			assert.Equal("monorepo", filepath.Base(v))
+			assert.Error(err)
+			assert.True(errors.Is(err, ErrMissing), "expected a runtime.ErrMissing")
+			assert.Equal("", v)
 		})
 	})
 }

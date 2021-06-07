@@ -65,11 +65,15 @@ func deployFromScript(ctx context.Context, cfg config) error {
 	// in the build.
 	var taskroot = filepath.Dir(abs)
 
-	if root, ok := r.Root(abs); ok {
+	if root, err := r.Root(abs); err == nil {
 		def.Node.Entrypoint = strings.TrimPrefix(abs, root)
 		taskroot = root
 	} else {
 		def.Node.Entrypoint = filepath.Base(abs)
+	}
+
+	if wd, err := r.Workdir(abs); err == nil {
+		def.Node.Workdir = strings.TrimPrefix(wd, taskroot)
 	}
 
 	kind, kindOptions, err := def.GetKindAndOptions()
@@ -162,7 +166,7 @@ func (u unlinked) Error() string {
 // ExplainError implementation.
 func (u unlinked) ExplainError() string {
 	return fmt.Sprintf(
-		"You can link the file by running:\n\tairplane init --slug <slug> %s",
+		"You can link the file by running:\n  airplane init --slug <slug> %s",
 		u.path,
 	)
 }

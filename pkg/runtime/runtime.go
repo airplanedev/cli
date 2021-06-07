@@ -8,12 +8,25 @@
 package runtime
 
 import (
+	"errors"
 	"fmt"
 	"path/filepath"
 
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/fs"
 )
+
+var (
+	// ErrMissing is returned when a resource was not found.
+	//
+	// It can be checked via `errors.Is(err, ErrMissing)`.
+	ErrMissing = errors.New("runtime: resource is missing")
+)
+
+// Settings represent Airplane specific settings.
+type Settings struct {
+	Root string `json:"root"`
+}
 
 // Interface repersents a runtime.
 type Interface interface {
@@ -33,14 +46,21 @@ type Interface interface {
 	// The comment links a remote task to a file.
 	Comment(task api.Task) string
 
+	// Workdir attempts to detect the root of the given task path.
+	//
+	// Unlike root it decides the dockerfile's `workdir` directive
+	// this might be different than root because it decides where
+	// the build commands are run.
+	Workdir(path string) (dir string, err error)
+
 	// Root attempts to detect the root of the given task path.
 	//
-	// It returns the suggested root and `ok=true` if a suggestion
-	// was found otherwise it returns an empty string.
+	// It returns the suggested root, if a root directory is not
+	// found the method returns an `ErrMissing`.
 	//
 	// Typically runtimes will look for a specific file such as
 	// `package.json` or `requirements.txt`, they'll use `runtime.Pathof()`.
-	Root(path string) (dir string, ok bool)
+	Root(path string) (dir string, err error)
 
 	// Kind returns a task kind that matches the runtime.
 	//
@@ -77,18 +97,18 @@ const (
 // Pathof attempts to find the path of the given filename.
 //
 // The method recursively visits parent dirs until the given
-// filename is found, ok reports if the filename is found
-// and the string is the path.
-func Pathof(parent, filename string) (string, bool) {
+// filename is found, If the file is not found the method
+// returns an `ErrMissing`.
+func Pathof(parent, filename string) (string, error) {
 	dst := filepath.Join(parent, filename)
 
 	if !fs.Exists(dst) {
-		if parent == sep {
-			return "", false
-		}
 		next := filepath.Dir(parent)
+		if next == "." || next == sep {
+			return "", ErrMissing
+		}
 		return Pathof(next, filename)
 	}
 
-	return parent, true
+	return parent, nil
 }

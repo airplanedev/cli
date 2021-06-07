@@ -27,6 +27,7 @@ func node(root string, args Args) (string, error) {
 	}
 
 	cfg := struct {
+		Workdir        string
 		Base           string
 		HasPackageJSON bool
 		HasPackageLock bool
@@ -36,12 +37,17 @@ func node(root string, args Args) (string, error) {
 		TscTarget      string
 		TscLib         string
 	}{
+		Workdir:        args["workdir"],
 		HasPackageJSON: exist(filepath.Join(root, "package.json")) == nil,
 		HasPackageLock: exist(filepath.Join(root, "package-lock.json")) == nil,
 		HasYarnLock:    exist(filepath.Join(root, "yarn.lock")) == nil,
 		// https://github.com/tsconfig/bases/blob/master/bases/node16.json
 		TscTarget: "es2020",
 		TscLib:    "es2020",
+	}
+
+	if !strings.HasPrefix(cfg.Workdir, "/") {
+		cfg.Workdir = "/" + cfg.Workdir
 	}
 
 	nodeVersion := args["nodeVersion"]
@@ -102,7 +108,7 @@ main()`
 	return templatize(`
 		FROM {{.Base}}
 
-		WORKDIR /airplane
+		WORKDIR /airplane{{.Workdir}}
 
 		# Support setting BUILD_NPM_RC or BUILD_NPM_TOKEN to configure private registry auth
 		ARG BUILD_NPM_RC
