@@ -101,7 +101,7 @@ func (r Runtime) Root(path string) (string, error) {
 	pkgjson := filepath.Join(dst, "package.json")
 	buf, err := ioutil.ReadFile(pkgjson)
 	if err != nil {
-		return "", fmt.Errorf("javascript: reading %s - %w", dst, err)
+		return "", errors.Wrapf(err, "javascript: reading %s", dst)
 	}
 
 	var pkg struct {
