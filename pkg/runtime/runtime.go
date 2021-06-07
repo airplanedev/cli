@@ -46,6 +46,13 @@ type Interface interface {
 	// The comment links a remote task to a file.
 	Comment(task api.Task) string
 
+	// Workdir attempts to detect the root of the given task path.
+	//
+	// Unlike root it decides the dockerfile's `workdir` directive
+	// this might be different than root because it decides where
+	// the build commands are run.
+	Workdir(path string) (dir string, err error)
+
 	// Root attempts to detect the root of the given task path.
 	//
 	// It returns the suggested root, if a root directory is not

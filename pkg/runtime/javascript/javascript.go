@@ -83,6 +83,11 @@ func (r Runtime) Comment(t api.Task) string {
 	return fmt.Sprintf("%s\n// %s", commentPrefix, t.URL)
 }
 
+// Workdir implementation.
+func (r Runtime) Workdir(path string) (string, error) {
+	return runtime.Pathof(path, "package.json")
+}
+
 // Root implementation.
 //
 // The method finds the nearest package.json, If the package.json contains
