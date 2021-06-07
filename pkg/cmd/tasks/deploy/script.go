@@ -72,6 +72,10 @@ func deployFromScript(ctx context.Context, cfg config) error {
 		def.Node.Entrypoint = filepath.Base(abs)
 	}
 
+	if wd, err := r.Workdir(abs); err == nil {
+		def.Node.Workdir = strings.TrimPrefix(wd, taskroot)
+	}
+
 	kind, kindOptions, err := def.GetKindAndOptions()
 	if err != nil {
 		return err
