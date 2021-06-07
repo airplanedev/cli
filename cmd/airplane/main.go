@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"os"
+	"strings"
 
 	"github.com/airplanedev/cli/pkg/cmd/root"
 	"github.com/airplanedev/cli/pkg/logger"
@@ -33,14 +34,21 @@ func main() {
 		}
 		logger.Log("")
 		if exerr, ok := errors.Cause(err).(utils.ErrorExplained); ok {
-			logger.Log(logger.Red(exerr.Error()))
+			logger.Error(capitalize(exerr.Error()))
 			logger.Log("")
-			logger.Log(exerr.ExplainError())
+			logger.Log(capitalize(exerr.ExplainError()))
 		} else {
-			logger.Error(errors.Cause(err).Error())
+			logger.Error(capitalize(errors.Cause(err).Error()))
 		}
 		logger.Log("")
 
 		os.Exit(1)
 	}
+}
+
+func capitalize(str string) string {
+	if len(str) > 0 {
+		return strings.ToUpper(str[0:1]) + str[1:]
+	}
+	return str
 }
