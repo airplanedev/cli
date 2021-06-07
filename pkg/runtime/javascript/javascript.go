@@ -14,6 +14,7 @@ import (
 
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/runtime"
+	"github.com/pkg/errors"
 )
 
 // Init register the runtime.
