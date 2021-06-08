@@ -31,7 +31,7 @@ const (
 var code = template.Must(template.New("js").Parse(`{{.Comment}}
 
 export default async function(params){
-  console.log('parameters: ', params);
+  console.log('parameters:', params);
 }
 `))
 
