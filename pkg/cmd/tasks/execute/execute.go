@@ -227,17 +227,12 @@ func slugFromYaml(file string) (string, error) {
 
 // slugFromScript attempts to extract a slug from a script.
 func slugFromScript(file string) (string, error) {
-	r, ok := runtime.Lookup(file)
-	if !ok {
-		return "", fmt.Errorf("%s tasks are not supported", file)
-	}
-
 	code, err := ioutil.ReadFile(file)
 	if err != nil {
 		return "", fmt.Errorf("cannot read file %s - %w", file, err)
 	}
 
-	slug, ok := r.Slug(code)
+	slug, ok := runtime.ExtractSlugFromComment(code)
 	if !ok {
 		return "", fmt.Errorf("cannot find a slug in %s", file)
 	}

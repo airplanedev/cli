@@ -34,7 +34,7 @@ func deployFromScript(ctx context.Context, cfg config) error {
 		return fmt.Errorf("reading %s - %w", cfg.file, err)
 	}
 
-	slug, ok := r.Slug(code)
+	slug, ok := runtime.ExtractSlugFromComment(code)
 	if !ok {
 		return &unlinked{
 			path: cfg.file,

@@ -35,17 +35,6 @@ type Interface interface {
 	// An error is returned if the code cannot be generated.
 	Generate(task api.Task) ([]byte, error)
 
-	// Slug returns the slug from the given code.
-	//
-	// If the comment was not found in code, the method
-	// returns empty string and false.
-	Slug(code []byte) (string, bool)
-
-	// Comment returns a special airplane comment.
-	//
-	// The comment links a remote task to a file.
-	Comment(task api.Task) string
-
 	// Workdir attempts to detect the root of the given task path.
 	//
 	// Unlike root it decides the dockerfile's `workdir` directive
