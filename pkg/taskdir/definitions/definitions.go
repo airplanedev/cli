@@ -142,6 +142,17 @@ func (this Definition) GetKindAndOptions() (api.TaskKind, api.KindOptions, error
 			}
 			options["bodyType"] = "json"
 			delete(options, "jsonBody")
+
+		} else if options["formUrlEncodedBody"] != nil {
+			options["formData"] = options["formUrlEncodedBody"]
+			options["bodyType"] = "x-www-form-urlencoded"
+			delete(options, "formUrlEncodedBody")
+
+		} else if options["formDataBody"] != nil {
+			options["formData"] = options["formDataBody"]
+			options["bodyType"] = "form-data"
+			delete(options, "formDataBody")
+
 		} else {
 			options["bodyType"] = "raw"
 		}
