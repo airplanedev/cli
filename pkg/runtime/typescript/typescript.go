@@ -24,8 +24,8 @@ type Params = {
   {{- end }}
 }
 
-export default async function(args: Params){
-  console.log('arguments: ', args);
+export default async function(params: Params){
+  console.log('parameters:', params);
 }
 `))
 
