@@ -38,23 +38,32 @@ func New(c *cli.Config) *cobra.Command {
 		Use:     "execute <slug>",
 		Short:   "Execute a task",
 		Aliases: []string{"exec"},
-		Long:    "Execute a task by its slug with the provided parameters.",
+		Long:    "Execute a task from the CLI, optionally with specific parameters.",
 		Example: heredoc.Doc(`
-			airplane execute ./airplane.yml [-- <parameters...>]
 			airplane execute ./task.js [-- <parameters...>]
-			airplane execute ./task.ts [-- <parameters...>]
 			airplane execute hello_world [-- <parameters...>]
+			airplane execute ./airplane.yml [-- <parameters...>]
 		`),
 		PersistentPreRunE: utils.WithParentPersistentPreRunE(func(cmd *cobra.Command, args []string) error {
 			return login.EnsureLoggedIn(cmd.Root().Context(), c)
 		}),
-		Args: cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cfg.task = args[0]
+			if cfg.task != "" {
+				// A file was provided with the -f flag. This is deprecated.
+				logger.Warning(`The --file/-f flag is deprecated and will be removed in a future release. File paths should be passed as a positional argument instead: airplane execute %s`, cfg.task)
+			} else if len(args) > 0 {
+				cfg.task = args[0]
+			} else {
+				return errors.New("expected 1 argument: airplane execute [./path/to/file | task slug]")
+			}
+
 			cfg.args = args[1:]
 			return run(cmd.Root().Context(), cfg)
 		},
 	}
+
+	cmd.Flags().StringVarP(&cfg.task, "file", "f", "", "File to deploy (.yaml, .yml, .js, .ts)")
+	cli.Must(cmd.Flags().MarkHidden("file")) // --file is deprecated
 
 	return cmd
 }
