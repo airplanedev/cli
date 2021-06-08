@@ -51,13 +51,14 @@ func New(c *cli.Config) *cobra.Command {
 			if cfg.task != "" {
 				// A file was provided with the -f flag. This is deprecated.
 				logger.Warning(`The --file/-f flag is deprecated and will be removed in a future release. File paths should be passed as a positional argument instead: airplane execute %s`, cfg.task)
+				cfg.args = args
 			} else if len(args) > 0 {
 				cfg.task = args[0]
+				cfg.args = args[1:]
 			} else {
 				return errors.New("expected 1 argument: airplane execute [./path/to/file | task slug]")
 			}
 
-			cfg.args = args[1:]
 			return run(cmd.Root().Context(), cfg)
 		},
 	}
@@ -72,13 +73,20 @@ func New(c *cli.Config) *cobra.Command {
 func run(ctx context.Context, cfg config) error {
 	var client = cfg.root.Client
 
-	slug, err := slugFrom(cfg.task)
-	if err != nil {
-		return err
-	}
+	// cfg.task is either a slug or a local path. Try it as a slug first.
+	task, err := client.GetTask(ctx, cfg.task)
+	if _, ok := err.(*api.TaskMissingError); ok {
+		// If there's no task matching that slug, try it as a file path instead.
+		slug, err := slugFrom(cfg.task)
+		if err != nil {
+			return err
+		}
 
-	task, err := client.GetTask(ctx, slug)
-	if err != nil {
+		task, err = client.GetTask(ctx, slug)
+		if err != nil {
+			return errors.Wrap(err, "get task")
+		}
+	} else if err != nil {
 		return errors.Wrap(err, "get task")
 	}
 
@@ -199,19 +207,20 @@ func flagset(task api.Task, args api.Values) *flag.FlagSet {
 
 // SlugFrom returns the slug from the given file.
 func slugFrom(file string) (string, error) {
-	if fs.Exists(file) {
-		switch ext := filepath.Ext(file); ext {
-		case ".yml", ".yaml":
-			return slugFromYaml(file)
-		case ".js", ".ts":
-			return slugFromScript(file)
-		case "":
-			return "", fmt.Errorf("the file %s must have an extension", file)
-		default:
-			return "", fmt.Errorf("the file %s has unrecognized extension", file)
-		}
+	if !fs.Exists(file) {
+		return "", errors.Errorf("Unable to execute %s. No matching file or task slug.", file)
 	}
-	return file, nil
+
+	switch ext := filepath.Ext(file); ext {
+	case ".yml", ".yaml":
+		return slugFromYaml(file)
+	case ".js", ".ts":
+		return slugFromScript(file)
+	case "":
+		return "", fmt.Errorf("the file %s must have an extension", file)
+	default:
+		return "", fmt.Errorf("the file %s has unrecognized extension", file)
+	}
 }
 
 // slugFromYaml attempts to extract a slug from a yaml definition.
