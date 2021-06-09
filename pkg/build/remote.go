@@ -47,6 +47,7 @@ func remote(ctx context.Context, req Request) (*Response, error) {
 		TaskID:         req.TaskID,
 		SourceUploadID: uploadID,
 		Env:            req.TaskEnv,
+		Shim:           req.Shim,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "creating build")

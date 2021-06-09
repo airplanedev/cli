@@ -38,23 +38,33 @@ func New(c *cli.Config) *cobra.Command {
 		Use:     "execute <slug>",
 		Short:   "Execute a task",
 		Aliases: []string{"exec"},
-		Long:    "Execute a task by its slug with the provided parameters.",
+		Long:    "Execute a task from the CLI, optionally with specific parameters.",
 		Example: heredoc.Doc(`
-			airplane execute ./airplane.yml [-- <parameters...>]
 			airplane execute ./task.js [-- <parameters...>]
-			airplane execute ./task.ts [-- <parameters...>]
 			airplane execute hello_world [-- <parameters...>]
+			airplane execute ./airplane.yml [-- <parameters...>]
 		`),
 		PersistentPreRunE: utils.WithParentPersistentPreRunE(func(cmd *cobra.Command, args []string) error {
 			return login.EnsureLoggedIn(cmd.Root().Context(), c)
 		}),
-		Args: cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cfg.task = args[0]
-			cfg.args = args[1:]
+			if cfg.task != "" {
+				// A file was provided with the -f flag. This is deprecated.
+				logger.Warning(`The --file/-f flag is deprecated and will be removed in a future release. File paths should be passed as a positional argument instead: airplane execute %s`, cfg.task)
+				cfg.args = args
+			} else if len(args) > 0 {
+				cfg.task = args[0]
+				cfg.args = args[1:]
+			} else {
+				return errors.New("expected 1 argument: airplane execute [./path/to/file | task slug]")
+			}
+
 			return run(cmd.Root().Context(), cfg)
 		},
 	}
+
+	cmd.Flags().StringVarP(&cfg.task, "file", "f", "", "File to deploy (.yaml, .yml, .js, .ts)")
+	cli.Must(cmd.Flags().MarkHidden("file")) // --file is deprecated
 
 	return cmd
 }
@@ -63,13 +73,24 @@ func New(c *cli.Config) *cobra.Command {
 func run(ctx context.Context, cfg config) error {
 	var client = cfg.root.Client
 
-	slug, err := slugFrom(cfg.task)
-	if err != nil {
-		return err
-	}
+	// cfg.task is either a slug or a local path. Try it as a slug first.
+	task, err := client.GetTask(ctx, cfg.task)
+	if _, ok := err.(*api.TaskMissingError); ok {
+		// If there's no task matching that slug, try it as a file path instead.
+		if !fs.Exists(cfg.task) {
+			return errors.Errorf("Unable to execute %s. No matching file or task slug.", cfg.task)
+		}
 
-	task, err := client.GetTask(ctx, slug)
-	if err != nil {
+		slug, err := slugFrom(cfg.task)
+		if err != nil {
+			return err
+		}
+
+		task, err = client.GetTask(ctx, slug)
+		if err != nil {
+			return errors.Wrap(err, "get task")
+		}
+	} else if err != nil {
 		return errors.Wrap(err, "get task")
 	}
 
@@ -190,19 +211,16 @@ func flagset(task api.Task, args api.Values) *flag.FlagSet {
 
 // SlugFrom returns the slug from the given file.
 func slugFrom(file string) (string, error) {
-	if fs.Exists(file) {
-		switch ext := filepath.Ext(file); ext {
-		case ".yml", ".yaml":
-			return slugFromYaml(file)
-		case ".js", ".ts":
-			return slugFromScript(file)
-		case "":
-			return "", fmt.Errorf("the file %s must have an extension", file)
-		default:
-			return "", fmt.Errorf("the file %s has unrecognized extension", file)
-		}
+	switch ext := filepath.Ext(file); ext {
+	case ".yml", ".yaml":
+		return slugFromYaml(file)
+	case ".js", ".ts":
+		return slugFromScript(file)
+	case "":
+		return "", fmt.Errorf("the file %s must have an extension", file)
+	default:
+		return "", fmt.Errorf("the file %s has unrecognized extension", file)
 	}
-	return file, nil
 }
 
 // slugFromYaml attempts to extract a slug from a yaml definition.
