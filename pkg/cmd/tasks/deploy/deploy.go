@@ -49,7 +49,7 @@ func New(c *cli.Config) *cobra.Command {
 		}),
 	}
 
-	cmd.Flags().BoolVarP(&cfg.local, "local", "L", false, "use a local (instead of Airplane-hosted) Docker daemon")
+	cmd.Flags().BoolVarP(&cfg.local, "local", "L", false, "use a local Docker daemon (instead of an Airplane-hosted builder)")
 	cmd.Flags().StringVarP(&cfg.file, "file", "f", "", "File to deploy (.yaml, .yml, .js, .ts)")
 	cli.Must(cmd.Flags().MarkHidden("file")) // --file is deprecated
 

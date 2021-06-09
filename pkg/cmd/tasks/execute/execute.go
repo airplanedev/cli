@@ -77,6 +77,10 @@ func run(ctx context.Context, cfg config) error {
 	task, err := client.GetTask(ctx, cfg.task)
 	if _, ok := err.(*api.TaskMissingError); ok {
 		// If there's no task matching that slug, try it as a file path instead.
+		if !fs.Exists(cfg.task) {
+			return errors.Errorf("Unable to execute %s. No matching file or task slug.", cfg.task)
+		}
+
 		slug, err := slugFrom(cfg.task)
 		if err != nil {
 			return err
@@ -207,10 +211,6 @@ func flagset(task api.Task, args api.Values) *flag.FlagSet {
 
 // SlugFrom returns the slug from the given file.
 func slugFrom(file string) (string, error) {
-	if !fs.Exists(file) {
-		return "", errors.Errorf("Unable to execute %s. No matching file or task slug.", file)
-	}
-
 	switch ext := filepath.Ext(file); ext {
 	case ".yml", ".yaml":
 		return slugFromYaml(file)
