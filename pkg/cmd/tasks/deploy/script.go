@@ -81,6 +81,8 @@ func deployFromScript(ctx context.Context, cfg config) error {
 		return err
 	}
 
+	// Instruct the remote builder API to perform a shim-based build since
+	// we're deploying from a script.
 	kindOptions["shim"] = "true"
 
 	// Before performing a remote build, we must first update kind/kindOptions
