@@ -22,6 +22,12 @@ import (
 )
 
 func remote(ctx context.Context, req Request) (*Response, error) {
+	// Before performing a remote build, we must first update kind/kindOptions
+	// since the remote build relies on pulling those from the tasks table (for now).
+	if err := updateKindAndOptions(ctx, req.Client, req.Def, req.Shim); err != nil {
+		return nil, err
+	}
+
 	registry, err := req.Client.GetRegistryToken(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "getting registry token")
@@ -66,6 +72,47 @@ func remote(ctx context.Context, req Request) (*Response, error) {
 	return &Response{
 		ImageURL: imageURL,
 	}, nil
+}
+
+func updateKindAndOptions(ctx context.Context, client *api.Client, def definitions.Definition, shim bool) error {
+	task, err := client.GetTask(ctx, def.Slug)
+	if err != nil {
+		return err
+	}
+
+	kind, kindOptions, err := def.GetKindAndOptions()
+	if err != nil {
+		return err
+	}
+	// Conditionally instruct the remote builder API to perform a shim-based build.
+	if shim {
+		kindOptions["shim"] = "true"
+	}
+
+	_, err = client.UpdateTask(ctx, api.UpdateTaskRequest{
+		Kind:        kind,
+		KindOptions: kindOptions,
+
+		// The following fields are not updated until after the build finishes.
+		Slug:             task.Slug,
+		Name:             task.Name,
+		Description:      task.Description,
+		Image:            task.Image,
+		Command:          task.Command,
+		Arguments:        task.Arguments,
+		Parameters:       task.Parameters,
+		Constraints:      task.Constraints,
+		Env:              task.Env,
+		ResourceRequests: task.ResourceRequests,
+		Resources:        task.Resources,
+		Repo:             task.Repo,
+		Timeout:          task.Timeout,
+	})
+	if err != nil {
+		return errors.Wrapf(err, "updating task %s", def.Slug)
+	}
+
+	return nil
 }
 
 func archiveTaskDir(def definitions.Definition, root string, archivePath string) error {
