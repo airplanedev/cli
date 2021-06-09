@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestExtractSlugFromComment(tt *testing.T) {
+func TestSlug(tt *testing.T) {
 	for _, test := range []struct {
 		name string
 		in   string
@@ -61,7 +61,7 @@ console.log('ship it')
 		},
 	} {
 		tt.Run(test.name, func(t *testing.T) {
-			slug, ok := ExtractSlugFromComment([]byte(test.in))
+			slug, ok := Slug([]byte(test.in))
 			require.Equal(t, test.ok, ok)
 			require.Equal(t, test.slug, slug)
 		})

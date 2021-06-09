@@ -232,7 +232,7 @@ func slugFromScript(file string) (string, error) {
 		return "", fmt.Errorf("cannot read file %s - %w", file, err)
 	}
 
-	slug, ok := runtime.ExtractSlugFromComment(code)
+	slug, ok := runtime.Slug(code)
 	if !ok {
 		return "", fmt.Errorf("cannot find a slug in %s", file)
 	}

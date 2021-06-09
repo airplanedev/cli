@@ -86,7 +86,7 @@ func run(ctx context.Context, cfg config) error {
 			return err
 		}
 
-		if slug, ok := runtime.ExtractSlugFromComment(buf); ok && slug == task.Slug {
+		if slug, ok := runtime.Slug(buf); ok && slug == task.Slug {
 			logger.Log("%s is already linked to %s", cfg.file, cfg.slug)
 			suggestDeploy(cfg.file)
 			return nil

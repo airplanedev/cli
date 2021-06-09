@@ -18,13 +18,12 @@ var (
 // Comment generates a linking comment that is used
 // to associate a script file with an Airplane task.
 //
-// This comment can be parsed out of a script file using
-// ExtractSlugFromComment.
+// This comment can be parsed out of a script file using Slug.
 func Comment(task api.Task) string {
 	return "Linked to " + task.URL + " [do not edit this line]"
 }
 
-func ExtractSlugFromComment(code []byte) (string, bool) {
+func Slug(code []byte) (string, bool) {
 	result := commentRegex.FindSubmatch(code)
 	if len(result) == 0 {
 		return "", false
