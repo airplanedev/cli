@@ -387,6 +387,7 @@ type CreateBuildRequest struct {
 	TaskID         string  `json:"taskID"`
 	SourceUploadID string  `json:"sourceUploadID"`
 	Env            TaskEnv `json:"env"`
+	Shim           bool    `json:"shim"`
 }
 
 type CreateBuildResponse struct {

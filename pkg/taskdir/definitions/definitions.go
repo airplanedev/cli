@@ -105,11 +105,6 @@ func (this Definition) GetKindAndOptions() (api.TaskKind, api.KindOptions, error
 		if err := mapstructure.Decode(this.Node, &options); err != nil {
 			return "", api.KindOptions{}, errors.Wrap(err, "decoding Node definition")
 		}
-		// Node tasks built with older versions of the CLI will have `shim=false` which
-		// instructs the remote builder to build Node tasks using the old (non-shim) version.
-		//
-		// We can remove this after we roll out this new JS task syntax to our existing users.
-		options["shim"] = "true"
 		return api.TaskKindNode, options, nil
 	} else if this.Python != nil {
 		if err := mapstructure.Decode(this.Python, &options); err != nil {
