@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/pkg/errors"
 	gitignore "github.com/sabhiram/go-gitignore"
@@ -14,7 +13,7 @@ import (
 
 // Returns an IgnoreFunc that can be used with airplanedev/archiver to filter
 // out files that match a default list or user-provided .airplaneignore.
-func GetIgnoreFunc(taskRootPath string, kind api.TaskKind) (func(filePath string, info os.FileInfo) (bool, error), error) {
+func GetIgnoreFunc(taskRootPath string) (func(filePath string, info os.FileInfo) (bool, error), error) {
 	excludes, err := getIgnorePatterns(taskRootPath)
 	if err != nil {
 		return nil, err

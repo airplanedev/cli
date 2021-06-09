@@ -80,14 +80,9 @@ func archiveTaskDir(def definitions.Definition, root string, archivePath string)
 		}
 	}
 
+	var err error
 	arch := archiver.NewTarGz()
-
-	kind, _, err := def.GetKindAndOptions()
-	if err != nil {
-		return err
-	}
-
-	arch.Tar.IncludeFunc, err = ignore.GetIgnoreFunc(root, kind)
+	arch.Tar.IncludeFunc, err = ignore.GetIgnoreFunc(root)
 	if err != nil {
 		return err
 	}
@@ -96,8 +91,7 @@ func archiveTaskDir(def definitions.Definition, root string, archivePath string)
 		return errors.Wrap(err, "building archive")
 	}
 
-	// return nil
-	return errors.New("DEBUG")
+	return nil
 }
 
 func uploadArchive(ctx context.Context, client *api.Client, archivePath string) (string, error) {
