@@ -23,6 +23,7 @@ require (
 	github.com/moby/sys/mount v0.2.0 // indirect
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/pkg/errors v0.9.1
+	github.com/sabhiram/go-gitignore v0.0.0-20201211210132-54b8a0bf510f
 	github.com/segmentio/events/v2 v2.4.0
 	github.com/spf13/cobra v1.1.3
 	github.com/stretchr/testify v1.6.1
