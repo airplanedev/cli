@@ -113,6 +113,7 @@ func deployFromScript(ctx context.Context, cfg config) error {
 		Root:    taskroot,
 		Def:     def,
 		TaskEnv: def.Env,
+		Shim:    true,
 	})
 	if err != nil {
 		return err
