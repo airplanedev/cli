@@ -19,8 +19,8 @@ var (
 // to associate a script file with an Airplane task.
 //
 // This comment can be parsed out of a script file using Slug.
-func Comment(task api.Task) string {
-	return "Linked to " + task.URL + " [do not edit this line]"
+func Comment(r Interface, task api.Task) string {
+	return r.FormatComment("Linked to " + task.URL + " [do not edit this line]")
 }
 
 func Slug(code []byte) (string, bool) {
