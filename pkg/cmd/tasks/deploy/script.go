@@ -34,7 +34,7 @@ func deployFromScript(ctx context.Context, cfg config) error {
 		return fmt.Errorf("reading %s - %w", cfg.file, err)
 	}
 
-	slug, ok := r.Slug(code)
+	slug, ok := runtime.Slug(code)
 	if !ok {
 		return &unlinked{
 			path: cfg.file,
@@ -80,6 +80,10 @@ func deployFromScript(ctx context.Context, cfg config) error {
 	if err != nil {
 		return err
 	}
+
+	// Instruct the remote builder API to perform a shim-based build since
+	// we're deploying from a script.
+	kindOptions["shim"] = "true"
 
 	// Before performing a remote build, we must first update kind/kindOptions
 	// since the remote build relies on pulling those from the tasks table (for now).

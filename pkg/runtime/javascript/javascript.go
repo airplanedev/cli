@@ -1,15 +1,11 @@
 package javascript
 
 import (
-	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"net/url"
-	"path"
 	"path/filepath"
-	"strings"
 	"text/template"
 
 	"github.com/airplanedev/cli/pkg/api"
@@ -22,13 +18,8 @@ func init() {
 	runtime.Register(".js", Runtime{})
 }
 
-// CommentPrefix.
-const (
-	commentPrefix = "// Linked to Airplane task, do not edit:"
-)
-
 // Code template.
-var code = template.Must(template.New("js").Parse(`{{.Comment}}
+var code = template.Must(template.New("js").Parse(`// {{.Comment}}
 
 export default async function(params){
   console.log('parameters:', params);
@@ -45,7 +36,7 @@ type Runtime struct{}
 
 // Generate implementation.
 func (r Runtime) Generate(t api.Task) ([]byte, error) {
-	var args = data{Comment: r.Comment(t)}
+	var args = data{Comment: runtime.Comment(t)}
 	var buf bytes.Buffer
 
 	if err := code.Execute(&buf, args); err != nil {
@@ -53,35 +44,6 @@ func (r Runtime) Generate(t api.Task) ([]byte, error) {
 	}
 
 	return buf.Bytes(), nil
-}
-
-// Slug implementation.
-func (r Runtime) Slug(code []byte) (string, bool) {
-	var s = bufio.NewScanner(bytes.NewReader(code))
-
-	for s.Scan() {
-		var line = strings.TrimSpace(s.Text())
-
-		if strings.HasPrefix(line, commentPrefix) {
-			continue
-		}
-
-		rawurl := strings.TrimSpace(strings.TrimPrefix(line, "//"))
-		u, err := url.Parse(rawurl)
-		if err != nil {
-			return "", false
-		}
-
-		_, slug := path.Split(u.Path)
-		return slug, len(slug) > 0
-	}
-
-	return "", false
-}
-
-// Comment implementation.
-func (r Runtime) Comment(t api.Task) string {
-	return fmt.Sprintf("%s\n// %s", commentPrefix, t.URL)
 }
 
 // Workdir implementation.

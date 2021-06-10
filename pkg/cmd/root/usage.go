@@ -16,6 +16,11 @@ func usage(cmd *cobra.Command) error {
 
 // Help prints the help for a command.
 func help(cmd *cobra.Command, args []string) {
+	desc := cmd.Short
+	if cmd.Long != "" {
+		desc = cmd.Long
+	}
+	logger.Log("%s", desc)
 	logger.Log("")
 	logger.Log("%s", logger.Bold("Usage:"))
 	logger.Log("  %s", cmd.UseLine())
