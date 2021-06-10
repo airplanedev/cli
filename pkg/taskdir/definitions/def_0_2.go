@@ -74,8 +74,8 @@ type RESTDefinition struct {
 	Method    string            `yaml:"method" mapstructure:"method"`
 	Path      string            `yaml:"path" mapstructure:"path"`
 	URLParams map[string]string `yaml:"urlParams,omitempty" mapstructure:"urlParams"`
-	Body      string            `yaml:"body,omitempty" mapstructure:"body"`
-	JSONBody  interface{}       `yaml:"jsonBody,omitempty" mapstructure:"jsonBody"`
+	Body      string            `yaml:"body,omitempty" mapstructure:"body,omitempty"`
+	JSONBody  interface{}       `yaml:"jsonBody,omitempty" mapstructure:"jsonBody,omitempty"`
 }
 
 func (d Definition_0_2) upgrade() (Definition, error) {
