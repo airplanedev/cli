@@ -118,35 +118,33 @@ main()`
 
 		RUN npm install -g typescript@4.2
 
-		{{if .HasPackageJSON}}
-		COPY package.json .
-		{{else}}
+		COPY . /airplane
+
+		{{if not .HasPackageJSON}}
 		RUN echo '{}' > package.json
 		{{end}}
 
 		{{if .HasPackageLock}}
 		RUN npm install package-lock.json && npm install --save-dev @types/node
 		{{else if .HasYarnLock}}
-		RUN yarn install && yarn add -D @types/node
+		RUN yarn --frozen-lockfile --non-interactive && yarn add -D @types/node
 		{{else}}
-		RUN npm install @types/node
+		RUN npm install --save-dev @types/node
 		{{end}}
 
-		COPY . .
-
-		RUN mkdir -p .airplane-build/dist && \
-			echo '{{.Shim}}' > .airplane-build/shim.ts && \
-			cp package.json .airplane-build/dist/package.json && \
+		RUN mkdir -p /airplane/.airplane-build/dist && \
+			echo '{{.Shim}}' > /airplane/.airplane-build/shim.ts && \
 			tsc \
 				--allowJs \
 				--module commonjs \
 				--target {{.TscTarget}} \
 				--lib {{.TscLib}} \
 				--esModuleInterop \
-				--outDir .airplane-build/dist \
-				--rootDir . \
-				.airplane-build/shim.ts
-		ENTRYPOINT ["node", ".airplane-build/dist/.airplane-build/shim.js"]
+				--outDir /airplane/.airplane-build/dist \
+				--rootDir /airplane \
+				--skipLibCheck \
+				/airplane/.airplane-build/shim.ts
+		ENTRYPOINT ["node", "/airplane/.airplane-build/dist/.airplane-build/shim.js"]
 	`, cfg)
 }
 

@@ -36,6 +36,10 @@ func local(ctx context.Context, req Request) (*Response, error) {
 		}
 	}
 
+	if req.Shim {
+		args["shim"] = "true"
+	}
+
 	b, err := New(LocalConfig{
 		Root:    req.Root,
 		Builder: string(kind),
