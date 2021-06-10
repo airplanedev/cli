@@ -5,6 +5,7 @@ import (
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/cmd/auth/login"
 	"github.com/airplanedev/cli/pkg/cmd/tasks/deploy"
+	"github.com/airplanedev/cli/pkg/cmd/tasks/dev"
 	"github.com/airplanedev/cli/pkg/cmd/tasks/execute"
 	"github.com/airplanedev/cli/pkg/cmd/tasks/get"
 	"github.com/airplanedev/cli/pkg/cmd/tasks/initcmd"
@@ -34,6 +35,7 @@ func New(c *cli.Config) *cobra.Command {
 
 	cmd.AddCommand(deploy.New(c))
 	cmd.AddCommand(list.New(c))
+	cmd.AddCommand(dev.New(c))
 	cmd.AddCommand(execute.New(c))
 	cmd.AddCommand(get.New(c))
 	cmd.AddCommand(initcmd.New(c))

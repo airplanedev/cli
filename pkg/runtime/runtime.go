@@ -8,6 +8,7 @@
 package runtime
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"path/filepath"
@@ -60,6 +61,8 @@ type Interface interface {
 	// FormatComment formats a string into a comment using
 	// the relevant comment characters for this runtime.
 	FormatComment(s string) string
+
+	PrepareRun(ctx context.Context, paramValues api.Values) ([]string, error)
 }
 
 // Runtimes is a collection of registered runtimes.

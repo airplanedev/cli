@@ -25,9 +25,10 @@ import (
 
 // Config is the execute config.
 type config struct {
-	root *cli.Config
-	task string // Could be a file, yaml definition or a slug.
-	args []string
+	root   *cli.Config
+	task   string // Could be a script or yaml definition.
+	args   []string
+	remote bool
 }
 
 // New returns a new execute cobra command.
@@ -39,6 +40,8 @@ func New(c *cli.Config) *cobra.Command {
 		Short:   "Execute a task",
 		Aliases: []string{"exec"},
 		Long:    "Execute a task from the CLI, optionally with specific parameters.",
+		// airplane run <slug> --name="..."
+		// airplane local <file> --name="..."
 		Example: heredoc.Doc(`
 			airplane execute ./task.js [-- <parameters...>]
 			airplane execute hello_world [-- <parameters...>]
@@ -56,7 +59,7 @@ func New(c *cli.Config) *cobra.Command {
 				cfg.task = args[0]
 				cfg.args = args[1:]
 			} else {
-				return errors.New("expected 1 argument: airplane execute [./path/to/file | task slug]")
+				return errors.New(`expected a task to execute: airplane execute [./path/to/file | --slug "..."]`)
 			}
 
 			return run(cmd.Root().Context(), cfg)
@@ -65,6 +68,8 @@ func New(c *cli.Config) *cobra.Command {
 
 	cmd.Flags().StringVarP(&cfg.task, "file", "f", "", "File to deploy (.yaml, .yml, .js, .ts)")
 	cli.Must(cmd.Flags().MarkHidden("file")) // --file is deprecated
+
+	cmd.Flags().BoolVar(&cfg.remote, "remote", false, "Execute the task remotely rather than locally")
 
 	return cmd
 }
@@ -94,7 +99,7 @@ func run(ctx context.Context, cfg config) error {
 		return errors.Wrap(err, "get task")
 	}
 
-	if task.Image == nil {
+	if cfg.remote && task.Image == nil {
 		return &notDeployedError{
 			task: cfg.task,
 		}
@@ -105,30 +110,21 @@ func run(ctx context.Context, cfg config) error {
 		ParamValues: make(api.Values),
 	}
 
-	if len(cfg.args) > 0 {
-		// If args have been passed in, parse them as flags
-		set := flagset(task, req.ParamValues)
-		if err := set.Parse(cfg.args); err != nil {
-			if errors.Is(err, flag.ErrHelp) {
-				return nil
-			}
-			return err
-		}
-	} else {
-		// Otherwise, try to prompt for parameters
-		if err := promptForParamValues(cfg.root.Client, task, req.ParamValues); err != nil {
-			return err
-		}
-	}
+	logger.Log("Executing %s: %s", logger.Bold(task.Name), logger.Gray(client.TaskURL(task.Slug)))
 
-	logger.Log(logger.Gray("Running: %s", task.Name))
+	req.ParamValues, err = params.CLI(cfg.args, client, task)
+	if errors.Is(err, flag.ErrHelp) {
+		return nil
+	} else if err != nil {
+		return err
+	}
 
 	w, err := client.Watcher(ctx, req)
 	if err != nil {
 		return err
 	}
 
-	logger.Log(logger.Gray("Queued: %s", client.RunURL(w.RunID())))
+	logger.Log(logger.Gray("Queued run: %s", client.RunURL(w.RunID())))
 
 	var state api.RunState
 	agentPrefix := "[agent]"
@@ -179,34 +175,6 @@ func run(ctx context.Context, cfg config) error {
 	}
 
 	return nil
-}
-
-// Flagset returns a new flagset from the given task parameters.
-func flagset(task api.Task, args api.Values) *flag.FlagSet {
-	var set = flag.NewFlagSet(task.Name, flag.ContinueOnError)
-
-	set.Usage = func() {
-		logger.Log("\n%s Usage:", task.Name)
-		set.VisitAll(func(f *flag.Flag) {
-			logger.Log("  --%s %s (default: %q)", f.Name, f.Usage, f.DefValue)
-		})
-		logger.Log("")
-	}
-
-	for i := range task.Parameters {
-		// Scope p here (& not above) so we can use it in the closure.
-		// See also: https://github.com/golang/go/wiki/CommonMistakes#using-goroutines-on-loop-iterator-variables
-		p := task.Parameters[i]
-		set.Func(p.Slug, p.Desc, func(v string) (err error) {
-			args[p.Slug], err = params.ParseInput(p, v)
-			if err != nil {
-				return errors.Wrap(err, "converting input to API value")
-			}
-			return
-		})
-	}
-
-	return set
 }
 
 // SlugFrom returns the slug from the given file.

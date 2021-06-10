@@ -2,6 +2,7 @@ package javascript
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -94,4 +95,8 @@ func (r Runtime) FormatComment(s string) string {
 		lines = append(lines, "// "+line)
 	}
 	return strings.Join(lines, "\n")
+}
+
+func (r Runtime) PrepareRun(ctx context.Context, paramValues api.Values) ([]string, error) {
+	return []string{"echo", "yes!"}, nil
 }
