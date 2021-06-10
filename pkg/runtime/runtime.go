@@ -56,6 +56,10 @@ type Interface interface {
 	// Generate and other methods should not be called
 	// for a task that doesn't match the returned kind.
 	Kind() api.TaskKind
+
+	// FormatComment formats a string into a comment using
+	// the relevant comment characters for this runtime.
+	FormatComment(s string) string
 }
 
 // Runtimes is a collection of registered runtimes.

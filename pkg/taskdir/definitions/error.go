@@ -21,15 +21,15 @@ func newErrReadDefinition(msg string, errorMsgs ...string) error {
 	})
 }
 
-func (this errReadDefinition) Error() string {
-	return this.msg
+func (err errReadDefinition) Error() string {
+	return err.msg
 }
 
 // Implements ErrorExplained
-func (this errReadDefinition) ExplainError() string {
+func (err errReadDefinition) ExplainError() string {
 	msgs := []string{}
-	msgs = append(msgs, this.errorMsgs...)
-	if len(this.errorMsgs) > 0 {
+	msgs = append(msgs, err.errorMsgs...)
+	if len(err.errorMsgs) > 0 {
 		msgs = append(msgs, "")
 	}
 	msgs = append(msgs, fmt.Sprintf("For more information on the task definition format, see the docs:\n%s", taskDefDocURL))

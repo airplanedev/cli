@@ -15,6 +15,7 @@ type Request struct {
 	Def     definitions.Definition
 	TaskID  string
 	TaskEnv api.TaskEnv
+	Shim    bool
 }
 
 // Response represents a build response.
