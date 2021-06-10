@@ -13,7 +13,7 @@ func TestServer(t *testing.T) {
 		var ctx = context.Background()
 		var assert = require.New(t)
 
-		srv, err := NewServer(ctx)
+		srv, err := NewServer(ctx, "https://fake.airplane.so/cli/success")
 		assert.NoError(err)
 
 		send(t, srv.URL(), "token")

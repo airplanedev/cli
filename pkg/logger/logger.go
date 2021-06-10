@@ -27,6 +27,11 @@ func Error(msg string, args ...interface{}) {
 	fmt.Fprintf(os.Stderr, Red("Error: ")+msg+"\n", args...)
 }
 
+// Warning logs a warning message.
+func Warning(msg string, args ...interface{}) {
+	fmt.Fprint(os.Stderr, Yellow("[warning] "+msg+"\n", args...))
+}
+
 // Debug writes a log message to stderr, followed by a newline, if the CLI
 // is executing in debug mode. Printf-style formatting is applied to msg
 // using args.

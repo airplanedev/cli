@@ -7,21 +7,25 @@ import (
 	"net/http"
 	"os"
 	"path"
-	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/airplanedev/archiver"
 	"github.com/airplanedev/cli/pkg/api"
+	"github.com/airplanedev/cli/pkg/build/ignore"
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/taskdir/definitions"
-	dockerFileUtils "github.com/docker/docker/pkg/fileutils"
 	"github.com/dustin/go-humanize"
-	"github.com/moby/buildkit/frontend/dockerfile/dockerignore"
 	"github.com/pkg/errors"
 )
 
 func remote(ctx context.Context, req Request) (*Response, error) {
+	// Before performing a remote build, we must first update kind/kindOptions
+	// since the remote build relies on pulling those from the tasks table (for now).
+	if err := updateKindAndOptions(ctx, req.Client, req.Def, req.Shim); err != nil {
+		return nil, err
+	}
+
 	registry, err := req.Client.GetRegistryToken(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "getting registry token")
@@ -68,6 +72,47 @@ func remote(ctx context.Context, req Request) (*Response, error) {
 	}, nil
 }
 
+func updateKindAndOptions(ctx context.Context, client *api.Client, def definitions.Definition, shim bool) error {
+	task, err := client.GetTask(ctx, def.Slug)
+	if err != nil {
+		return err
+	}
+
+	kind, kindOptions, err := def.GetKindAndOptions()
+	if err != nil {
+		return err
+	}
+	// Conditionally instruct the remote builder API to perform a shim-based build.
+	if shim {
+		kindOptions["shim"] = "true"
+	}
+
+	_, err = client.UpdateTask(ctx, api.UpdateTaskRequest{
+		Kind:        kind,
+		KindOptions: kindOptions,
+
+		// The following fields are not updated until after the build finishes.
+		Slug:             task.Slug,
+		Name:             task.Name,
+		Description:      task.Description,
+		Image:            task.Image,
+		Command:          task.Command,
+		Arguments:        task.Arguments,
+		Parameters:       task.Parameters,
+		Constraints:      task.Constraints,
+		Env:              task.Env,
+		ResourceRequests: task.ResourceRequests,
+		Resources:        task.Resources,
+		Repo:             task.Repo,
+		Timeout:          task.Timeout,
+	})
+	if err != nil {
+		return errors.Wrapf(err, "updating task %s", def.Slug)
+	}
+
+	return nil
+}
+
 func archiveTaskDir(def definitions.Definition, root string, archivePath string) error {
 	// mholt/archiver takes a list of "sources" (files/directories) that will
 	// be included in the root of the archive. In our case, we want the root of
@@ -82,14 +127,9 @@ func archiveTaskDir(def definitions.Definition, root string, archivePath string)
 		}
 	}
 
+	var err error
 	arch := archiver.NewTarGz()
-
-	kind, _, err := def.GetKindAndOptions()
-	if err != nil {
-		return err
-	}
-
-	arch.Tar.IncludeFunc, err = getIgnoreFunc(root, kind)
+	arch.Tar.IncludeFunc, err = ignore.GetIgnoreFunc(root)
 	if err != nil {
 		return err
 	}
@@ -99,130 +139,6 @@ func archiveTaskDir(def definitions.Definition, root string, archivePath string)
 	}
 
 	return nil
-}
-
-// Returns an IgnoreFunc that can be used with airplanedev/archiver to filter
-// out files that match a default (or user-provided) .dockerignore.
-//
-// This is modeled off of docker/cli.
-// See: https://github.com/docker/cli/blob/a32cd16160f1b41c1c4ae7bee4dac929d1484e59/vendor/github.com/docker/docker/pkg/archive/archive.go#L738
-func getIgnoreFunc(taskRootPath string, kind api.TaskKind) (func(filePath string, info os.FileInfo) (bool, error), error) {
-	excludes, err := getIgnorePatterns(taskRootPath)
-	if err != nil {
-		return nil, err
-	}
-
-	pm, err := dockerFileUtils.NewPatternMatcher(excludes)
-	if err != nil {
-		return nil, errors.Wrap(err, "parsing dockerignore patterns")
-	}
-
-	return func(filePath string, info os.FileInfo) (bool, error) {
-		// Ignore symbolic links. For example, in Node projects you occasionally see
-		// symbolic links to binaries like `.bin/foobar`  which don't exist.
-		if info.Mode()&os.ModeSymlink == os.ModeSymlink {
-			return false, nil
-		}
-
-		relFilePath, err := filepath.Rel(taskRootPath, filePath)
-		if err != nil {
-			return false, errors.Wrap(err, "getting archive relative path")
-		}
-
-		skip, err := pm.Matches(relFilePath)
-		if err != nil {
-			return false, errors.Wrap(err, "matching file")
-		}
-
-		// If we want to skip this file and it's a directory
-		// then we should first check to see if there's an
-		// inclusion pattern (e.g. !dir/file) that starts with this
-		// dir. If so then we can't skip this dir.
-		if info.IsDir() && skip {
-			for _, pat := range pm.Patterns() {
-				if !pat.Exclusion() {
-					continue
-				}
-				if strings.HasPrefix(pat.String()+string(filepath.Separator), relFilePath+string(filepath.Separator)) {
-					// There is a pattern in this directory that should be included, so
-					// we can't skip this directory.
-					logger.Debug("Including in build archive: %s", relFilePath)
-					return true, nil
-				}
-			}
-
-			return false, nil
-		}
-
-		if !skip {
-			logger.Debug("Including in build archive: %s", relFilePath)
-		}
-		return !skip, nil
-	}, nil
-}
-
-// readIgnorefile reads a .dockerignore-like file
-// Based off of github.com/docker/cli@v20.10.6/cli/command/image/build/dockerignore.go
-// Reference: https://docs.docker.com/engine/reference/builder/#dockerignore-file
-func readIgnorefile(contextDir, filename string) ([]string, error) {
-	var excludes []string
-
-	f, err := os.Open(filepath.Join(contextDir, filename))
-	switch {
-	case os.IsNotExist(err):
-		return excludes, nil
-	case err != nil:
-		return nil, err
-	}
-	defer f.Close()
-
-	return dockerignore.ReadAll(f)
-}
-
-func getIgnorePatterns(path string) ([]string, error) {
-	// Start with default set of excludes.
-	// We exclude the same files regardless of kind because you might have both JS and PY tasks and
-	// want pyc files excluded just the same.
-	// For inspiration, see:
-	// https://github.com/github/gitignore
-	// https://github.com/github/gitignore/blob/master/Go.gitignore
-	// https://github.com/github/gitignore/blob/master/Node.gitignore
-	excludes := []string{
-		"**/*.env",
-		"**/*.pyc",
-		"**/.next",
-		"**/.now",
-		"**/.npm",
-		"**/.venv",
-		"**/.yarn",
-		"**/__pycache__",
-		"**/bin",
-		"**/dist",
-		"**/node_modules",
-		"**/npm-debug.log",
-		"**/out",
-		".git",
-		".gitmodules",
-		".hg",
-		".svn",
-	}
-
-	// Allow user-specified ignore file. Note that users can re-INCLUDE files using !, so if our
-	// default excludes skip something necessary they can always add it back.
-
-	// Prefer .airplaneignore over .dockerignore
-	for _, ignorefile := range []string{".airplaneignore", ".dockerignore"} {
-		ex, err := readIgnorefile(path, ignorefile)
-		if err != nil {
-			return nil, errors.Wrapf(err, "reading %s", ignorefile)
-		}
-		if len(ex) > 0 {
-			logger.Debug("Found %s - using %d exclude rule(s)", ignorefile, len(ex))
-			excludes = append(excludes, ex...)
-			return excludes, nil
-		}
-	}
-	return excludes, nil
 }
 
 func uploadArchive(ctx context.Context, client *api.Client, archivePath string) (string, error) {
