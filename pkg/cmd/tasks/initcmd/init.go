@@ -102,7 +102,7 @@ func run(ctx context.Context, cfg config) error {
 			return nil
 		}
 
-		code := []byte(runtime.Comment(task))
+		code := []byte(runtime.Comment(r, task))
 		code = append(code, '\n', '\n')
 		code = append(code, buf...)
 

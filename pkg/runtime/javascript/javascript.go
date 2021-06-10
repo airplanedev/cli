@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
+	"strings"
 	"text/template"
 
 	"github.com/airplanedev/cli/pkg/api"
@@ -19,9 +20,9 @@ func init() {
 }
 
 // Code template.
-var code = template.Must(template.New("js").Parse(`// {{.Comment}}
+var code = template.Must(template.New("js").Parse(`{{.Comment}}
 
-export default async function(params){
+export default async function(params) {
   console.log('parameters:', params);
 }
 `))
@@ -36,7 +37,7 @@ type Runtime struct{}
 
 // Generate implementation.
 func (r Runtime) Generate(t api.Task) ([]byte, error) {
-	var args = data{Comment: runtime.Comment(t)}
+	var args = data{Comment: runtime.Comment(r, t)}
 	var buf bytes.Buffer
 
 	if err := code.Execute(&buf, args); err != nil {
@@ -85,4 +86,12 @@ func (r Runtime) Root(path string) (string, error) {
 // Kind implementation.
 func (r Runtime) Kind() api.TaskKind {
 	return api.TaskKindNode
+}
+
+func (r Runtime) FormatComment(s string) string {
+	lines := []string{}
+	for _, line := range strings.Split(s, "\n") {
+		lines = append(lines, "// "+line)
+	}
+	return strings.Join(lines, "\n")
 }
