@@ -121,7 +121,7 @@ main()`
 		COPY . /airplane
 
 		{{if not .HasPackageJSON}}
-		RUN echo '{}' > package.json
+		RUN echo '{}' > /airplane/package.json
 		{{end}}
 
 		{{if .HasPackageLock}}
