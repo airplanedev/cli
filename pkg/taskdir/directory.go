@@ -66,17 +66,17 @@ func Open(file string) (TaskDirectory, error) {
 	return td, nil
 }
 
-func (this TaskDirectory) DefinitionPath() string {
-	return this.defPath
+func (td TaskDirectory) DefinitionPath() string {
+	return td.defPath
 }
 
-func (this TaskDirectory) DefinitionRootPath() string {
-	return this.rootPath
+func (td TaskDirectory) DefinitionRootPath() string {
+	return td.rootPath
 }
 
-func (this TaskDirectory) Close() error {
-	if this.closer != nil {
-		return this.closer.Close()
+func (td TaskDirectory) Close() error {
+	if td.closer != nil {
+		return td.closer.Close()
 	}
 
 	return nil

@@ -82,42 +82,42 @@ func NewDefinitionFromTask(task api.Task) (Definition, error) {
 	return def, nil
 }
 
-func (this Definition) GetKindAndOptions() (api.TaskKind, api.KindOptions, error) {
+func (def Definition) GetKindAndOptions() (api.TaskKind, api.KindOptions, error) {
 	options := api.KindOptions{}
-	if this.Deno != nil {
-		if err := mapstructure.Decode(this.Deno, &options); err != nil {
+	if def.Deno != nil {
+		if err := mapstructure.Decode(def.Deno, &options); err != nil {
 			return "", api.KindOptions{}, errors.Wrap(err, "decoding Deno definition")
 		}
 		return api.TaskKindDeno, options, nil
-	} else if this.Dockerfile != nil {
-		if err := mapstructure.Decode(this.Dockerfile, &options); err != nil {
+	} else if def.Dockerfile != nil {
+		if err := mapstructure.Decode(def.Dockerfile, &options); err != nil {
 			return "", api.KindOptions{}, errors.Wrap(err, "decoding Dockerfile definition")
 		}
 		return api.TaskKindDockerfile, options, nil
-	} else if this.Image != nil {
+	} else if def.Image != nil {
 		return api.TaskKindImage, api.KindOptions{}, nil
-	} else if this.Go != nil {
-		if err := mapstructure.Decode(this.Go, &options); err != nil {
+	} else if def.Go != nil {
+		if err := mapstructure.Decode(def.Go, &options); err != nil {
 			return "", api.KindOptions{}, errors.Wrap(err, "decoding Go definition")
 		}
 		return api.TaskKindGo, options, nil
-	} else if this.Node != nil {
-		if err := mapstructure.Decode(this.Node, &options); err != nil {
+	} else if def.Node != nil {
+		if err := mapstructure.Decode(def.Node, &options); err != nil {
 			return "", api.KindOptions{}, errors.Wrap(err, "decoding Node definition")
 		}
 		return api.TaskKindNode, options, nil
-	} else if this.Python != nil {
-		if err := mapstructure.Decode(this.Python, &options); err != nil {
+	} else if def.Python != nil {
+		if err := mapstructure.Decode(def.Python, &options); err != nil {
 			return "", api.KindOptions{}, errors.Wrap(err, "decoding Python definition")
 		}
 		return api.TaskKindPython, options, nil
-	} else if this.SQL != nil {
-		if err := mapstructure.Decode(this.SQL, &options); err != nil {
+	} else if def.SQL != nil {
+		if err := mapstructure.Decode(def.SQL, &options); err != nil {
 			return "", api.KindOptions{}, errors.Wrap(err, "decoding SQL definition")
 		}
 		return api.TaskKindSQL, options, nil
-	} else if this.REST != nil {
-		if err := mapstructure.Decode(this.REST, &options); err != nil {
+	} else if def.REST != nil {
+		if err := mapstructure.Decode(def.REST, &options); err != nil {
 			return "", api.KindOptions{}, errors.Wrap(err, "decoding REST definition")
 		}
 		// API expects jsonBody to be a string, since it's handlebars-templated JSON and not always valid JSON. For
@@ -136,47 +136,47 @@ func (this Definition) GetKindAndOptions() (api.TaskKind, api.KindOptions, error
 	return "", api.KindOptions{}, errors.New("No kind specified")
 }
 
-func (this Definition) Validate() (Definition, error) {
-	if this.Slug == "" {
-		return this, errors.New("Expected a task slug")
+func (def Definition) Validate() (Definition, error) {
+	if def.Slug == "" {
+		return def, errors.New("Expected a task slug")
 	}
 
 	defs := []string{}
-	if this.Deno != nil {
+	if def.Deno != nil {
 		defs = append(defs, "deno")
 	}
-	if this.Dockerfile != nil {
+	if def.Dockerfile != nil {
 		defs = append(defs, "dockerfile")
 	}
-	if this.Image != nil {
+	if def.Image != nil {
 		defs = append(defs, "image")
 	}
-	if this.Go != nil {
+	if def.Go != nil {
 		defs = append(defs, "go")
 	}
-	if this.Node != nil {
+	if def.Node != nil {
 		defs = append(defs, "node")
 	}
-	if this.Python != nil {
+	if def.Python != nil {
 		defs = append(defs, "python")
 	}
-	if this.SQL != nil {
+	if def.SQL != nil {
 		defs = append(defs, "sql")
 	}
-	if this.REST != nil {
+	if def.REST != nil {
 		defs = append(defs, "rest")
 	}
 
 	if len(defs) == 0 {
-		return this, errors.New("No task type defined")
+		return def, errors.New("No task type defined")
 	}
 	if len(defs) > 1 {
-		return this, errors.Errorf("Too many task types defined: only one of (%s) expected", strings.Join(defs, ", "))
+		return def, errors.Errorf("Too many task types defined: only one of (%s) expected", strings.Join(defs, ", "))
 	}
 
 	// TODO: validate the rest of the fields!
 
-	return this, nil
+	return def, nil
 }
 
 func UnmarshalDefinition(buf []byte, defPath string) (Definition, error) {

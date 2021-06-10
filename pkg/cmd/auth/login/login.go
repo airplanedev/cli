@@ -37,7 +37,7 @@ func run(ctx context.Context, c *cli.Config) error {
 }
 
 var (
-	ErrLoggedOut = errors.New("You are not logged in. To login, run:\n    airplane login")
+	ErrLoggedOut = errors.New("you are not logged in. To login, run:\n    airplane login")
 )
 
 func EnsureLoggedIn(ctx context.Context, c *cli.Config) error {

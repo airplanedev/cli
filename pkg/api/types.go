@@ -240,13 +240,13 @@ var _ yaml.Unmarshaler = &EnvVarValue{}
 //   AIRPLANE_DSN:
 //     value: "foobar"
 //
-func (this *EnvVarValue) UnmarshalYAML(node *yaml.Node) error {
+func (ev *EnvVarValue) UnmarshalYAML(node *yaml.Node) error {
 	// First, try to unmarshal as a string.
 	// This would be the first case above.
 	var value string
 	if err := node.Decode(&value); err == nil {
 		// Success!
-		this.Value = &value
+		ev.Value = &value
 		return nil
 	}
 
@@ -260,7 +260,7 @@ func (this *EnvVarValue) UnmarshalYAML(node *yaml.Node) error {
 	if err := node.Decode(&v); err != nil {
 		return err
 	}
-	*this = EnvVarValue(v)
+	*ev = EnvVarValue(v)
 
 	return nil
 }
@@ -414,8 +414,8 @@ const (
 	BuildCancelled  BuildStatus = "Cancelled"
 )
 
-func (this BuildStatus) Stopped() bool {
-	return this == BuildSucceeded || this == BuildFailed || this == BuildCancelled
+func (s BuildStatus) Stopped() bool {
+	return s == BuildSucceeded || s == BuildFailed || s == BuildCancelled
 }
 
 type CreateBuildUploadRequest struct {

@@ -147,7 +147,7 @@ func (t Table) runs(runs []api.Run) {
 
 		tw.Append([]string{
 			run.RunID,
-			fmt.Sprintf("%s", run.Status),
+			string(run.Status),
 			run.CreatedAt.Format(time.RFC3339),
 			endedAt,
 		})
