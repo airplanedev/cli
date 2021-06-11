@@ -25,12 +25,12 @@ type Version struct {
 	Digest string `json:"digest"`
 }
 
-func (this Version) String() string {
-	if this.Image == "" || this.Digest == "" {
+func (v Version) String() string {
+	if v.Image == "" || v.Digest == "" {
 		return ""
 	}
 
-	return this.Image + "@" + this.Digest
+	return v.Image + "@" + v.Digest
 }
 
 func GetVersions() (Versions, error) {

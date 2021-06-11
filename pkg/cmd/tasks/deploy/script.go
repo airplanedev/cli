@@ -34,7 +34,7 @@ func deployFromScript(ctx context.Context, cfg config) error {
 		return fmt.Errorf("reading %s - %w", cfg.file, err)
 	}
 
-	slug, ok := r.Slug(code)
+	slug, ok := runtime.Slug(code)
 	if !ok {
 		return &unlinked{
 			path: cfg.file,
@@ -65,41 +65,20 @@ func deployFromScript(ctx context.Context, cfg config) error {
 	// in the build.
 	var taskroot = filepath.Dir(abs)
 
-	if root, ok := r.Root(abs); ok {
+	if root, err := r.Root(abs); err == nil {
 		def.Node.Entrypoint = strings.TrimPrefix(abs, root)
 		taskroot = root
 	} else {
 		def.Node.Entrypoint = filepath.Base(abs)
 	}
 
+	if wd, err := r.Workdir(abs); err == nil {
+		def.Node.Workdir = strings.TrimPrefix(wd, taskroot)
+	}
+
 	kind, kindOptions, err := def.GetKindAndOptions()
 	if err != nil {
 		return err
-	}
-
-	// Before performing a remote build, we must first update kind/kindOptions
-	// since the remote build relies on pulling those from the tasks table (for now).
-	_, err = client.UpdateTask(ctx, api.UpdateTaskRequest{
-		Kind:        kind,
-		KindOptions: kindOptions,
-
-		// The following fields are not updated until after the build finishes.
-		Slug:             task.Slug,
-		Name:             task.Name,
-		Description:      task.Description,
-		Image:            task.Image,
-		Command:          task.Command,
-		Arguments:        task.Arguments,
-		Parameters:       task.Parameters,
-		Constraints:      task.Constraints,
-		Env:              task.Env,
-		ResourceRequests: task.ResourceRequests,
-		Resources:        task.Resources,
-		Repo:             task.Repo,
-		Timeout:          task.Timeout,
-	})
-	if err != nil {
-		return errors.Wrapf(err, "updating task %s", def.Slug)
 	}
 
 	resp, err := build.Run(ctx, build.Request{
@@ -109,6 +88,7 @@ func deployFromScript(ctx context.Context, cfg config) error {
 		Root:    taskroot,
 		Def:     def,
 		TaskEnv: def.Env,
+		Shim:    true,
 	})
 	if err != nil {
 		return err
@@ -162,7 +142,7 @@ func (u unlinked) Error() string {
 // ExplainError implementation.
 func (u unlinked) ExplainError() string {
 	return fmt.Sprintf(
-		"You can link the file by running:\n\tairplane init --slug <slug> %s",
+		"You can link the file by running:\n  airplane init --slug <slug> %s",
 		u.path,
 	)
 }

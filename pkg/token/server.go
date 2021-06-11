@@ -10,12 +10,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-var (
-	// DocsURL is the URL to redirect to after the token
-	// has been sent on the channel.
-	DocsURL = "https://docs.airplane.dev/misc/cli-login-successful"
-)
-
 // Server implements a local token server.
 //
 // The server starts on a local random port and waits
@@ -37,24 +31,26 @@ var (
 //   }
 //
 type Server struct {
-	tokens chan string
-	lstn   net.Listener
-	ctx    context.Context
-	wg     sync.WaitGroup
-	server *http.Server
+	tokens          chan string
+	lstn            net.Listener
+	ctx             context.Context
+	loginSuccessURL string
+	wg              sync.WaitGroup
+	server          *http.Server
 }
 
 // NewServer returns a new server.
-func NewServer(ctx context.Context) (*Server, error) {
+func NewServer(ctx context.Context, loginSuccessURL string) (*Server, error) {
 	l, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		return nil, errors.Wrap(err, "bind")
 	}
 
 	srv := &Server{
-		tokens: make(chan string, 1),
-		lstn:   l,
-		ctx:    ctx,
+		tokens:          make(chan string, 1),
+		lstn:            l,
+		ctx:             ctx,
+		loginSuccessURL: loginSuccessURL,
 	}
 	srv.server = &http.Server{
 		Handler: srv,
@@ -79,7 +75,7 @@ func (srv *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	select {
 	case <-r.Context().Done():
 	case srv.tokens <- r.URL.Query().Get("token"):
-		http.Redirect(w, r, DocsURL, http.StatusSeeOther)
+		http.Redirect(w, r, srv.loginSuccessURL, http.StatusSeeOther)
 	}
 }
 

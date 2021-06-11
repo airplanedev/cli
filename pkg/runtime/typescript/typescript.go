@@ -24,8 +24,8 @@ type Params = {
   {{- end }}
 }
 
-export default async function(args: Params){
-  console.log('arguments: ', args);
+export default async function(params: Params) {
+  console.log('parameters:', params);
 }
 `))
 
@@ -48,7 +48,7 @@ type Runtime struct {
 
 // Generate implementation.
 func (r Runtime) Generate(t api.Task) ([]byte, error) {
-	var args = data{Comment: r.Comment(t)}
+	var args = data{Comment: runtime.Comment(r, t)}
 	var params = t.Parameters
 	var buf bytes.Buffer
 
