@@ -105,7 +105,7 @@ func run(ctx context.Context, cfg config) error {
 		ParamValues: make(api.Values),
 	}
 
-	logger.Log("Executing %s: %s", logger.Bold(task.Name), logger.Gray(client.TaskURL(task.Slug)))
+	logger.Log("Executing %s task: %s", logger.Bold(task.Name), logger.Gray(client.TaskURL(task.Slug)))
 
 	req.ParamValues, err = params.CLI(cfg.args, client, task)
 	if errors.Is(err, flag.ErrHelp) {
@@ -123,7 +123,6 @@ func run(ctx context.Context, cfg config) error {
 
 	var state api.RunState
 	agentPrefix := "[agent]"
-	outputPrefix := "airplane_output"
 
 	for {
 		if state = w.Next(); state.Err() != nil {
@@ -135,12 +134,9 @@ func run(ctx context.Context, cfg config) error {
 			if strings.HasPrefix(l.Text, agentPrefix) {
 				// De-emphasize agent logs and remove prefix
 				loggedText = logger.Gray(strings.TrimLeft(strings.TrimPrefix(l.Text, agentPrefix), " "))
-			} else if strings.HasPrefix(l.Text, outputPrefix) {
-				// De-emphasize outputs appearing in logs
-				loggedText = logger.Gray(l.Text)
 			} else {
 				// Try to leave user logs alone, so they can apply their own colors
-				loggedText = l.Text
+				loggedText = fmt.Sprintf("[%s] %s", logger.Gray("log"), l.Text)
 			}
 			logger.Log(loggedText)
 		}

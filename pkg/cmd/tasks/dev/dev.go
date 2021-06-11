@@ -89,7 +89,7 @@ func run(ctx context.Context, cfg config) error {
 		return err
 	}
 
-	logger.Log("Locally running %s %s", logger.Bold(task.Name), logger.Gray("("+cfg.root.Client.TaskURL(task.Slug)+")"))
+	logger.Log("Locally running %s task %s", logger.Bold(task.Name), logger.Gray("("+cfg.root.Client.TaskURL(task.Slug)+")"))
 	logger.Log("")
 
 	cmds, err := r.PrepareRun(ctx, cfg.file, paramValues, task.KindOptions)
