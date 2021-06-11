@@ -36,9 +36,7 @@ func deployFromScript(ctx context.Context, cfg config) error {
 
 	slug, ok := runtime.Slug(code)
 	if !ok {
-		return &unlinked{
-			path: cfg.file,
-		}
+		return runtime.ErrNotLinked{Path: cfg.file}
 	}
 
 	task, err := client.GetTask(ctx, slug)
@@ -124,25 +122,4 @@ To execute %s:
 - From the CLI: %s
 - From the UI: %s`, def.Name, cmd, client.TaskURL(task.Slug))
 	return nil
-}
-
-// Unlinked explains an unlinked code error.
-type unlinked struct {
-	path string
-}
-
-// Error implementation.
-func (u unlinked) Error() string {
-	return fmt.Sprintf(
-		"the file %s is not linked to a task",
-		u.path,
-	)
-}
-
-// ExplainError implementation.
-func (u unlinked) ExplainError() string {
-	return fmt.Sprintf(
-		"You can link the file by running:\n  airplane init --slug <slug> %s",
-		u.path,
-	)
 }

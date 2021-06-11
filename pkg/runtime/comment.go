@@ -1,6 +1,7 @@
 package runtime
 
 import (
+	"fmt"
 	"net/url"
 	"path"
 	"regexp"
@@ -37,4 +38,25 @@ func Slug(code []byte) (string, bool) {
 	_, slug := path.Split(u.Path)
 
 	return slug, slug != ""
+}
+
+// ErrNotLinked is an error that is raised when a path unexpectedly
+// does not contain a slug. It can be used to explain to a user how
+// they should link that file with a task.
+type ErrNotLinked struct {
+	Path string
+}
+
+func (e ErrNotLinked) Error() string {
+	return fmt.Sprintf(
+		"the file %s is not linked to a task",
+		e.Path,
+	)
+}
+
+func (e ErrNotLinked) ExplainError() string {
+	return fmt.Sprintf(
+		"You can link the file by running:\n  airplane init --slug <slug> %s",
+		e.Path,
+	)
 }

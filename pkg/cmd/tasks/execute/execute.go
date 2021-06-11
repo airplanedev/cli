@@ -203,7 +203,7 @@ func slugFromScript(file string) (string, error) {
 
 	slug, ok := runtime.Slug(code)
 	if !ok {
-		return "", fmt.Errorf("cannot find a slug in %s", file)
+		return "", runtime.ErrNotLinked{Path: file}
 	}
 
 	return slug, nil
