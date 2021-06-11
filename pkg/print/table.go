@@ -171,10 +171,10 @@ func (t Table) outputs(outputs api.Outputs) {
 	}
 	sort.Strings(keys)
 
-	i := 0
 	for _, key := range keys {
 		fmt.Fprintln(os.Stdout, "")
-		fmt.Fprintln(os.Stdout, key)
+
+		fmt.Fprintln(os.Stdout, logger.Bold(formatOutputName(key)))
 
 		values := outputs[key]
 		ok, jsonObjects := parseArrayOfJsonObject(values)
@@ -183,9 +183,13 @@ func (t Table) outputs(outputs api.Outputs) {
 		} else {
 			printOutputArray(values)
 		}
-		i++
 	}
 	fmt.Fprintln(os.Stdout, "")
+}
+
+// formatOutputName converts output_name -> Output Name.
+func formatOutputName(key string) string {
+	return strings.Title(strings.ReplaceAll(key, "_", " "))
 }
 
 func parseArrayOfJsonObject(values []interface{}) (bool, []JsonObject) {
@@ -237,7 +241,8 @@ func printOutputArray(values []interface{}) {
 func newTableWriter() *tablewriter.Table {
 	tw := tablewriter.NewWriter(os.Stdout)
 	tw.SetBorder(true)
-	tw.SetAutoWrapText(false)
+	tw.SetAutoWrapText(true)
+	tw.SetColWidth(70)
 	return tw
 }
 

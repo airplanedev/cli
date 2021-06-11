@@ -151,9 +151,6 @@ func (r Runtime) PrepareRun(ctx context.Context, path string, paramValues api.Va
 		return nil, errors.New("failed to add @types/node dependency")
 	}
 
-	// TODO: work without internet
-	// TODO: consider any visual improvements to log rendering
-
 	cmd = exec.CommandContext(ctx, "tsc", build.NodeTscArgs(".", opts)...)
 	cmd.Dir = root
 	out, err := cmd.CombinedOutput()

@@ -156,16 +156,8 @@ func run(ctx context.Context, cfg config) error {
 
 	print.Outputs(state.Outputs)
 
-	status := string(state.Status)
 	switch state.Status {
-	case api.RunSucceeded:
-		status = logger.Green(status)
-	case api.RunFailed, api.RunCancelled:
-		status = logger.Red(status)
-	}
-	logger.Log(logger.Bold(status))
-
-	if state.Failed() {
+	case api.RunFailed:
 		return errors.New("Run has failed")
 	}
 

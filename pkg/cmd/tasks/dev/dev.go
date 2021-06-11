@@ -45,6 +45,7 @@ func New(c *cli.Config) *cobra.Command {
 			airplane dev ./task.ts [-- <parameters...>]
 		`),
 		PersistentPreRunE: utils.WithParentPersistentPreRunE(func(cmd *cobra.Command, args []string) error {
+			// TODO: update the `dev` command to work w/out internet access
 			return login.EnsureLoggedIn(cmd.Root().Context(), c)
 		}),
 		RunE: func(cmd *cobra.Command, args []string) error {
