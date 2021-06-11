@@ -7,30 +7,54 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/utils"
 	"github.com/pkg/errors"
 )
 
 //go:embed node-shim.ts
-var NodeShim string
+var nodeShim string
+
+func NodeShim(root, entrypoint string) (string, error) {
+	importPath, err := filepath.Rel(root, entrypoint)
+	if err != nil {
+		return "", errors.Wrap(err, "entrypoint is not inside of root")
+	}
+	// Remove the `.ts` suffix if one exists, since tsc doesn't accept
+	// import paths with `.ts` endings. `.js` endings are fine.
+	importPath = strings.TrimSuffix(importPath, ".ts")
+
+	shim, err := utils.ApplyTemplate(nodeShim, struct {
+		ImportPath string
+	}{
+		ImportPath: importPath,
+	})
+	if err != nil {
+		return "", errors.Wrap(err, "templating shim")
+	}
+
+	return shim, nil
+}
 
 // node creates a dockerfile for Node (typescript/javascript).
-func node(root string, args Args) (string, error) {
+func node(root string, options api.KindOptions) (string, error) {
 	var err error
 
 	// For backwards compatibility, continue to build old Node tasks
 	// in the same way. Tasks built with the latest CLI will set
 	// shim=true which enables the new code path.
-	if shim := args["shim"]; shim != "true" {
-		return nodeLegacyBuilder(root, args)
+	if shim, ok := options["shim"].(string); !ok || shim != "true" {
+		return nodeLegacyBuilder(root, options)
 	}
 
 	// Assert that the entrypoint file exists:
-	entrypoint := filepath.Join(root, args["entrypoint"])
+	entrypoint, _ := options["entrypoint"].(string)
+	entrypoint = filepath.Join(root, entrypoint)
 	if err := utils.FilesExist(entrypoint); err != nil {
 		return "", err
 	}
 
+	workdir, _ := options["workdir"].(string)
 	cfg := struct {
 		Workdir        string
 		Base           string
@@ -39,50 +63,29 @@ func node(root string, args Args) (string, error) {
 		HasYarnLock    bool
 		Shim           string
 		IsTS           bool
-		TscTarget      string
-		TscLib         string
+		TscArgs        string
 	}{
-		Workdir:        args["workdir"],
+		Workdir:        workdir,
 		HasPackageJSON: utils.FilesExist(filepath.Join(root, "package.json")) == nil,
 		HasPackageLock: utils.FilesExist(filepath.Join(root, "package-lock.json")) == nil,
 		HasYarnLock:    utils.FilesExist(filepath.Join(root, "yarn.lock")) == nil,
-		// https://github.com/tsconfig/bases/blob/master/bases/node16.json
-		TscTarget: "es2020",
-		TscLib:    "es2020",
+		TscArgs:        strings.Join(NodeTscArgs("/airplane", options), "\\ \n"),
 	}
 
 	if !strings.HasPrefix(cfg.Workdir, "/") {
 		cfg.Workdir = "/" + cfg.Workdir
 	}
 
-	nodeVersion := args["nodeVersion"]
-	// For node version 12, 12.x, etc., we need to change the ECMAScript target.
-	// https://github.com/tsconfig/bases/blob/master/bases/node12.json
-	if strings.HasPrefix(nodeVersion, "12") {
-		cfg.TscTarget = "es2019"
-		cfg.TscLib = "es2019"
-	}
+	nodeVersion, _ := options["nodeVersion"].(string)
 	cfg.Base, err = getBaseNodeImage(nodeVersion)
 	if err != nil {
 		return "", err
 	}
 
-	relimport, err := filepath.Rel(root, entrypoint)
+	shim, err := NodeShim(root, entrypoint)
 	if err != nil {
-		return "", errors.Wrap(err, "entrypoint is not inside of root")
+		return "", err
 	}
-	// Remove the `.ts` suffix if one exists, since tsc doesn't accept
-	// import paths with `.ts` endings. `.js` endings are fine.
-	relimport = strings.TrimSuffix(relimport, ".ts")
-	shim, err := utils.ApplyTemplate(NodeShim, struct {
-		ImportPath string
-	}{
-		ImportPath: relimport,
-	})
-	if err != nil {
-		return "", errors.Wrap(err, "templating shim")
-	}
-
 	// To inline the shim into a Dockerfile, insert `\n\` characters:
 	cfg.Shim = strings.Join(strings.Split(shim, "\n"), "\\n\\\n")
 
@@ -128,38 +131,53 @@ func node(root string, args Args) (string, error) {
 
 		RUN mkdir -p /airplane/.airplane/dist && \
 			echo '{{.Shim}}' > /airplane/.airplane/shim.ts && \
-			tsc \
-				--allowJs \
-				--module commonjs \
-				--target {{.TscTarget}} \
-				--lib {{.TscLib}} \
-				--esModuleInterop \
-				--outDir /airplane/.airplane/dist \
-				--rootDir /airplane \
-				--skipLibCheck \
-				/airplane/.airplane/shim.ts
+			tsc {{.TscArgs}}
 		ENTRYPOINT ["node", "/airplane/.airplane/dist/.airplane/shim.js"]
 	`, cfg)
+}
+
+func NodeTscArgs(root string, opts api.KindOptions) []string {
+	// https://github.com/tsconfig/bases/blob/master/bases/node16.json
+	tscTarget := "es2020"
+	tscLib := "es2020"
+	if strings.HasPrefix(opts["nodeVersion"].(string), "12") {
+		tscTarget = "es2019"
+		tscLib = "es2019"
+	}
+
+	return []string{
+		"--allowJs",
+		"--module", "commonjs",
+		"--target", tscTarget,
+		"--lib", tscLib,
+		"--esModuleInterop",
+		"--outDir", filepath.Join(root, ".airplane/dist"),
+		"--rootDir", root,
+		"--skipLibCheck",
+		"--pretty",
+		filepath.Join(root, ".airplane/shim.ts"),
+	}
 }
 
 // nodeLegacyBuilder creates a dockerfile for Node (typescript/javascript).
 //
 // TODO(amir): possibly just run `npm start` instead of exposing lots
 // of options to users?
-func nodeLegacyBuilder(root string, args Args) (string, error) {
-	var entrypoint = args["entrypoint"]
-	var main = filepath.Join(root, entrypoint)
-	var deps = filepath.Join(root, "package.json")
-	var yarnlock = filepath.Join(root, "yarn.lock")
-	var pkglock = filepath.Join(root, "package-lock.json")
-	var lang = args["language"]
+func nodeLegacyBuilder(root string, options api.KindOptions) (string, error) {
+	entrypoint, _ := options["entrypoint"].(string)
+	main := filepath.Join(root, entrypoint)
+	deps := filepath.Join(root, "package.json")
+	yarnlock := filepath.Join(root, "yarn.lock")
+	pkglock := filepath.Join(root, "package-lock.json")
+	lang, _ := options["language"].(string)
 	// `workdir` is fixed usually - `buildWorkdir` is a subdirectory of `workdir` if there's
 	// `buildCommand` and is ultimately where `entrypoint` is run from.
-	var buildCommand = args["buildCommand"]
-	var buildDir = args["buildDir"]
-	var workdir = "/airplane"
-	var buildWorkdir = "/airplane"
-	var cmds []string
+	buildCommand, _ := options["buildCommand"].(string)
+	buildDir, _ := options["buildDir"].(string)
+	workdir := "/airplane"
+	buildWorkdir := "/airplane"
+	cmds := []string{}
+	nodeVersion, _ := options["nodeVersion"].(string)
 
 	// Make sure that entrypoint and `package.json` exist.
 	if err := utils.FilesExist(main, deps); err != nil {
@@ -201,7 +219,7 @@ func nodeLegacyBuilder(root string, args Args) (string, error) {
 	}
 	entrypoint = path.Join(buildWorkdir, entrypoint)
 
-	baseImage, err := getBaseNodeImage(args["nodeVersion"])
+	baseImage, err := getBaseNodeImage(nodeVersion)
 	if err != nil {
 		return "", err
 	}

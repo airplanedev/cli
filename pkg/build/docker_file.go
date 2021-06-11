@@ -4,12 +4,14 @@ import (
 	"io/ioutil"
 	"path/filepath"
 
+	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/utils"
 	"github.com/pkg/errors"
 )
 
-func dockerfile(root string, args Args) (string, error) {
-	dockerfilePath := filepath.Join(root, args["dockerfile"])
+func dockerfile(root string, options api.KindOptions) (string, error) {
+	dockerfile, _ := options["dockerfile"].(string)
+	dockerfilePath := filepath.Join(root, dockerfile)
 	if err := utils.FilesExist(dockerfilePath); err != nil {
 		return "", err
 	}

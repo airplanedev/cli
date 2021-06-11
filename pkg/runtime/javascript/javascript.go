@@ -102,23 +102,18 @@ func (r Runtime) FormatComment(s string) string {
 	return strings.Join(lines, "\n")
 }
 
-func (r Runtime) PrepareRun(ctx context.Context, path string, paramValues api.Values) ([]string, error) {
+func (r Runtime) PrepareRun(ctx context.Context, path string, paramValues api.Values, opts api.KindOptions) ([]string, error) {
 	root, err := r.Root(path)
 	if err != nil {
 		return nil, err
 	}
+	workdir := filepath.Dir(path)
 
-	if err := os.Mkdir(filepath.Join(root, ".airplane"), os.ModeDir|0777); err != nil {
-		if !strings.HasSuffix(err.Error(), "file exists") {
-			return nil, errors.Wrap(err, "creating .airplane directory")
-		}
+	if err := os.Mkdir(filepath.Join(root, ".airplane"), os.ModeDir|0777); err != nil && !os.IsExist(err) {
+		return nil, errors.Wrap(err, "creating .airplane directory")
 	}
 
-	shim, err := utils.ApplyTemplate(build.NodeShim, struct {
-		ImportPath string
-	}{
-		ImportPath: "main.js", //relimport
-	})
+	shim, err := build.NodeShim(root, path)
 	if err != nil {
 		return nil, err
 	}
@@ -144,29 +139,18 @@ func (r Runtime) PrepareRun(ctx context.Context, path string, paramValues api.Va
 	} else {
 		cmd = exec.CommandContext(ctx, "npm", "install", "--save-dev", "@types/node")
 	}
-	cmd.Dir = root
+	cmd.Dir = workdir
 	if err := cmd.Run(); err != nil {
 		return nil, errors.New("failed to add @types/node dependency")
 	}
 
-	// TODO: warn if Node major version does not match
-	// TODO: install tsc
-	// TODO: es2019 if nodeVersion
-	// TODO: support root vs. workdir
+	// TODO: warn (w/ a log msg) if Node major version does not match
+	// TODO: warn if tsc is not installed
+	// TODO: work without internet
+	// TODO: consider any visual improvements to log rendering
 
-	cmd = exec.CommandContext(ctx,
-		"tsc",
-		"--allowJs",
-		"--module", "commonjs",
-		"--target", "es2020",
-		"--lib", "es2020",
-		"--esModuleInterop",
-		"--outDir", ".airplane/dist",
-		"--rootDir", ".",
-		"--skipLibCheck",
-		"--pretty",
-		".airplane/shim.ts")
-	cmd.Dir = root // workdir?
+	cmd = exec.CommandContext(ctx, "tsc", build.NodeTscArgs(".", opts)...)
+	cmd.Dir = root
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		logger.Log(strings.TrimSpace(string(out)))

@@ -14,14 +14,12 @@ import (
 	"github.com/MakeNowJust/heredoc"
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/cli"
-	"github.com/airplanedev/cli/pkg/cmd/auth/login"
 	"github.com/airplanedev/cli/pkg/fs"
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/outputs"
 	"github.com/airplanedev/cli/pkg/params"
 	"github.com/airplanedev/cli/pkg/print"
 	"github.com/airplanedev/cli/pkg/runtime"
-	"github.com/airplanedev/cli/pkg/utils"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
@@ -44,9 +42,7 @@ func New(c *cli.Config) *cobra.Command {
 			airplane dev ./task.js [-- <parameters...>]
 			airplane dev ./task.ts [-- <parameters...>]
 		`),
-		PersistentPreRunE: utils.WithParentPersistentPreRunE(func(cmd *cobra.Command, args []string) error {
-			return login.EnsureLoggedIn(cmd.Root().Context(), c)
-		}),
+		// TODO: logged out?
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.New(`expected a file: airplane dev ./path/to/file`)
@@ -91,7 +87,7 @@ func run(ctx context.Context, cfg config) error {
 	logger.Log("Locally running %s %s", logger.Bold(task.Name), logger.Gray("("+cfg.root.Client.TaskURL(task.Slug)+")"))
 	logger.Log("")
 
-	cmds, err := r.PrepareRun(ctx, cfg.file, paramValues)
+	cmds, err := r.PrepareRun(ctx, cfg.file, paramValues, task.KindOptions)
 	if err != nil {
 		return err
 	}

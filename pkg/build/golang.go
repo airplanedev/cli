@@ -5,16 +5,17 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/utils"
 	"github.com/pkg/errors"
 )
 
 // Golang creates a dockerfile for Go.
-func golang(root string, args Args) (string, error) {
-	var gomod = filepath.Join(root, "go.mod")
-	var gosum = filepath.Join(root, "go.sum")
-	var entrypoint = args["entrypoint"]
-	var main = filepath.Join(root, entrypoint)
+func golang(root string, options api.KindOptions) (string, error) {
+	gomod := filepath.Join(root, "go.mod")
+	gosum := filepath.Join(root, "go.sum")
+	entrypoint, _ := options["entrypoint"].(string)
+	main := filepath.Join(root, entrypoint)
 
 	if err := utils.FilesExist(gomod, main); err != nil {
 		return "", err
