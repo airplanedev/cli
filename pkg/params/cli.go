@@ -123,6 +123,17 @@ func promptForParamValues(client *api.Client, task api.Task, paramValues map[str
 		}
 	}
 
+	confirmed := false
+	if err := survey.AskOne(&survey.Confirm{
+		Message: "Execute?",
+		Default: true,
+	}, &confirmed); err != nil {
+		return errors.Wrap(err, "confirming")
+	}
+	if !confirmed {
+		return errors.New("user cancelled")
+	}
+
 	return nil
 }
 

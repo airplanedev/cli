@@ -25,10 +25,9 @@ import (
 
 // Config is the execute config.
 type config struct {
-	root   *cli.Config
-	task   string // Could be a script or yaml definition.
-	args   []string
-	remote bool
+	root *cli.Config
+	task string // Could be a script or yaml definition.
+	args []string
 }
 
 // New returns a new execute cobra command.
@@ -40,8 +39,6 @@ func New(c *cli.Config) *cobra.Command {
 		Short:   "Execute a task",
 		Aliases: []string{"exec"},
 		Long:    "Execute a task from the CLI, optionally with specific parameters.",
-		// airplane run <slug> --name="..."
-		// airplane local <file> --name="..."
 		Example: heredoc.Doc(`
 			airplane execute ./task.js [-- <parameters...>]
 			airplane execute hello_world [-- <parameters...>]
@@ -59,7 +56,7 @@ func New(c *cli.Config) *cobra.Command {
 				cfg.task = args[0]
 				cfg.args = args[1:]
 			} else {
-				return errors.New(`expected a task to execute: airplane execute [./path/to/file | --slug "..."]`)
+				return errors.New("expected a task to execute: airplane execute [./path/to/file | task slug]")
 			}
 
 			return run(cmd.Root().Context(), cfg)
@@ -68,8 +65,6 @@ func New(c *cli.Config) *cobra.Command {
 
 	cmd.Flags().StringVarP(&cfg.task, "file", "f", "", "File to deploy (.yaml, .yml, .js, .ts)")
 	cli.Must(cmd.Flags().MarkHidden("file")) // --file is deprecated
-
-	cmd.Flags().BoolVar(&cfg.remote, "remote", false, "Execute the task remotely rather than locally")
 
 	return cmd
 }
@@ -99,7 +94,7 @@ func run(ctx context.Context, cfg config) error {
 		return errors.Wrap(err, "get task")
 	}
 
-	if cfg.remote && task.Image == nil {
+	if task.Image == nil {
 		return &notDeployedError{
 			task: cfg.task,
 		}
