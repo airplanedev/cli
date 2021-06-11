@@ -9,6 +9,10 @@ const outputPrefix = "airplane_output"
 const outputSeparator = ":"
 const defaultOutputName = "output"
 
+func IsOutput(s string) bool {
+	return strings.HasPrefix(s, outputPrefix)
+}
+
 func ParseOutputName(s string) string {
 	nonDefaultPrefix := outputPrefix + outputSeparator
 	if strings.HasPrefix(s, nonDefaultPrefix) {

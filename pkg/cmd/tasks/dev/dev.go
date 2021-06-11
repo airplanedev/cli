@@ -1,24 +1,30 @@
 package dev
 
 import (
+	"bufio"
 	"context"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
-	"os"
 	"os/exec"
 	"path/filepath"
+	"sync"
 
 	"github.com/MakeNowJust/heredoc"
+	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/cmd/auth/login"
 	"github.com/airplanedev/cli/pkg/fs"
 	"github.com/airplanedev/cli/pkg/logger"
+	"github.com/airplanedev/cli/pkg/outputs"
 	"github.com/airplanedev/cli/pkg/params"
+	"github.com/airplanedev/cli/pkg/print"
 	"github.com/airplanedev/cli/pkg/runtime"
 	"github.com/airplanedev/cli/pkg/utils"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"golang.org/x/sync/errgroup"
 )
 
 type config struct {
@@ -91,11 +97,57 @@ func run(ctx context.Context, cfg config) error {
 	}
 
 	cmd := exec.CommandContext(ctx, cmds[0], cmds[1:]...)
-	// TODO: output parsing
-	cmd.Stdout = os.Stderr
-	cmd.Stderr = os.Stderr
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return errors.Wrap(err, "stdout")
+	}
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return errors.Wrap(err, "stderr")
+	}
+	if err := cmd.Start(); err != nil {
+		return errors.Wrap(err, "starting")
+	}
 
-	return cmd.Run()
+	// mu guards o
+	var mu sync.Mutex
+	o := api.Outputs{}
+
+	logParser := func(r io.Reader) error {
+		scanner := bufio.NewScanner(r)
+		for scanner.Scan() {
+			line := scanner.Text()
+			if outputs.IsOutput(line) {
+				name := outputs.ParseOutputName(line)
+				value := outputs.ParseOutputValue(line)
+
+				mu.Lock()
+				o[name] = append(o[name], value)
+				mu.Unlock()
+			}
+			logger.Log("[%s] %s", logger.Gray("log"), line)
+		}
+		return errors.Wrap(scanner.Err(), "scanning logs")
+	}
+
+	eg := errgroup.Group{}
+	eg.Go(func() error {
+		return logParser(stdout)
+	})
+	eg.Go(func() error {
+		return logParser(stderr)
+	})
+	if err := eg.Wait(); err != nil {
+		return err
+	}
+
+	if err := cmd.Wait(); err != nil {
+		return errors.Wrap(err, "waiting")
+	}
+
+	print.Outputs(o)
+
+	return nil
 }
 
 // slugFromScript attempts to extract a slug from a script.
