@@ -82,7 +82,7 @@ type Outputs map[string][]interface{}
 
 // Represents a line of the output
 type OutputRow struct {
-	OutputName string      `json:"outputName" yaml:"outputName"`
+	OutputName string      `json:"name" yaml:"name"`
 	Value      interface{} `json:"value" yaml:"value"`
 }
 
