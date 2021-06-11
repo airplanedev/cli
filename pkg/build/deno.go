@@ -5,6 +5,7 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/airplanedev/cli/pkg/utils"
 	"github.com/pkg/errors"
 )
 
@@ -13,7 +14,7 @@ func deno(root string, args Args) (string, error) {
 	var entrypoint = args["entrypoint"]
 	var main = filepath.Join(root, entrypoint)
 
-	if err := exist(main); err != nil {
+	if err := utils.FilesExist(main); err != nil {
 		return "", err
 	}
 

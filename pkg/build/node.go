@@ -1,13 +1,18 @@
 package build
 
 import (
+	_ "embed"
 	"fmt"
 	"path"
 	"path/filepath"
 	"strings"
 
+	"github.com/airplanedev/cli/pkg/utils"
 	"github.com/pkg/errors"
 )
+
+//go:embed node-shim.ts
+var NodeShim string
 
 // node creates a dockerfile for Node (typescript/javascript).
 func node(root string, args Args) (string, error) {
@@ -22,7 +27,7 @@ func node(root string, args Args) (string, error) {
 
 	// Assert that the entrypoint file exists:
 	entrypoint := filepath.Join(root, args["entrypoint"])
-	if err := exist(entrypoint); err != nil {
+	if err := utils.FilesExist(entrypoint); err != nil {
 		return "", err
 	}
 
@@ -38,9 +43,9 @@ func node(root string, args Args) (string, error) {
 		TscLib         string
 	}{
 		Workdir:        args["workdir"],
-		HasPackageJSON: exist(filepath.Join(root, "package.json")) == nil,
-		HasPackageLock: exist(filepath.Join(root, "package-lock.json")) == nil,
-		HasYarnLock:    exist(filepath.Join(root, "yarn.lock")) == nil,
+		HasPackageJSON: utils.FilesExist(filepath.Join(root, "package.json")) == nil,
+		HasPackageLock: utils.FilesExist(filepath.Join(root, "package-lock.json")) == nil,
+		HasYarnLock:    utils.FilesExist(filepath.Join(root, "yarn.lock")) == nil,
 		// https://github.com/tsconfig/bases/blob/master/bases/node16.json
 		TscTarget: "es2020",
 		TscLib:    "es2020",
@@ -69,26 +74,15 @@ func node(root string, args Args) (string, error) {
 	// Remove the `.ts` suffix if one exists, since tsc doesn't accept
 	// import paths with `.ts` endings. `.js` endings are fine.
 	relimport = strings.TrimSuffix(relimport, ".ts")
-
-	shim := `// This file includes a shim that will execute your task code.
-import task from "../` + relimport + `"
-
-async function main() {
-	if (process.argv.length !== 3) {
-		console.log("airplane_output:error " + JSON.stringify({ "error": "Expected to receive a single argument (via {{JSON}}). Task CLI arguments may be misconfigured." }))
-		process.exit(1)
+	shim, err := utils.ApplyTemplate(NodeShim, struct {
+		ImportPath string
+	}{
+		ImportPath: relimport,
+	})
+	if err != nil {
+		return "", errors.Wrap(err, "templating shim")
 	}
-	
-	try {
-		await task(JSON.parse(process.argv[2]))
-	} catch (err) {
-		console.error(err)
-		console.log("airplane_output:error " + JSON.stringify({ "error": String(err) }))
-		process.exit(1)
-	}
-}
 
-main()`
 	// To inline the shim into a Dockerfile, insert `\n\` characters:
 	cfg.Shim = strings.Join(strings.Split(shim, "\n"), "\\n\\\n")
 
@@ -105,7 +99,7 @@ main()`
 	//
 	// Down the road, we may want to give customers more control over this build process
 	// in which case we could introduce an extra step for performing build commands.
-	return templatize(`
+	return utils.ApplyTemplate(`
 		FROM {{.Base}}
 
 		WORKDIR /airplane{{.Workdir}}
@@ -124,27 +118,27 @@ main()`
 		RUN echo '{}' > /airplane/package.json
 		{{end}}
 
-		{{if .HasPackageLock}}
-		RUN npm install package-lock.json && npm install --save-dev @types/node
-		{{else if .HasYarnLock}}
+		{{if .HasYarnLock}}
 		RUN yarn --frozen-lockfile --non-interactive && yarn add -D @types/node
+		{{else if .HasPackageLock}}
+		RUN npm install && npm install --save-dev @types/node
 		{{else}}
 		RUN npm install --save-dev @types/node
 		{{end}}
 
-		RUN mkdir -p /airplane/.airplane-build/dist && \
-			echo '{{.Shim}}' > /airplane/.airplane-build/shim.ts && \
+		RUN mkdir -p /airplane/.airplane/dist && \
+			echo '{{.Shim}}' > /airplane/.airplane/shim.ts && \
 			tsc \
 				--allowJs \
 				--module commonjs \
 				--target {{.TscTarget}} \
 				--lib {{.TscLib}} \
 				--esModuleInterop \
-				--outDir /airplane/.airplane-build/dist \
+				--outDir /airplane/.airplane/dist \
 				--rootDir /airplane \
 				--skipLibCheck \
-				/airplane/.airplane-build/shim.ts
-		ENTRYPOINT ["node", "/airplane/.airplane-build/dist/.airplane-build/shim.js"]
+				/airplane/.airplane/shim.ts
+		ENTRYPOINT ["node", "/airplane/.airplane/dist/.airplane/shim.js"]
 	`, cfg)
 }
 
@@ -168,14 +162,14 @@ func nodeLegacyBuilder(root string, args Args) (string, error) {
 	var cmds []string
 
 	// Make sure that entrypoint and `package.json` exist.
-	if err := exist(main, deps); err != nil {
+	if err := utils.FilesExist(main, deps); err != nil {
 		return "", err
 	}
 
 	// Determine the install command to use.
-	if err := exist(pkglock); err == nil {
+	if err := utils.FilesExist(pkglock); err == nil {
 		cmds = append(cmds, `npm install package-lock.json`)
-	} else if err := exist(yarnlock); err == nil {
+	} else if err := utils.FilesExist(yarnlock); err == nil {
 		cmds = append(cmds, `yarn install`)
 	}
 
@@ -183,7 +177,7 @@ func nodeLegacyBuilder(root string, args Args) (string, error) {
 	switch lang {
 	case "typescript":
 		if buildDir == "" {
-			buildDir = ".airplane-build"
+			buildDir = ".airplane"
 		}
 		cmds = append(cmds, `npm install -g typescript@4.1`)
 		cmds = append(cmds, `[ -f tsconfig.json ] || echo '{"include": ["*", "**/*"], "exclude": ["node_modules"]}' >tsconfig.json`)
@@ -212,7 +206,7 @@ func nodeLegacyBuilder(root string, args Args) (string, error) {
 		return "", err
 	}
 
-	return templatize(`
+	return utils.ApplyTemplate(`
 		FROM {{ .Base }}
 		
 		WORKDIR {{ .Workdir }}

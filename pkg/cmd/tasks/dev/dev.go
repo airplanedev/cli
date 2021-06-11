@@ -31,10 +31,9 @@ func New(c *cli.Config) *cobra.Command {
 	var cfg = config{root: c}
 
 	cmd := &cobra.Command{
-		Use:     "dev ./path/to/file",
-		Short:   "Locally execute a task",
-		Aliases: []string{"exec"},
-		Long:    "Locally executes a task, optionally with specific parameters.",
+		Use:   "dev ./path/to/file",
+		Short: "Locally run a task",
+		Long:  "Locally runs a task, optionally with specific parameters.",
 		Example: heredoc.Doc(`
 			airplane dev ./task.js [-- <parameters...>]
 			airplane dev ./task.ts [-- <parameters...>]
@@ -56,7 +55,6 @@ func New(c *cli.Config) *cobra.Command {
 	return cmd
 }
 
-// Run runs the execute command.
 func run(ctx context.Context, cfg config) error {
 	if !fs.Exists(cfg.file) {
 		return errors.Errorf("Unable to open file: %s", cfg.file)
@@ -84,14 +82,13 @@ func run(ctx context.Context, cfg config) error {
 		return err
 	}
 
-	logger.Log("Locally executing %s: %s", logger.Bold(task.Name), logger.Gray(cfg.root.Client.TaskURL(task.Slug)))
+	logger.Log("Locally running %s %s", logger.Bold(task.Name), logger.Gray("("+cfg.root.Client.TaskURL(task.Slug)+")"))
+	logger.Log("")
 
-	cmds, err := r.PrepareRun(ctx, paramValues)
+	cmds, err := r.PrepareRun(ctx, cfg.file, paramValues)
 	if err != nil {
 		return err
 	}
-
-	logger.Log("")
 
 	cmd := exec.CommandContext(ctx, cmds[0], cmds[1:]...)
 	// TODO: output parsing

@@ -7,10 +7,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
-	"text/template"
 	"unicode"
 
 	"github.com/airplanedev/cli/pkg/api"
@@ -264,16 +262,6 @@ func sanitizeTaskID(s string) string {
 	return s
 }
 
-// exist ensures that all paths exists or returns an error.
-func exist(paths ...string) error {
-	for _, p := range paths {
-		if _, err := os.Stat(p); os.IsNotExist(err) {
-			return fmt.Errorf("build: the file %s is required", path.Base(p))
-		}
-	}
-	return nil
-}
-
 // TODO: this can merge with TaskKind
 type Name string
 
@@ -310,18 +298,4 @@ func BuildDockerfile(c DockerfileConfig) (string, error) {
 	default:
 		return "", errors.Errorf("build: unknown builder type %q", c.Builder)
 	}
-}
-
-func templatize(t string, data interface{}) (string, error) {
-	tmpl, err := template.New("airplane").Parse(t)
-	if err != nil {
-		return "", errors.Wrap(err, "parsing template")
-	}
-
-	var buf strings.Builder
-	if err := tmpl.Execute(&buf, data); err != nil {
-		return "", err
-	}
-
-	return buf.String(), nil
 }

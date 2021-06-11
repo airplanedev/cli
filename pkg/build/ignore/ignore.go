@@ -85,6 +85,8 @@ func getIgnorePatterns(path string) ([]string, error) {
 		"node_modules",
 		"npm-debug.log",
 		"out",
+		// Local build artifacts created by `airplane dev`.
+		".airplane",
 	}
 
 	// Allow user-specified ignore file. Note that users can re-INCLUDE files using !, so if our

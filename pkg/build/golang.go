@@ -5,6 +5,7 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/airplanedev/cli/pkg/utils"
 	"github.com/pkg/errors"
 )
 
@@ -15,7 +16,7 @@ func golang(root string, args Args) (string, error) {
 	var entrypoint = args["entrypoint"]
 	var main = filepath.Join(root, entrypoint)
 
-	if err := exist(gomod, main); err != nil {
+	if err := utils.FilesExist(gomod, main); err != nil {
 		return "", err
 	}
 
@@ -54,7 +55,7 @@ ENTRYPOINT ["/bin/main"]
 	}{
 		Base:       v.String(),
 		Entrypoint: filepath.Join("/airplane", entrypoint),
-		HasGoSum:   exist(gosum) == nil,
+		HasGoSum:   utils.FilesExist(gosum) == nil,
 	}); err != nil {
 		return "", err
 	}

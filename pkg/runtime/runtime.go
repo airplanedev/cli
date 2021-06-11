@@ -62,7 +62,7 @@ type Interface interface {
 	// the relevant comment characters for this runtime.
 	FormatComment(s string) string
 
-	PrepareRun(ctx context.Context, paramValues api.Values) ([]string, error)
+	PrepareRun(ctx context.Context, path string, paramValues api.Values) ([]string, error)
 }
 
 // Runtimes is a collection of registered runtimes.

@@ -4,6 +4,8 @@ import (
 	"path/filepath"
 	"strings"
 	"text/template"
+
+	"github.com/airplanedev/cli/pkg/utils"
 )
 
 // Python creates a dockerfile for Python.
@@ -12,7 +14,7 @@ func python(root string, args Args) (string, error) {
 	var main = filepath.Join(root, entrypoint)
 	var reqs = filepath.Join(root, "requirements.txt")
 
-	if err := exist(main); err != nil {
+	if err := utils.FilesExist(main); err != nil {
 		return "", err
 	}
 
@@ -43,7 +45,7 @@ func python(root string, args Args) (string, error) {
 	}{
 		Base:            v.String(),
 		Entrypoint:      entrypoint,
-		HasRequirements: exist(reqs) == nil,
+		HasRequirements: utils.FilesExist(reqs) == nil,
 	}); err != nil {
 		return "", err
 	}
