@@ -78,7 +78,7 @@ func node(root string, options api.KindOptions) (string, error) {
 	//
 	// Down the road, we may want to give customers more control over this build process
 	// in which case we could introduce an extra step for performing build commands.
-	return utils.ApplyTemplate(`
+	return applyTemplate(`
 		FROM {{.Base}}
 
 		WORKDIR /airplane{{.Workdir}}
@@ -124,7 +124,7 @@ func NodeShim(root, entrypoint string) (string, error) {
 	// import paths with `.ts` endings. `.js` endings are fine.
 	importPath = strings.TrimSuffix(importPath, ".ts")
 
-	shim, err := utils.ApplyTemplate(nodeShim, struct {
+	shim, err := applyTemplate(nodeShim, struct {
 		ImportPath string
 	}{
 		ImportPath: importPath,
@@ -224,7 +224,7 @@ func nodeLegacyBuilder(root string, options api.KindOptions) (string, error) {
 		return "", err
 	}
 
-	return utils.ApplyTemplate(`
+	return applyTemplate(`
 		FROM {{ .Base }}
 		
 		WORKDIR {{ .Workdir }}
