@@ -104,23 +104,23 @@ func (r Runtime) FormatComment(s string) string {
 	return strings.Join(lines, "\n")
 }
 
-func (r Runtime) PrepareRun(ctx context.Context, path string, paramValues api.Values, opts api.KindOptions) ([]string, error) {
-	checkNodeVersion(ctx, opts)
+func (r Runtime) PrepareRun(ctx context.Context, opts runtime.PrepareRunOptions) ([]string, error) {
+	checkNodeVersion(ctx, opts.KindOptions)
 	if err := checkTscInstalled(ctx); err != nil {
 		return nil, err
 	}
 
-	root, err := r.Root(path)
+	root, err := r.Root(opts.Path)
 	if err != nil {
 		return nil, err
 	}
-	workdir := filepath.Dir(path)
+	workdir := filepath.Dir(opts.Path)
 
 	if err := os.Mkdir(filepath.Join(root, ".airplane"), os.ModeDir|0777); err != nil && !os.IsExist(err) {
 		return nil, errors.Wrap(err, "creating .airplane directory")
 	}
 
-	shim, err := build.NodeShim(root, path)
+	shim, err := build.NodeShim(root, opts.Path)
 	if err != nil {
 		return nil, err
 	}
@@ -151,17 +151,17 @@ func (r Runtime) PrepareRun(ctx context.Context, path string, paramValues api.Va
 		return nil, errors.New("failed to add @types/node dependency")
 	}
 
-	cmd = exec.CommandContext(ctx, "tsc", build.NodeTscArgs(".", opts)...)
+	cmd = exec.CommandContext(ctx, "tsc", build.NodeTscArgs(".", opts.KindOptions)...)
 	cmd.Dir = root
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		logger.Log(strings.TrimSpace(string(out)))
 		logger.Debug("\nCommand: %s", strings.Join(cmd.Args, " "))
 
-		return nil, errors.Errorf("failed to compile %s", path)
+		return nil, errors.Errorf("failed to compile %s", opts.Path)
 	}
 
-	pv, err := json.Marshal(paramValues)
+	pv, err := json.Marshal(opts.ParamValues)
 	if err != nil {
 		return nil, errors.Wrap(err, "serializing param values")
 	}

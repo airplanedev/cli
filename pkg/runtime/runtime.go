@@ -62,7 +62,20 @@ type Interface interface {
 	// the relevant comment characters for this runtime.
 	FormatComment(s string) string
 
-	PrepareRun(ctx context.Context, path string, paramValues api.Values, opts api.KindOptions) ([]string, error)
+	// PrepareRun should prepare the
+	PrepareRun(ctx context.Context, opts PrepareRunOptions) ([]string, error)
+}
+
+type PrepareRunOptions struct {
+	// Path is the file path leading to the task's entrypoint.
+	Path string
+
+	// ParamValues specifies the user-provided parameter values to
+	// execute this run with.
+	ParamValues api.Values
+
+	// KindOptions specifies any runtime-specific task configuration.
+	KindOptions api.KindOptions
 }
 
 // Runtimes is a collection of registered runtimes.
