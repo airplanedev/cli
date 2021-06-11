@@ -26,7 +26,7 @@ import (
 // Config is the execute config.
 type config struct {
 	root *cli.Config
-	task string // Could be a script or yaml definition.
+	task string // Could be a file, yaml definition or a slug.
 	args []string
 }
 
@@ -56,7 +56,7 @@ func New(c *cli.Config) *cobra.Command {
 				cfg.task = args[0]
 				cfg.args = args[1:]
 			} else {
-				return errors.New("expected a task to execute: airplane execute [./path/to/file | task slug]")
+				return errors.New("expected 1 argument: airplane execute [./path/to/file | task slug]")
 			}
 
 			return run(cmd.Root().Context(), cfg)

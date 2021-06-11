@@ -1,12 +1,14 @@
 package utils
 
 import (
-	"html/template"
 	"strings"
+	"text/template"
 
 	"github.com/pkg/errors"
 )
 
+// ApplyTemplate executes template t with the provided data and
+// returns the output.
 func ApplyTemplate(t string, data interface{}) (string, error) {
 	tmpl, err := template.New("airplane").Parse(t)
 	if err != nil {

@@ -117,7 +117,7 @@ func (r Runtime) PrepareRun(ctx context.Context, path string, paramValues api.Va
 	shim, err := utils.ApplyTemplate(build.NodeShim, struct {
 		ImportPath string
 	}{
-		ImportPath: "main.js",
+		ImportPath: "main.js", //relimport
 	})
 	if err != nil {
 		return nil, err
@@ -155,14 +155,22 @@ func (r Runtime) PrepareRun(ctx context.Context, path string, paramValues api.Va
 	// TODO: support root vs. workdir
 
 	cmd = exec.CommandContext(ctx,
-		"tsc", "--allowJs", "--module", "commonjs", "--target", "es2020", "--lib", "es2020",
-		"--esModuleInterop", "--outDir", ".airplane/dist", "--rootDir", ".",
-		"--skipLibCheck", ".airplane/shim.ts", "--pretty")
+		"tsc",
+		"--allowJs",
+		"--module", "commonjs",
+		"--target", "es2020",
+		"--lib", "es2020",
+		"--esModuleInterop",
+		"--outDir", ".airplane/dist",
+		"--rootDir", ".",
+		"--skipLibCheck",
+		"--pretty",
+		".airplane/shim.ts")
 	cmd.Dir = root // workdir?
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		logger.Log(strings.TrimSpace(string(out)))
-		logger.Log("\nCommand: %s", strings.Join(cmd.Args, " "))
+		logger.Debug("\nCommand: %s", strings.Join(cmd.Args, " "))
 
 		return nil, errors.Errorf("failed to compile %s", path)
 	}

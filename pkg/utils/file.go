@@ -6,7 +6,7 @@ import (
 	"path"
 )
 
-// exist ensures that all paths exists or returns an error.
+// FilesExist ensures that all paths exists or returns an error.
 func FilesExist(paths ...string) error {
 	for _, p := range paths {
 		if _, err := os.Stat(p); os.IsNotExist(err) {
