@@ -2,6 +2,7 @@ package print
 
 import (
 	"encoding/json"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -163,12 +164,18 @@ func (t Table) run(run api.Run) {
 
 // print outputs as table
 func (t Table) outputs(outputs api.Outputs) {
-	// TODO: print outputs in same order as in UI
+	keys := []string{}
+	for key := range outputs {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+
 	i := 0
-	for key, values := range outputs {
+	for _, key := range keys {
 		fmt.Fprintln(os.Stdout, "")
 		fmt.Fprintln(os.Stdout, key)
 
+		values := outputs[key]
 		ok, jsonObjects := parseArrayOfJsonObject(values)
 		if ok {
 			printOutputTable(jsonObjects)
