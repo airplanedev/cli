@@ -1,43 +1,43 @@
 {
   "node": {
     "16": {
-      "image": "node",
+      "image": "registry.hub.docker.com/library/node",
       "tag": "16.2.0-buster",
       "digest": "sha256:c5957aca74faaef8cbb11a199ca409de6e1e3964ab8d665cceef8c69327e1b82"
     },
     "15": {
-      "image": "node",
+      "image": "registry.hub.docker.com/library/node",
       "tag": "15.14.0-buster",
       "digest": "sha256:91ec6cb0d47628e4c1ace1efe3835aaddb2a16a9549da4f86782bb05437c53d2"
     },
     "14": {
-      "image": "node",
+      "image": "registry.hub.docker.com/library/node",
       "tag": "14.16.1-buster",
       "digest": "sha256:3b325b40048d329876134243db80718413b1410d5371a94823b3e4e5b71721b2"
     },
     "12": {
-      "image": "node",
+      "image": "registry.hub.docker.com/library/node",
       "tag": "12.22.1-buster",
       "digest": "sha256:1e4125d5067c069a665f87b26d36802b50b91eebb80cfae7c93c4e5fe5ce014d"
     }
   },
   "deno": {
     "1": {
-      "image": "hayd/debian-deno",
+      "image": "registry.hub.docker.com/hayd/debian-deno",
       "tag": "1.9.0",
       "digest": "sha256:b3a5a905f9d334e3fcb80614000ea5fc461bc1980f9a258a1c2feaaa8c76874f"
     }
   },
   "go": {
     "1": {
-      "image": "golang",
+      "image": "registry.hub.docker.com/library/golang",
       "tag": "1.16.3-buster",
       "digest": "sha256:b5bfb6c692cd36c24ff3d828e4bea3064569db3beeb38d57209a0c21d5ca1c82"
     }
   },
   "python": {
     "3": {
-      "image": "python",
+      "image": "registry.hub.docker.com/library/python",
       "tag": "3.9.4-buster",
       "digest": "sha256:b004a71e38f8ace26e7554d5c2fa802a8bb39a5818cbe10ab49fd0b408a40c20"
     }
