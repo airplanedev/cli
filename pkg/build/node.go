@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/airplanedev/cli/pkg/api"
-	"github.com/airplanedev/cli/pkg/utils"
+	"github.com/airplanedev/cli/pkg/fsx"
 	"github.com/pkg/errors"
 )
 
@@ -26,7 +26,7 @@ func node(root string, options api.KindOptions) (string, error) {
 	// Assert that the entrypoint file exists:
 	entrypoint, _ := options["entrypoint"].(string)
 	entrypoint = filepath.Join(root, entrypoint)
-	if err := utils.FilesExist(entrypoint); err != nil {
+	if err := fsx.AssertExistsAll(entrypoint); err != nil {
 		return "", err
 	}
 
@@ -42,9 +42,9 @@ func node(root string, options api.KindOptions) (string, error) {
 		TscArgs        string
 	}{
 		Workdir:        workdir,
-		HasPackageJSON: utils.FilesExist(filepath.Join(root, "package.json")) == nil,
-		HasPackageLock: utils.FilesExist(filepath.Join(root, "package-lock.json")) == nil,
-		HasYarnLock:    utils.FilesExist(filepath.Join(root, "yarn.lock")) == nil,
+		HasPackageJSON: fsx.AssertExistsAll(filepath.Join(root, "package.json")) == nil,
+		HasPackageLock: fsx.AssertExistsAll(filepath.Join(root, "package-lock.json")) == nil,
+		HasYarnLock:    fsx.AssertExistsAll(filepath.Join(root, "yarn.lock")) == nil,
 		TscArgs:        strings.Join(NodeTscArgs("/airplane", options), "\\ \n"),
 	}
 
@@ -180,14 +180,14 @@ func nodeLegacyBuilder(root string, options api.KindOptions) (string, error) {
 	nodeVersion, _ := options["nodeVersion"].(string)
 
 	// Make sure that entrypoint and `package.json` exist.
-	if err := utils.FilesExist(main, deps); err != nil {
+	if err := fsx.AssertExistsAll(main, deps); err != nil {
 		return "", err
 	}
 
 	// Determine the install command to use.
-	if err := utils.FilesExist(pkglock); err == nil {
+	if err := fsx.AssertExistsAll(pkglock); err == nil {
 		cmds = append(cmds, `npm install package-lock.json`)
-	} else if err := utils.FilesExist(yarnlock); err == nil {
+	} else if err := fsx.AssertExistsAll(yarnlock); err == nil {
 		cmds = append(cmds, `yarn install`)
 	}
 

@@ -5,14 +5,14 @@ import (
 	"path/filepath"
 
 	"github.com/airplanedev/cli/pkg/api"
-	"github.com/airplanedev/cli/pkg/utils"
+	"github.com/airplanedev/cli/pkg/fsx"
 	"github.com/pkg/errors"
 )
 
 func dockerfile(root string, options api.KindOptions) (string, error) {
 	dockerfile, _ := options["dockerfile"].(string)
 	dockerfilePath := filepath.Join(root, dockerfile)
-	if err := utils.FilesExist(dockerfilePath); err != nil {
+	if err := fsx.AssertExistsAll(dockerfilePath); err != nil {
 		return "", err
 	}
 

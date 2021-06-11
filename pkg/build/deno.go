@@ -6,7 +6,7 @@ import (
 	"text/template"
 
 	"github.com/airplanedev/cli/pkg/api"
-	"github.com/airplanedev/cli/pkg/utils"
+	"github.com/airplanedev/cli/pkg/fsx"
 	"github.com/pkg/errors"
 )
 
@@ -15,7 +15,7 @@ func deno(root string, options api.KindOptions) (string, error) {
 	entrypoint, _ := options["entrypoint"].(string)
 	main := filepath.Join(root, entrypoint)
 
-	if err := utils.FilesExist(main); err != nil {
+	if err := fsx.AssertExistsAll(main); err != nil {
 		return "", err
 	}
 

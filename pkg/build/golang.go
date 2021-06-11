@@ -6,7 +6,7 @@ import (
 	"text/template"
 
 	"github.com/airplanedev/cli/pkg/api"
-	"github.com/airplanedev/cli/pkg/utils"
+	"github.com/airplanedev/cli/pkg/fsx"
 	"github.com/pkg/errors"
 )
 
@@ -17,7 +17,7 @@ func golang(root string, options api.KindOptions) (string, error) {
 	entrypoint, _ := options["entrypoint"].(string)
 	main := filepath.Join(root, entrypoint)
 
-	if err := utils.FilesExist(gomod, main); err != nil {
+	if err := fsx.AssertExistsAll(gomod, main); err != nil {
 		return "", err
 	}
 
@@ -56,7 +56,7 @@ ENTRYPOINT ["/bin/main"]
 	}{
 		Base:       v.String(),
 		Entrypoint: filepath.Join("/airplane", entrypoint),
-		HasGoSum:   utils.FilesExist(gosum) == nil,
+		HasGoSum:   fsx.AssertExistsAll(gosum) == nil,
 	}); err != nil {
 		return "", err
 	}

@@ -14,7 +14,7 @@ import (
 	"path/filepath"
 
 	"github.com/airplanedev/cli/pkg/api"
-	"github.com/airplanedev/cli/pkg/fs"
+	"github.com/airplanedev/cli/pkg/fsx"
 )
 
 var (
@@ -111,7 +111,7 @@ const (
 func Pathof(parent, filename string) (string, error) {
 	dst := filepath.Join(parent, filename)
 
-	if !fs.Exists(dst) {
+	if !fsx.Exists(dst) {
 		next := filepath.Dir(parent)
 		if next == "." || next == sep {
 			return "", ErrMissing

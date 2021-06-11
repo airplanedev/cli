@@ -12,7 +12,7 @@ import (
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/cmd/auth/login"
-	"github.com/airplanedev/cli/pkg/fs"
+	"github.com/airplanedev/cli/pkg/fsx"
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/params"
 	"github.com/airplanedev/cli/pkg/print"
@@ -77,7 +77,7 @@ func run(ctx context.Context, cfg config) error {
 	task, err := client.GetTask(ctx, cfg.task)
 	if _, ok := err.(*api.TaskMissingError); ok {
 		// If there's no task matching that slug, try it as a file path instead.
-		if !fs.Exists(cfg.task) {
+		if !fsx.Exists(cfg.task) {
 			return errors.Errorf("Unable to execute %s. No matching file or task slug.", cfg.task)
 		}
 

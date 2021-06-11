@@ -15,9 +15,9 @@ import (
 	"github.com/MakeNowJust/heredoc"
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/build"
+	"github.com/airplanedev/cli/pkg/fsx"
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/runtime"
-	"github.com/airplanedev/cli/pkg/utils"
 	"github.com/blang/semver/v4"
 	"github.com/pkg/errors"
 )
@@ -133,13 +133,13 @@ func (r Runtime) PrepareRun(ctx context.Context, opts runtime.PrepareRunOptions)
 		return nil, errors.Wrap(err, "cleaning dist folder")
 	}
 
-	if utils.FilesExist(filepath.Join(root, "package.json")) != nil {
+	if fsx.AssertExistsAll(filepath.Join(root, "package.json")) != nil {
 		if err := os.WriteFile(filepath.Join(root, "package.json"), []byte("{}"), 0777); err != nil {
 			return nil, errors.Wrap(err, "creating default package.json")
 		}
 	}
 
-	isYarn := utils.FilesExist(filepath.Join(root, "yarn.lock")) == nil
+	isYarn := fsx.AssertExistsAll(filepath.Join(root, "yarn.lock")) == nil
 	var cmd *exec.Cmd
 	if isYarn {
 		cmd = exec.CommandContext(ctx, "yarn", "add", "-D", "@types/node")
