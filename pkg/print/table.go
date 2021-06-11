@@ -163,6 +163,7 @@ func (t Table) run(run api.Run) {
 
 // print outputs as table
 func (t Table) outputs(outputs api.Outputs) {
+	// TODO: print outputs in same order as in UI
 	i := 0
 	for key, values := range outputs {
 		fmt.Fprintln(os.Stdout, "")
