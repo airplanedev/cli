@@ -164,6 +164,7 @@ func (t Table) run(run api.Run) {
 
 // print outputs as table
 func (t Table) outputs(outputs api.Outputs) {
+	// Sort the output keys to match the UI.
 	keys := []string{}
 	for key := range outputs {
 		keys = append(keys, key)

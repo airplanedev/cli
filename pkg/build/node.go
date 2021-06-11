@@ -12,30 +12,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-//go:embed node-shim.ts
-var nodeShim string
-
-func NodeShim(root, entrypoint string) (string, error) {
-	importPath, err := filepath.Rel(root, entrypoint)
-	if err != nil {
-		return "", errors.Wrap(err, "entrypoint is not inside of root")
-	}
-	// Remove the `.ts` suffix if one exists, since tsc doesn't accept
-	// import paths with `.ts` endings. `.js` endings are fine.
-	importPath = strings.TrimSuffix(importPath, ".ts")
-
-	shim, err := utils.ApplyTemplate(nodeShim, struct {
-		ImportPath string
-	}{
-		ImportPath: importPath,
-	})
-	if err != nil {
-		return "", errors.Wrap(err, "templating shim")
-	}
-
-	return shim, nil
-}
-
 // node creates a dockerfile for Node (typescript/javascript).
 func node(root string, options api.KindOptions) (string, error) {
 	var err error
@@ -134,6 +110,30 @@ func node(root string, options api.KindOptions) (string, error) {
 			tsc {{.TscArgs}}
 		ENTRYPOINT ["node", "/airplane/.airplane/dist/.airplane/shim.js"]
 	`, cfg)
+}
+
+//go:embed node-shim.ts
+var nodeShim string
+
+func NodeShim(root, entrypoint string) (string, error) {
+	importPath, err := filepath.Rel(root, entrypoint)
+	if err != nil {
+		return "", errors.Wrap(err, "entrypoint is not inside of root")
+	}
+	// Remove the `.ts` suffix if one exists, since tsc doesn't accept
+	// import paths with `.ts` endings. `.js` endings are fine.
+	importPath = strings.TrimSuffix(importPath, ".ts")
+
+	shim, err := utils.ApplyTemplate(nodeShim, struct {
+		ImportPath string
+	}{
+		ImportPath: importPath,
+	})
+	if err != nil {
+		return "", errors.Wrap(err, "templating shim")
+	}
+
+	return shim, nil
 }
 
 func NodeTscArgs(root string, opts api.KindOptions) []string {
