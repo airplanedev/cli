@@ -32,7 +32,7 @@ type Interface interface {
 	// Unlike root it decides the dockerfile's `workdir` directive
 	// this might be different than root because it decides where
 	// the build commands are run.
-	Workdir(path string) (string, error)
+	Workdir(path string) (dir string, err error)
 
 	// Root attempts to detect the root of the given task path.
 	//
