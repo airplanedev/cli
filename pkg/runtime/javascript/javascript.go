@@ -60,9 +60,9 @@ func (r Runtime) Generate(t api.Task) ([]byte, error) {
 func (r Runtime) Workdir(path string) (string, error) {
 	if p, ok := fsx.Find(path, "package.json"); ok {
 		return p, nil
-	} else {
-		return filepath.Dir(path), nil
 	}
+
+	return "", errors.New("a package.json could not be found")
 }
 
 // Root picks which directory to use as the root of a task's code.
