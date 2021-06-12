@@ -9,18 +9,10 @@ package runtime
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"path/filepath"
 
 	"github.com/airplanedev/cli/pkg/api"
-)
-
-var (
-	// ErrFileMissing is returned when a file was not found.
-	//
-	// It can be checked via `errors.Is(err, ErrFileMissing)`.
-	ErrFileMissing = errors.New("runtime: file not found")
 )
 
 // Settings represent Airplane specific settings.
