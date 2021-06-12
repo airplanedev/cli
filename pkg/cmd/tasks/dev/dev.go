@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	"github.com/MakeNowJust/heredoc"
@@ -22,6 +23,7 @@ import (
 	"github.com/airplanedev/cli/pkg/print"
 	"github.com/airplanedev/cli/pkg/runtime"
 	"github.com/airplanedev/cli/pkg/utils"
+	"github.com/joho/godotenv"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
@@ -107,6 +109,7 @@ func run(ctx context.Context, cfg config) error {
 	}
 
 	cmd := exec.CommandContext(ctx, cmds[0], cmds[1:]...)
+	logger.Debug("Running %s", logger.Bold(strings.Join(cmd.Args, " ")))
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		return errors.Wrap(err, "stdout")
@@ -115,6 +118,19 @@ func run(ctx context.Context, cfg config) error {
 	if err != nil {
 		return errors.Wrap(err, "stderr")
 	}
+
+	// Load environment variables from .env files:
+	env, err := getDevEnv(r, path)
+	if err != nil {
+		return err
+	}
+	// cmd.Env defaults to os.Environ _only if empty_. Since we add
+	// to it, we need to also set it to os.Environ.
+	// cmd.Env = os.Environ()
+	for k, v := range env {
+		cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", k, v))
+	}
+
 	if err := cmd.Start(); err != nil {
 		return errors.Wrap(err, "starting")
 	}
@@ -158,6 +174,49 @@ func run(ctx context.Context, cfg config) error {
 	print.Outputs(o)
 
 	return nil
+}
+
+// getDevEnv will return a map of env vars, loading from .env and airplane.env
+// files inside the task root.
+//
+// Env variabels are first loaded by looking for any .env files between the root
+// and entrypoint dir (inclusive). A second pass is done to look for airplane.env
+// files. Env vars from successive files are merged in and overwrite duplicate keys.
+func getDevEnv(r runtime.Interface, path string) (map[string]string, error) {
+	root, err := r.Root(path)
+	if err != nil {
+		return nil, err
+	}
+
+	// dotenvs will contain a list of .env file paths that should be read.
+	//
+	// They will be loaded in order, with later .env files overwriting values
+	// from earlier .env files.
+	dotenvs := []string{}
+
+	// Loop through directories from [workdir, root] inclusive, in reverse
+	// order.
+	dirs := []string{}
+	for dir := filepath.Dir(path); dir != filepath.Dir(root); dir = filepath.Dir(dir) {
+		dirs = append([]string{dir}, dirs...)
+	}
+
+	for _, file := range []string{".env", "airplane.env"} {
+		for _, dir := range dirs {
+			fp := filepath.Join(dir, file)
+			if fsx.Exists(fp) {
+				logger.Debug("Loading env vars from %s", logger.Bold(fp))
+				dotenvs = append(dotenvs, fp)
+			}
+		}
+	}
+
+	if len(dotenvs) == 0 {
+		return nil, nil
+	}
+
+	env, err := godotenv.Read(dotenvs...)
+	return env, errors.Wrap(err, "reading .env")
 }
 
 // slugFromScript attempts to extract a slug from a script.
