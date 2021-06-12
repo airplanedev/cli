@@ -96,6 +96,7 @@ func run(ctx context.Context, cfg config) error {
 	if err != nil {
 		return errors.Wrapf(err, "absolute path of %s", cfg.file)
 	}
+
 	cmds, err := r.PrepareRun(ctx, runtime.PrepareRunOptions{
 		Path:        path,
 		ParamValues: paramValues,
