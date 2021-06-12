@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -126,7 +127,7 @@ func run(ctx context.Context, cfg config) error {
 	}
 	// cmd.Env defaults to os.Environ _only if empty_. Since we add
 	// to it, we need to also set it to os.Environ.
-	// cmd.Env = os.Environ()
+	cmd.Env = os.Environ()
 	for k, v := range env {
 		cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", k, v))
 	}
