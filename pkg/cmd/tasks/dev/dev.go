@@ -92,8 +92,13 @@ func run(ctx context.Context, cfg config) error {
 	logger.Log("Locally running %s task %s", logger.Bold(task.Name), logger.Gray("("+cfg.root.Client.TaskURL(task.Slug)+")"))
 	logger.Log("")
 
+	path, err := filepath.Abs(cfg.file)
+	if err != nil {
+		return errors.Wrapf(err, "absolute path of %s", cfg.file)
+	}
+
 	cmds, err := r.PrepareRun(ctx, runtime.PrepareRunOptions{
-		Path:        cfg.file,
+		Path:        path,
 		ParamValues: paramValues,
 		KindOptions: task.KindOptions,
 	})
