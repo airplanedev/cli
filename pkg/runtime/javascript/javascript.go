@@ -78,11 +78,8 @@ func (r Runtime) Root(path string) (string, error) {
 
 	pkgjson := filepath.Join(root, "package.json")
 	buf, err := os.ReadFile(pkgjson)
-	if os.IsNotExist(err) {
-		// If a package.json does not exist, return early.
-		return root, nil
-	} else if err != nil {
-		return "", errors.Wrapf(err, "javascript: reading %s", root)
+	if err != nil {
+		return "", errors.Wrapf(err, "javascript: reading %s", pkgjson)
 	}
 
 	var pkg struct {
