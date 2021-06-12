@@ -71,11 +71,14 @@ func (r Runtime) Workdir(path string) (string, error) {
 // For JS, this is usually just the workdir. However, this can be overridden
 // with the `airplane.root` property in the `package.json`.
 func (r Runtime) Root(path string) (string, error) {
+	// By default, the root is the workdir.
 	root, err := r.Workdir(path)
 	if err != nil {
 		return "", err
 	}
 
+	// Unless the root is overridden with an `airplane.root` field
+	// in a `package.json`.
 	pkgjson := filepath.Join(root, "package.json")
 	buf, err := os.ReadFile(pkgjson)
 	if err != nil {
