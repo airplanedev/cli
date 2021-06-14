@@ -1,7 +1,6 @@
 package build
 
 import (
-	"bufio"
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -13,6 +12,7 @@ import (
 
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/logger"
+	"github.com/airplanedev/cli/pkg/utils/bufiox"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	dockerJSONMessage "github.com/docker/docker/pkg/jsonmessage"
@@ -174,7 +174,7 @@ func (b *Builder) Build(ctx context.Context, taskID, version string) (*Response,
 	}
 	defer resp.Body.Close()
 
-	scanner := bufio.NewScanner(resp.Body)
+	scanner := bufiox.NewScanner(resp.Body)
 	for scanner.Scan() {
 		var event *dockerJSONMessage.JSONMessage
 		if err := json.Unmarshal(scanner.Bytes(), &event); err != nil {
@@ -184,6 +184,9 @@ func (b *Builder) Build(ctx context.Context, taskID, version string) (*Response,
 		if err := event.Display(os.Stderr, isatty.IsTerminal(os.Stderr.Fd())); err != nil {
 			return nil, errors.Wrap(err, "docker build")
 		}
+	}
+	if err := scanner.Err(); err != nil {
+		return nil, errors.Wrap(err, "scanning")
 	}
 
 	return &Response{
@@ -206,7 +209,7 @@ func (b *Builder) Push(ctx context.Context, uri string) error {
 	}
 	defer resp.Close()
 
-	scanner := bufio.NewScanner(resp)
+	scanner := bufiox.NewScanner(resp)
 	for scanner.Scan() {
 		var event *dockerJSONMessage.JSONMessage
 		if err := json.Unmarshal(scanner.Bytes(), &event); err != nil {
@@ -216,6 +219,9 @@ func (b *Builder) Push(ctx context.Context, uri string) error {
 		if err := event.Display(os.Stderr, isatty.IsTerminal(os.Stderr.Fd())); err != nil {
 			return errors.Wrap(err, "docker push")
 		}
+	}
+	if err := scanner.Err(); err != nil {
+		return errors.Wrap(err, "scanning")
 	}
 
 	return nil
