@@ -292,6 +292,30 @@ type ResourceRequests map[string]string
 
 type Resources map[string]string
 
+type ResourceKind string
+
+const (
+	KindUnknown  ResourceKind = ""
+	KindPostgres ResourceKind = "postgres"
+	KindMySQL    ResourceKind = "mysql"
+	KindREST     ResourceKind = "rest"
+)
+
+type Resource struct {
+	ID         string                 `json:"id" db:"id"`
+	TeamID     string                 `json:"teamID" db:"team_id"`
+	Name       string                 `json:"name" db:"name"`
+	Kind       ResourceKind           `json:"kind" db:"kind"`
+	KindConfig map[string]interface{} `json:"kindConfig" db:"kind_config"`
+
+	CreatedAt time.Time `json:"createdAt" db:"created_at"`
+	CreatedBy string    `json:"createdBy" db:"created_by"`
+	UpdatedAt time.Time `json:"updatedAt" db:"updated_at"`
+	UpdatedBy string    `json:"updatedBy" db:"updated_by"`
+
+	IsPrivate bool `json:"isPrivate" db:"is_private"`
+}
+
 // Values represent parameters values.
 //
 // An alias is used because we want the type
@@ -458,4 +482,8 @@ type APIKey struct {
 
 type GetUniqueSlugResponse struct {
 	Slug string `json:"slug"`
+}
+
+type ListResourcesResponse struct {
+	Resources []Resource `json:"resources"`
 }
