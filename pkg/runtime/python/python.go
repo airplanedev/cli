@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/airplanedev/cli/pkg/api"
+	"github.com/airplanedev/cli/pkg/fsx"
 	"github.com/airplanedev/cli/pkg/runtime"
 )
 
@@ -55,7 +56,11 @@ func (r Runtime) Workdir(path string) (string, error) {
 
 // Root implementation.
 func (r Runtime) Root(path string) (string, error) {
-	return runtime.Pathof(path, "requirements.txt")
+	root, ok := fsx.Find(path, "requirements.txt")
+	if !ok {
+		return "", fmt.Errorf("cannot find requirements.txt")
+	}
+	return root, nil
 }
 
 // Kind implementation.
