@@ -17,7 +17,7 @@ func init() {
 }
 
 // Code template.
-var code = template.Must(template.New("py").Parse(`# {{.Comment}}
+var code = template.Must(template.New("py").Parse(`{{.Comment}}
 
 def main(params):
   print('parameters: ', params);
