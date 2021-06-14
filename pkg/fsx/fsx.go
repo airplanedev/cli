@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 )
 
 // Exists returns true if the given path exists.
@@ -21,4 +22,23 @@ func AssertExistsAll(paths ...string) error {
 		}
 	}
 	return nil
+}
+
+// Find attempts to find the path of the given filename.
+//
+// The method recursively visits parent dirs until the given
+// filename is found, If the file is not found the method
+// returns false.
+func Find(parent, filename string) (string, bool) {
+	dst := filepath.Join(parent, filename)
+
+	if !Exists(dst) {
+		next := filepath.Dir(parent)
+		if next == "." || next == string(filepath.Separator) {
+			return "", false
+		}
+		return Find(next, filename)
+	}
+
+	return parent, true
 }

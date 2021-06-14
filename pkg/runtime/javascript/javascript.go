@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -56,25 +55,35 @@ func (r Runtime) Generate(t api.Task) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// Workdir implementation.
+// Workdir picks the working directory for commands to be executed from.
+//
+// For JS, that is the nearest parent directory containing a `package.json`.
 func (r Runtime) Workdir(path string) (string, error) {
-	return runtime.Pathof(path, "package.json")
+	if p, ok := fsx.Find(path, "package.json"); ok {
+		return p, nil
+	}
+
+	return "", errors.New("a package.json could not be found")
 }
 
-// Root implementation.
+// Root picks which directory to use as the root of a task's code.
+// All code in that directory will be available at runtime.
 //
-// The method finds the nearest package.json, If the package.json contains
-// any airplane settings with `root` definition it will use that as the root.
+// For JS, this is usually just the workdir. However, this can be overridden
+// with the `airplane.root` property in the `package.json`.
 func (r Runtime) Root(path string) (string, error) {
-	dst, err := runtime.Pathof(path, "package.json")
+	// By default, the root is the workdir.
+	root, err := r.Workdir(path)
 	if err != nil {
 		return "", err
 	}
 
-	pkgjson := filepath.Join(dst, "package.json")
-	buf, err := ioutil.ReadFile(pkgjson)
+	// Unless the root is overridden with an `airplane.root` field
+	// in a `package.json`.
+	pkgjson := filepath.Join(root, "package.json")
+	buf, err := os.ReadFile(pkgjson)
 	if err != nil {
-		return "", errors.Wrapf(err, "javascript: reading %s", dst)
+		return "", errors.Wrapf(err, "javascript: reading %s", pkgjson)
 	}
 
 	var pkg struct {
@@ -82,14 +91,14 @@ func (r Runtime) Root(path string) (string, error) {
 	}
 
 	if err := json.Unmarshal(buf, &pkg); err != nil {
-		return "", fmt.Errorf("javascript: reading %s - %w", dst, err)
+		return "", fmt.Errorf("javascript: reading %s - %w", root, err)
 	}
 
-	if root := pkg.Settings.Root; root != "" {
-		return filepath.Join(dst, root), nil
+	if pkgjsonRoot := pkg.Settings.Root; pkgjsonRoot != "" {
+		return filepath.Join(root, pkgjsonRoot), nil
 	}
 
-	return dst, nil
+	return root, nil
 }
 
 // Kind implementation.

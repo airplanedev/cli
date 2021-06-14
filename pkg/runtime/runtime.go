@@ -9,19 +9,10 @@ package runtime
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"path/filepath"
 
 	"github.com/airplanedev/cli/pkg/api"
-	"github.com/airplanedev/cli/pkg/fsx"
-)
-
-var (
-	// ErrMissing is returned when a resource was not found.
-	//
-	// It can be checked via `errors.Is(err, ErrMissing)`.
-	ErrMissing = errors.New("runtime: resource is missing")
 )
 
 // Settings represent Airplane specific settings.
@@ -45,11 +36,8 @@ type Interface interface {
 
 	// Root attempts to detect the root of the given task path.
 	//
-	// It returns the suggested root, if a root directory is not
-	// found the method returns an `ErrMissing`.
-	//
 	// Typically runtimes will look for a specific file such as
-	// `package.json` or `requirements.txt`, they'll use `runtime.Pathof()`.
+	// `package.json` or `requirements.txt`, they'll use `fs.Find()`.
 	Root(path string) (dir string, err error)
 
 	// Kind returns a task kind that matches the runtime.
@@ -96,28 +84,4 @@ func Lookup(path string) (Interface, bool) {
 	ext := filepath.Ext(path)
 	r, ok := runtimes[ext]
 	return r, ok
-}
-
-const (
-	// Separator converted to string to abort pathof at root.
-	sep = string(filepath.Separator)
-)
-
-// Pathof attempts to find the path of the given filename.
-//
-// The method recursively visits parent dirs until the given
-// filename is found, If the file is not found the method
-// returns an `ErrMissing`.
-func Pathof(parent, filename string) (string, error) {
-	dst := filepath.Join(parent, filename)
-
-	if !fsx.Exists(dst) {
-		next := filepath.Dir(parent)
-		if next == "." || next == sep {
-			return "", ErrMissing
-		}
-		return Pathof(next, filename)
-	}
-
-	return parent, nil
 }
