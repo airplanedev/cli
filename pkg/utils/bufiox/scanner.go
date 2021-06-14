@@ -40,7 +40,7 @@ func (s *Scanner) Scan() bool {
 		done = !isPrefix
 	}
 
-	return false
+	return true
 }
 
 func (s *Scanner) Bytes() []byte {
