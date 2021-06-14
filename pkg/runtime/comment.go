@@ -24,20 +24,23 @@ func Comment(r Interface, task api.Task) string {
 	return r.FormatComment("Linked to " + task.URL + " [do not edit this line]")
 }
 
-func Slug(code []byte) (string, bool) {
+// Slug returns the slug from the given code.
+//
+// Ok is true if the slug was found and isn't empty.
+func Slug(code []byte) (slug string, ok bool) {
 	result := commentRegex.FindSubmatch(code)
 	if len(result) == 0 {
-		return "", false
+		return
 	}
 
 	u, err := url.Parse(string(result[1]))
 	if err != nil {
-		return "", false
+		return
 	}
 
-	_, slug := path.Split(u.Path)
-
-	return slug, slug != ""
+	_, slug = path.Split(u.Path)
+	ok = slug != ""
+	return
 }
 
 // ErrNotLinked is an error that is raised when a path unexpectedly

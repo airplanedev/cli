@@ -9,10 +9,24 @@ package runtime
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"path/filepath"
 
 	"github.com/airplanedev/cli/pkg/api"
+)
+
+var (
+	// ErrMissing is returned when a resource was not found.
+	//
+	// It can be checked via `errors.Is(err, ErrMissing)`.
+	ErrMissing = errors.New("runtime: resource is missing")
+
+	// ErrNotImplemented is returned when a runtime does not
+	// support preparing a run.
+	//
+	// It can be checked via `errors.Is(err, ErrNotImplemented)`.
+	ErrNotImplemented = errors.New("runtime: not implemented")
 )
 
 // Settings represent Airplane specific settings.
@@ -50,7 +64,16 @@ type Interface interface {
 	// the relevant comment characters for this runtime.
 	FormatComment(s string) string
 
-	// PrepareRun should prepare the
+	// PrepareRun should prepare a local run of a task.
+	//
+	// It must create a temporary directory, install any dependencies
+	// and prepare the script to be run.
+	//
+	// On success the method returns a slice that represents an `cmd.Exec`
+	// options which contains the command to be run and its arguments.
+	//
+	// If running the script locally is not supported the method returns
+	// an `ErrNotImplemented`.
 	PrepareRun(ctx context.Context, opts PrepareRunOptions) ([]string, error)
 }
 
