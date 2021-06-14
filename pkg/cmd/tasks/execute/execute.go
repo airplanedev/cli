@@ -12,7 +12,6 @@ import (
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/cmd/auth/login"
-	"github.com/airplanedev/cli/pkg/fsx"
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/params"
 	"github.com/airplanedev/cli/pkg/print"
@@ -73,25 +72,14 @@ func New(c *cli.Config) *cobra.Command {
 func run(ctx context.Context, cfg config) error {
 	var client = cfg.root.Client
 
-	// cfg.task is either a slug or a local path. Try it as a slug first.
-	task, err := client.GetTask(ctx, cfg.task)
-	if _, ok := err.(*api.TaskMissingError); ok {
-		// If there's no task matching that slug, try it as a file path instead.
-		if !fsx.Exists(cfg.task) {
-			return errors.Errorf("Unable to execute %s. No matching file or task slug.", cfg.task)
-		}
+	slug, err := slugFrom(cfg.task)
+	if err != nil {
+		return err
+	}
 
-		slug, err := slugFrom(cfg.task)
-		if err != nil {
-			return err
-		}
-
-		task, err = client.GetTask(ctx, slug)
-		if err != nil {
-			return errors.Wrap(err, "get task")
-		}
-	} else if err != nil {
-		return errors.Wrap(err, "get task")
+	task, err := client.GetTask(ctx, slug)
+	if err != nil {
+		return err
 	}
 
 	if task.Image == nil {
@@ -165,11 +153,12 @@ func slugFrom(file string) (string, error) {
 	switch ext := filepath.Ext(file); ext {
 	case ".yml", ".yaml":
 		return slugFromYaml(file)
-	case ".js", ".ts":
-		return slugFromScript(file)
 	case "":
 		return "", fmt.Errorf("the file %s must have an extension", file)
 	default:
+		if _, ok := runtime.Lookup(file); ok {
+			return slugFromScript(file)
+		}
 		return "", fmt.Errorf("the file %s has unrecognized extension", file)
 	}
 }

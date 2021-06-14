@@ -20,6 +20,7 @@ import (
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/runtime"
 	_ "github.com/airplanedev/cli/pkg/runtime/javascript"
+	_ "github.com/airplanedev/cli/pkg/runtime/python"
 	_ "github.com/airplanedev/cli/pkg/runtime/typescript"
 	"github.com/airplanedev/cli/pkg/utils"
 	"github.com/spf13/cobra"

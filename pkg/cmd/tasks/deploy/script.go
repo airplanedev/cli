@@ -64,14 +64,17 @@ func deployFromScript(ctx context.Context, cfg config) error {
 	var taskroot = filepath.Dir(abs)
 
 	if root, err := r.Root(abs); err == nil {
-		def.Node.Entrypoint = strings.TrimPrefix(abs, root)
+		setEntrypoint(&def, strings.TrimPrefix(abs, root))
 		taskroot = root
 	} else {
-		def.Node.Entrypoint = filepath.Base(abs)
+		setEntrypoint(&def, filepath.Base(abs))
 	}
 
-	if wd, err := r.Workdir(abs); err == nil {
-		def.Node.Workdir = strings.TrimPrefix(wd, taskroot)
+	// TODO(amir): move to `d.SetWorkdir()`.
+	if def.Node != nil {
+		if wd, err := r.Workdir(abs); err == nil {
+			def.Node.Workdir = strings.TrimPrefix(wd, taskroot)
+		}
 	}
 
 	kind, kindOptions, err := def.GetKindAndOptions()
@@ -122,4 +125,18 @@ To execute %s:
 - From the CLI: %s
 - From the UI: %s`, def.Name, cmd, client.TaskURL(task.Slug))
 	return nil
+}
+
+// SetEntrypoint sets the entrypoint on d.
+//
+// TODO(amir): move this to `def.SetEntrypoint()` or whatever.
+func setEntrypoint(d *definitions.Definition, ep string) {
+	switch kind, _, _ := d.GetKindAndOptions(); kind {
+	case api.TaskKindNode:
+		d.Node.Entrypoint = ep
+	case api.TaskKindPython:
+		d.Python.Entrypoint = ep
+	default:
+		panic(fmt.Sprintf("setEntrypoint received unexpected kind %q", kind))
+	}
 }
