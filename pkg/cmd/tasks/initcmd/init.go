@@ -6,6 +6,7 @@ package initcmd
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -30,6 +31,7 @@ type config struct {
 	client *api.Client
 	file   string
 	slug   string
+	use    string
 }
 
 func New(c *cli.Config) *cobra.Command {
@@ -42,19 +44,34 @@ func New(c *cli.Config) *cobra.Command {
 			$ airplane tasks init
 			$ airplane tasks init --slug task-slug ./my/task.js
 			$ airplane tasks init --slug task-slug ./my/task.ts
+			$ airplane tasks init --use django
 		`),
-		Args: cobra.ExactArgs(1),
+		Args: cobra.RangeArgs(0, 1),
 		PersistentPreRunE: utils.WithParentPersistentPreRunE(func(cmd *cobra.Command, args []string) error {
 			return login.EnsureLoggedIn(cmd.Root().Context(), c)
 		}),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cfg.file = args[0]
-			return run(cmd.Root().Context(), cfg)
+			if len(args) > 1 {
+				cfg.file = args[0]
+
+				if cfg.slug == "" {
+					return errors.New("--slug is required")
+				}
+
+				return run(cmd.Root().Context(), cfg)
+			}
+
+			if cfg.slug != "" {
+				return errors.New("cannot combine --slug with --use")
+			}
+
+			return project(cmd.Root().Context(), cfg.use)
 		},
 	}
 
 	cmd.Flags().StringVar(&cfg.slug, "slug", "", "Slug of an existing task to generate from.")
-	cmd.MarkFlagRequired("slug")
+	cmd.Flags().StringVar(&cfg.use, "use", "", "Generate tasks from the framework.")
+	cmd.Flags().MarkHidden("use")
 
 	return cmd
 }
