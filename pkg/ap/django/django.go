@@ -62,6 +62,10 @@ func (f *Framework) ListCommands() ([]string, error) {
 		}
 	}
 
+	if err := s.Err(); err != nil {
+		return nil, errors.Wrapf(err, "scanning manage.py output")
+	}
+
 	sort.Strings(cmds)
 	return cmds, nil
 }
