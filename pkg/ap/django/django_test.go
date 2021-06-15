@@ -9,8 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const managepy = `
-#!/usr/bin/env python3
+const managepy = `#!/usr/bin/env python3
 
 print("task_2")
 print("task_1")
@@ -47,11 +46,12 @@ func TestFramework(t *testing.T) {
 	t.Run("list commands", func(t *testing.T) {
 		var assert = require.New(t)
 		var root = tmpdir(t)
+		var bin = filepath.Join(root, "manage.py")
 
-		err := ioutil.WriteFile(
-			filepath.Join(root, "manage.py"),
+		err := os.WriteFile(
+			bin,
 			[]byte(managepy),
-			0777,
+			0770,
 		)
 		assert.NoError(err)
 

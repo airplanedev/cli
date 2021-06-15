@@ -37,16 +37,19 @@ func Open(root string) (ap.Framework, error) {
 
 // ListCommands implementation.
 func (f *Framework) ListCommands() ([]string, error) {
-	var manage = filepath.Join(f.root, "manage.py")
+	var bin = filepath.Join(f.root, "manage.py")
 
-	bin, err := f.python()
-	if err != nil {
-		return nil, err
-	}
-
-	cmd := exec.Command(bin, manage, "help", "--commands")
+	cmd := exec.Command(bin, "help", "--commands")
 	buf, err := cmd.Output()
 	if err != nil {
+		var xerr *exec.ExitError
+		if errors.As(err, &xerr) {
+			return nil, errors.Wrapf(err,
+				"exit status=%d stderr=%s",
+				xerr.ExitCode(),
+				xerr.Stderr,
+			)
+		}
 		return nil, errors.Wrapf(err, "run: %s help --commands", bin)
 	}
 
@@ -68,20 +71,4 @@ func (f *Framework) ListCommands() ([]string, error) {
 
 	sort.Strings(cmds)
 	return cmds, nil
-}
-
-// Python returns python's bin.
-//
-// We can actually run manage.py directly, but just to make this
-// more robust we'll look for python bin and execute the script using it.
-func (f *Framework) python() (string, error) {
-	var bins = [...]string{"python3", "python"}
-
-	for _, bin := range bins {
-		if p, err := exec.LookPath(bin); err == nil {
-			return p, nil
-		}
-	}
-
-	return "", fmt.Errorf("cannot find one of %v in your $PATH", bins)
 }
