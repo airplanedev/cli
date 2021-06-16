@@ -149,20 +149,6 @@ func (r Runtime) PrepareRun(ctx context.Context, opts runtime.PrepareRunOptions)
 		}
 	}
 
-	// hasTypesNode := fsx.AssertExistsAll(filepath.Join(root, "node_modules/@types/node"))
-	// isYarn := fsx.AssertExistsAll(filepath.Join(root, "yarn.lock")) == nil
-	// var cmd *exec.Cmd
-	// if isYarn {
-	// 	cmd = exec.CommandContext(ctx, "yarn", "add", "-D", "@types/node")
-	// } else {
-	// 	cmd = exec.CommandContext(ctx, "npm", "install", "--save-dev", "@types/node")
-	// }
-	// cmd.Dir = filepath.Dir(opts.Path)
-	// logger.Debug("Running %s", logger.Bold(strings.Join(cmd.Args, " ")))
-	// if err := cmd.Run(); err != nil {
-	// 	return nil, errors.New("failed to add @types/node dependency")
-	// }
-
 	start := time.Now()
 	cmd := exec.CommandContext(ctx, "tsc", build.NodeTscArgs(".", opts.KindOptions)...)
 	cmd.Dir = root
