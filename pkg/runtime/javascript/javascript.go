@@ -144,8 +144,20 @@ func (r Runtime) PrepareRun(ctx context.Context, opts runtime.PrepareRunOptions)
 
 	hasPkgJSON := fsx.AssertExistsAll(filepath.Join(root, "package.json")) == nil
 	if !hasPkgJSON {
-		if err := os.WriteFile(filepath.Join(root, "package.json"), []byte("{}"), 0777); err != nil {
-			return nil, errors.Wrap(err, "creating default package.json")
+		return nil, errors.New("a package.json is missing")
+	}
+	if !build.HasNodeDeps(root, "@types/node") {
+		isYarn := fsx.AssertExistsAll(filepath.Join(root, "yarn.lock")) == nil
+		var cmd *exec.Cmd
+		if isYarn {
+			cmd = exec.CommandContext(ctx, "yarn", "add", "-D", "@types/node")
+		} else {
+			cmd = exec.CommandContext(ctx, "npm", "install", "--save-dev", "@types/node")
+		}
+		cmd.Dir = filepath.Dir(opts.Path)
+		logger.Debug("Running %s", logger.Bold(strings.Join(cmd.Args, " ")))
+		if err := cmd.Run(); err != nil {
+			return nil, errors.New("failed to add shim dependencies")
 		}
 	}
 

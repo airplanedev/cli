@@ -48,7 +48,7 @@ func node(root string, options api.KindOptions) (string, error) {
 		Workdir:        workdir,
 		HasPackageJSON: fsx.AssertExistsAll(filepath.Join(root, "package.json")) == nil,
 		HasPackageLock: fsx.AssertExistsAll(filepath.Join(root, "package-lock.json")) == nil,
-		NeedsShimDeps:  !hasNodeDeps(root, "@types/node"),
+		NeedsShimDeps:  !HasNodeDeps(root, "@types/node"),
 		IsYarn:         fsx.AssertExistsAll(filepath.Join(root, "yarn.lock")) == nil,
 		TscArgs:        strings.Join(NodeTscArgs("/airplane", options), " \\\n"),
 	}
@@ -170,9 +170,9 @@ func NodeTscArgs(root string, opts api.KindOptions) []string {
 	}
 }
 
-// hasNodeDeps returns true if all deps are installed in the root's
+// HasNodeDeps returns true if all deps are installed in the root's
 // package.json, either as dependencies or dev dependencies.
-func hasNodeDeps(root string, deps ...string) bool {
+func HasNodeDeps(root string, deps ...string) bool {
 	pkgjsonpath := filepath.Join(root, "package.json")
 	if fsx.AssertExistsAll(pkgjsonpath) != nil {
 		return false
