@@ -25,8 +25,7 @@ func node(root string, options api.KindOptions) (string, error) {
 
 	// Assert that the entrypoint file exists:
 	entrypoint, _ := options["entrypoint"].(string)
-	entrypoint = filepath.Join(root, entrypoint)
-	if err := fsx.AssertExistsAll(entrypoint); err != nil {
+	if err := fsx.AssertExistsAll(filepath.Join(root, entrypoint)); err != nil {
 		return "", err
 	}
 
@@ -58,7 +57,7 @@ func node(root string, options api.KindOptions) (string, error) {
 		return "", err
 	}
 
-	shim, err := NodeShim(root, entrypoint)
+	shim, err := NodeShim(entrypoint)
 	if err != nil {
 		return "", err
 	}
@@ -115,19 +114,15 @@ func node(root string, options api.KindOptions) (string, error) {
 //go:embed node-shim.ts
 var nodeShim string
 
-func NodeShim(root, entrypoint string) (string, error) {
-	importPath, err := filepath.Rel(root, entrypoint)
-	if err != nil {
-		return "", errors.Wrap(err, "entrypoint is not inside of root")
-	}
+func NodeShim(entrypoint string) (string, error) {
 	// Remove the `.ts` suffix if one exists, since tsc doesn't accept
 	// import paths with `.ts` endings. `.js` endings are fine.
-	importPath = strings.TrimSuffix(importPath, ".ts")
+	entrypoint = strings.TrimSuffix(entrypoint, ".ts")
 
 	shim, err := applyTemplate(nodeShim, struct {
 		ImportPath string
 	}{
-		ImportPath: importPath,
+		ImportPath: entrypoint,
 	})
 	if err != nil {
 		return "", errors.Wrap(err, "templating shim")
