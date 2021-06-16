@@ -120,9 +120,9 @@ func NodeShim(entrypoint string) (string, error) {
 	entrypoint = strings.TrimSuffix(entrypoint, ".ts")
 
 	shim, err := applyTemplate(nodeShim, struct {
-		ImportPath string
+		Entrypoint string
 	}{
-		ImportPath: entrypoint,
+		Entrypoint: entrypoint,
 	})
 	if err != nil {
 		return "", errors.Wrap(err, "templating shim")
