@@ -98,31 +98,6 @@ func deployFromYaml(ctx context.Context, cfg config) error {
 	}
 
 	if build.NeedsBuilding(kind) {
-		// Before performing a remote build, we must first update kind/kindOptions
-		// since the remote build relies on pulling those from the tasks table (for now).
-		_, err := client.UpdateTask(ctx, api.UpdateTaskRequest{
-			Kind:        kind,
-			KindOptions: kindOptions,
-
-			// The following fields are not updated until after the build finishes.
-			Slug:             task.Slug,
-			Name:             task.Name,
-			Description:      task.Description,
-			Image:            task.Image,
-			Command:          task.Command,
-			Arguments:        task.Arguments,
-			Parameters:       task.Parameters,
-			Constraints:      task.Constraints,
-			Env:              task.Env,
-			ResourceRequests: task.ResourceRequests,
-			Resources:        task.Resources,
-			Repo:             task.Repo,
-			Timeout:          task.Timeout,
-		})
-		if err != nil {
-			return errors.Wrapf(err, "updating task %s", def.Slug)
-		}
-
 		resp, err := build.Run(ctx, build.Request{
 			Local:  cfg.local,
 			Client: client,
