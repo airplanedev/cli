@@ -39,6 +39,24 @@ func deployFromYaml(ctx context.Context, cfg config) error {
 		return err
 	}
 
+	// Remap resources from ref -> name to ref -> id.
+	resp, err := client.ListResources(ctx)
+	if err != nil {
+		return errors.Wrap(err, "fetching resources")
+	}
+	resourcesByName := map[string]api.Resource{}
+	for _, resource := range resp.Resources {
+		resourcesByName[resource.Name] = resource
+	}
+	resources := map[string]string{}
+	for ref, name := range def.Resources {
+		if res, ok := resourcesByName[name]; ok {
+			resources[ref] = res.ID
+		} else {
+			return errors.Errorf("unknown resource: %s", name)
+		}
+	}
+
 	var image *string
 	var command []string
 	if def.Image != nil {
@@ -129,7 +147,7 @@ func deployFromYaml(ctx context.Context, cfg config) error {
 		Constraints:      def.Constraints,
 		Env:              def.Env,
 		ResourceRequests: def.ResourceRequests,
-		Resources:        def.Resources,
+		Resources:        resources,
 		Kind:             kind,
 		KindOptions:      kindOptions,
 		Repo:             def.Repo,
