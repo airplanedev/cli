@@ -2,13 +2,16 @@ package build
 
 import (
 	_ "embed"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"path"
 	"path/filepath"
 	"strings"
 
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/fsx"
+	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/pkg/errors"
 )
 
@@ -36,7 +39,8 @@ func node(root string, options api.KindOptions) (string, error) {
 		Base           string
 		HasPackageJSON bool
 		HasPackageLock bool
-		HasYarnLock    bool
+		IsYarn         bool
+		NeedsShimDeps  bool
 		Shim           string
 		IsTS           bool
 		TscArgs        string
@@ -44,7 +48,8 @@ func node(root string, options api.KindOptions) (string, error) {
 		Workdir:        workdir,
 		HasPackageJSON: fsx.AssertExistsAll(filepath.Join(root, "package.json")) == nil,
 		HasPackageLock: fsx.AssertExistsAll(filepath.Join(root, "package-lock.json")) == nil,
-		HasYarnLock:    fsx.AssertExistsAll(filepath.Join(root, "yarn.lock")) == nil,
+		NeedsShimDeps:  !hasNodeDeps(root, "@types/node"),
+		IsYarn:         fsx.AssertExistsAll(filepath.Join(root, "yarn.lock")) == nil,
 		TscArgs:        strings.Join(NodeTscArgs("/airplane", options), " \\\n"),
 	}
 
@@ -97,12 +102,18 @@ func node(root string, options api.KindOptions) (string, error) {
 		RUN echo '{}' > /airplane/package.json
 		{{end}}
 
-		{{if .HasYarnLock}}
-		RUN yarn --frozen-lockfile --non-interactive && yarn add -D @types/node
-		{{else if .HasPackageLock}}
-		RUN npm install && npm install --save-dev @types/node
+		{{if .IsYarn}}
+		{{if .NeedsShimDeps}}
+		RUN yarn add --non-interactive @types/node
 		{{else}}
-		RUN npm install --save-dev @types/node
+		RUN yarn --non-interactive
+		{{end}}
+		{{else}}
+		{{if .NeedsShimDeps}}
+		RUN npm install @types/node
+		{{else}}
+		RUN npm install
+		{{end}}
 		{{end}}
 
 		RUN mkdir -p /airplane/.airplane/dist && \
@@ -157,6 +168,40 @@ func NodeTscArgs(root string, opts api.KindOptions) []string {
 		"--pretty",
 		filepath.Join(root, ".airplane/shim.ts"),
 	}
+}
+
+// hasNodeDeps returns true if all deps are installed in the root's
+// package.json, either as dependencies or dev dependencies.
+func hasNodeDeps(root string, deps ...string) bool {
+	pkgjsonpath := filepath.Join(root, "package.json")
+	if fsx.AssertExistsAll(pkgjsonpath) != nil {
+		return false
+	}
+
+	contents, err := ioutil.ReadFile(pkgjsonpath)
+	if err != nil {
+		logger.Debug("Failed to read package.json contents. Continuing... Error: %+v", err)
+		return false
+	}
+
+	var pkgjson struct {
+		Dependencies    map[string]json.RawMessage `json:"dependencies"`
+		DevDependencies map[string]json.RawMessage `json:"devDependencies"`
+	}
+	if err := json.Unmarshal(contents, &pkgjson); err != nil {
+		logger.Debug("Failed to unmarshal package.json contents. Continuing... Error: %+v", err)
+		return false
+	}
+
+	for _, dep := range deps {
+		_, hasDep := pkgjson.Dependencies[dep]
+		_, hasDevDep := pkgjson.DevDependencies[dep]
+		if !hasDep && !hasDevDep {
+			return false
+		}
+	}
+
+	return true
 }
 
 // nodeLegacyBuilder creates a dockerfile for Node (typescript/javascript).
