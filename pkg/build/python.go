@@ -19,8 +19,7 @@ func python(root string, args api.KindOptions) (string, error) {
 
 	// Assert that the entrypoint file exists:
 	entrypoint, _ := args["entrypoint"].(string)
-	absEntrypoint := filepath.Join(root, entrypoint)
-	if err := fsx.AssertExistsAll(absEntrypoint); err != nil {
+	if err := fsx.AssertExistsAll(filepath.Join(root, entrypoint)); err != nil {
 		return "", err
 	}
 
@@ -29,7 +28,7 @@ func python(root string, args api.KindOptions) (string, error) {
 		return "", err
 	}
 
-	shim, err := PythonShim(absEntrypoint)
+	shim, err := PythonShim(entrypoint)
 	if err != nil {
 		return "", err
 	}
@@ -70,13 +69,11 @@ func python(root string, args api.KindOptions) (string, error) {
 var pythonShim string
 
 // PythonShim generates a shim file for running Python tasks.
-//
-// Expects an absolute path to the task's entrypoint.
-func PythonShim(absEntrypoint string) (string, error) {
+func PythonShim(entrypoint string) (string, error) {
 	shim, err := applyTemplate(pythonShim, struct {
 		Entrypoint string
 	}{
-		Entrypoint: absEntrypoint,
+		Entrypoint: entrypoint,
 	})
 	if err != nil {
 		return "", errors.Wrapf(err, "rendering shim")

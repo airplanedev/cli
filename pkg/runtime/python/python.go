@@ -55,7 +55,11 @@ func (r Runtime) PrepareRun(ctx context.Context, opts runtime.PrepareRunOptions)
 		return nil, errors.Wrap(err, "creating .airplane directory")
 	}
 
-	shim, err := build.PythonShim(opts.Path)
+	entrypoint, err := filepath.Rel(root, opts.Path)
+	if err != nil {
+		return nil, errors.Wrap(err, "entrypoint is not within the task root")
+	}
+	shim, err := build.PythonShim(entrypoint)
 	if err != nil {
 		return nil, err
 	}
