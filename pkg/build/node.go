@@ -40,7 +40,7 @@ func node(root string, options api.KindOptions) (string, error) {
 		HasPackageJSON bool
 		HasPackageLock bool
 		IsYarn         bool
-		NeedsShimDeps  bool
+		HasShimDeps    bool
 		Shim           string
 		IsTS           bool
 		TscArgs        string
@@ -48,7 +48,7 @@ func node(root string, options api.KindOptions) (string, error) {
 		Workdir:        workdir,
 		HasPackageJSON: fsx.AssertExistsAll(filepath.Join(root, "package.json")) == nil,
 		HasPackageLock: fsx.AssertExistsAll(filepath.Join(root, "package-lock.json")) == nil,
-		NeedsShimDeps:  !HasNodeDeps(root, "@types/node"),
+		HasShimDeps:    !HasNodeShimDeps(root),
 		IsYarn:         fsx.AssertExistsAll(filepath.Join(root, "yarn.lock")) == nil,
 		TscArgs:        strings.Join(NodeTscArgs("/airplane", options), " \\\n"),
 	}
@@ -103,16 +103,16 @@ func node(root string, options api.KindOptions) (string, error) {
 		{{end}}
 
 		{{if .IsYarn}}
-		{{if .NeedsShimDeps}}
-		RUN yarn add --non-interactive @types/node
-		{{else}}
+		{{if .HasShimDeps}}
 		RUN yarn --non-interactive
+		{{else}}
+		RUN yarn add --non-interactive @types/node
 		{{end}}
 		{{else}}
-		{{if .NeedsShimDeps}}
-		RUN npm install @types/node
-		{{else}}
+		{{if .HasShimDeps}}
 		RUN npm install
+		{{else}}
+		RUN npm install @types/node
 		{{end}}
 		{{end}}
 
@@ -170,9 +170,13 @@ func NodeTscArgs(root string, opts api.KindOptions) []string {
 	}
 }
 
-// HasNodeDeps returns true if all deps are installed in the root's
+func HasNodeShimDeps(root string) bool {
+	return hasNodeDeps(root, "@types/node")
+}
+
+// hasNodeDeps returns true if all deps are installed in the root's
 // package.json, either as dependencies or dev dependencies.
-func HasNodeDeps(root string, deps ...string) bool {
+func hasNodeDeps(root string, deps ...string) bool {
 	pkgjsonpath := filepath.Join(root, "package.json")
 	if fsx.AssertExistsAll(pkgjsonpath) != nil {
 		return false

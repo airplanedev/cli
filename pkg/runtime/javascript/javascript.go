@@ -149,7 +149,7 @@ func (r Runtime) PrepareRun(ctx context.Context, opts runtime.PrepareRunOptions)
 		return nil, errors.New("a package.json is missing")
 	}
 
-	if !build.HasNodeDeps(root, "@types/node") {
+	if !build.HasNodeShimDeps(root) {
 		isYarn := fsx.AssertExistsAll(filepath.Join(root, "yarn.lock")) == nil
 		var cmd *exec.Cmd
 		if isYarn {
