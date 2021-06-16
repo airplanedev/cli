@@ -1,7 +1,6 @@
 package dev
 
 import (
-	"bufio"
 	"context"
 	"flag"
 	"fmt"
@@ -24,6 +23,7 @@ import (
 	"github.com/airplanedev/cli/pkg/print"
 	"github.com/airplanedev/cli/pkg/runtime"
 	"github.com/airplanedev/cli/pkg/utils"
+	"github.com/airplanedev/cli/pkg/utils/bufiox"
 	"github.com/joho/godotenv"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -141,7 +141,7 @@ func run(ctx context.Context, cfg config) error {
 	o := api.Outputs{}
 
 	logParser := func(r io.Reader) error {
-		scanner := bufio.NewScanner(r)
+		scanner := bufiox.NewScanner(r)
 		for scanner.Scan() {
 			line := scanner.Text()
 			if outputs.IsOutput(line) {
