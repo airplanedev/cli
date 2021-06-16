@@ -142,27 +142,29 @@ func (r Runtime) PrepareRun(ctx context.Context, opts runtime.PrepareRunOptions)
 		return nil, errors.Wrap(err, "cleaning dist folder")
 	}
 
-	if fsx.AssertExistsAll(filepath.Join(root, "package.json")) != nil {
+	hasPkgJSON := fsx.AssertExistsAll(filepath.Join(root, "package.json")) == nil
+	if !hasPkgJSON {
 		if err := os.WriteFile(filepath.Join(root, "package.json"), []byte("{}"), 0777); err != nil {
 			return nil, errors.Wrap(err, "creating default package.json")
 		}
 	}
 
-	isYarn := fsx.AssertExistsAll(filepath.Join(root, "yarn.lock")) == nil
-	var cmd *exec.Cmd
-	if isYarn {
-		cmd = exec.CommandContext(ctx, "yarn", "add", "-D", "@types/node")
-	} else {
-		cmd = exec.CommandContext(ctx, "npm", "install", "--save-dev", "@types/node")
-	}
-	cmd.Dir = filepath.Dir(opts.Path)
-	logger.Debug("Running %s", logger.Bold(strings.Join(cmd.Args, " ")))
-	if err := cmd.Run(); err != nil {
-		return nil, errors.New("failed to add @types/node dependency")
-	}
+	// hasTypesNode := fsx.AssertExistsAll(filepath.Join(root, "node_modules/@types/node"))
+	// isYarn := fsx.AssertExistsAll(filepath.Join(root, "yarn.lock")) == nil
+	// var cmd *exec.Cmd
+	// if isYarn {
+	// 	cmd = exec.CommandContext(ctx, "yarn", "add", "-D", "@types/node")
+	// } else {
+	// 	cmd = exec.CommandContext(ctx, "npm", "install", "--save-dev", "@types/node")
+	// }
+	// cmd.Dir = filepath.Dir(opts.Path)
+	// logger.Debug("Running %s", logger.Bold(strings.Join(cmd.Args, " ")))
+	// if err := cmd.Run(); err != nil {
+	// 	return nil, errors.New("failed to add @types/node dependency")
+	// }
 
 	start := time.Now()
-	cmd = exec.CommandContext(ctx, "tsc", build.NodeTscArgs(".", opts.KindOptions)...)
+	cmd := exec.CommandContext(ctx, "tsc", build.NodeTscArgs(".", opts.KindOptions)...)
 	cmd.Dir = root
 	logger.Debug("Running %s (in %s)", logger.Bold(strings.Join(cmd.Args, " ")), root)
 	out, err := cmd.CombinedOutput()
