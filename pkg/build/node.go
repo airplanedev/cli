@@ -48,7 +48,7 @@ func node(root string, options api.KindOptions) (string, error) {
 		Workdir:        workdir,
 		HasPackageJSON: fsx.AssertExistsAll(filepath.Join(root, "package.json")) == nil,
 		HasPackageLock: fsx.AssertExistsAll(filepath.Join(root, "package-lock.json")) == nil,
-		HasShimDeps:    !HasNodeShimDeps(root),
+		HasShimDeps:    HasNodeShimDeps(root),
 		IsYarn:         fsx.AssertExistsAll(filepath.Join(root, "yarn.lock")) == nil,
 		TscArgs:        strings.Join(NodeTscArgs("/airplane", options), " \\\n"),
 	}
