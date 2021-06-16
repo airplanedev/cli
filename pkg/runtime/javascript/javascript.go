@@ -142,10 +142,13 @@ func (r Runtime) PrepareRun(ctx context.Context, opts runtime.PrepareRunOptions)
 		return nil, errors.Wrap(err, "cleaning dist folder")
 	}
 
+	// Confirm we have a `package.json`, otherwise we might install shim dependencies
+	// in the wrong folder.
 	hasPkgJSON := fsx.AssertExistsAll(filepath.Join(root, "package.json")) == nil
 	if !hasPkgJSON {
 		return nil, errors.New("a package.json is missing")
 	}
+
 	if !build.HasNodeDeps(root, "@types/node") {
 		isYarn := fsx.AssertExistsAll(filepath.Join(root, "yarn.lock")) == nil
 		var cmd *exec.Cmd
