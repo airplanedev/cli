@@ -79,7 +79,7 @@ func deployFromYaml(ctx context.Context, cfg config) error {
 			Constraints:      def.Constraints,
 			Env:              def.Env,
 			ResourceRequests: def.ResourceRequests,
-			Resources:        def.Resources,
+			Resources:        resources,
 			Kind:             kind,
 			KindOptions:      kindOptions,
 			Repo:             def.Repo,
