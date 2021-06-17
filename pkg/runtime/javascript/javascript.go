@@ -223,7 +223,7 @@ func checkTscInstalled(ctx context.Context) error {
 
 	// Typescript is not installed. Confirm with the user if they are
 	// okay with installing it.
-	cmd = exec.CommandContext(ctx, "npm", "install", "--global", "typescript")
+	cmd = exec.CommandContext(ctx, "npx", "-p", "typescript", "--yes", "tsc", "--version")
 	if utils.CanPrompt() {
 		logger.Log("Airplane needs to run %s to install the TypeScript CLI.", logger.Bold(strings.Join(cmd.Args, " ")))
 		confirmed, err := utils.Confirm("Run now?")
