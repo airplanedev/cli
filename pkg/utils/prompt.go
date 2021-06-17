@@ -9,10 +9,11 @@ import (
 )
 
 func Confirm(question string) (bool, error) {
-	ok := false
+	ok := true
 	if err := survey.AskOne(
 		&survey.Confirm{
 			Message: question,
+			Default: ok,
 		},
 		&ok,
 		survey.WithStdio(os.Stdin, os.Stderr, os.Stderr),
