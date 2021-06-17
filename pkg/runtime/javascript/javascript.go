@@ -12,7 +12,6 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/MakeNowJust/heredoc"
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/build"
 	"github.com/airplanedev/cli/pkg/fsx"
@@ -161,7 +160,7 @@ func (r Runtime) PrepareRun(ctx context.Context, opts runtime.PrepareRunOptions)
 	}
 
 	start := time.Now()
-	cmd := exec.CommandContext(ctx, "tsc", build.NodeTscArgs(".", opts.KindOptions)...)
+	cmd := exec.CommandContext(ctx, "npx", append([]string{"-p", "typescript", "--no", "tsc", "--"}, build.NodeTscArgs(".", opts.KindOptions)...)...)
 	cmd.Dir = root
 	logger.Debug("Running %s (in %s)", logger.Bold(strings.Join(cmd.Args, " ")), root)
 	out, err := cmd.CombinedOutput()
@@ -210,24 +209,35 @@ func installShimDeps(ctx context.Context, root, path string) error {
 	return nil
 }
 
-// checkTscInstalled will error if the tsc CLI is not installed.
-//
-// TODO: consider either a) auto-installing tsc or b) packaging it
-// with the airplane CLI. The latter would be ideal, since we could
-// enforce that the correct version of tsc is used.
+// checkTscInstalled will verify that the Typescript CLI is installed
+// and confirm with the user if they are okay with us auto-installing it.
 func checkTscInstalled(ctx context.Context) error {
-	cmd := exec.CommandContext(ctx, "tsc", "--version")
+	// note: --no will prevent installing typescript if not already installed.
+	cmd := exec.CommandContext(ctx, "npx", "-p", "typescript", "--no", "tsc", "--", "--version")
+	logger.Debug("Running %s", logger.Bold(strings.Join(cmd.Args, " ")))
+	if out, err := cmd.CombinedOutput(); err == nil {
+		logger.Debug("TypeScript version: %s", strings.TrimPrefix(strings.TrimSpace(string(out)), "Version "))
+		// tsc is installed, return early
+		return nil
+	}
+
+	// Typescript is not installed. Confirm with the user if they are
+	// okay with installing it.
+	cmd = exec.CommandContext(ctx, "npm", "install", "--global", "typescript")
+	if utils.CanPrompt() {
+		logger.Log("Airplane needs to run %s to install the TypeScript CLI.", logger.Bold(strings.Join(cmd.Args, " ")))
+		confirmed, err := utils.Confirm("Run now?")
+		if err != nil {
+			return err
+		}
+		if !confirmed {
+			return errors.New("unable to run without the TypeScript CLI")
+		}
+	}
+
 	logger.Debug("Running %s", logger.Bold(strings.Join(cmd.Args, " ")))
 	if err := cmd.Run(); err != nil {
-		return errors.New(heredoc.Doc(`
-			It looks like the typescript CLI (tsc) is not installed.
-
-			You can install it with:
-			  npm install -g typescript
-			  tsc --version
-			
-			See also: https://www.typescriptlang.org/download
-		`))
+		return errors.Wrap(err, "installing tsc")
 	}
 
 	return nil
@@ -256,7 +266,18 @@ func checkNodeVersion(ctx context.Context, opts api.KindOptions) {
 		return
 	}
 
+	logger.Debug("node version: %s", strings.TrimSpace(string(out)))
 	if !strings.HasPrefix(string(out), fmt.Sprintf("v%d", v.Major)) {
 		logger.Warning("Your local version of Node (%s) does not match the version your task is configured to run against (v%s).", strings.TrimSpace(string(out)), v)
 	}
+
+	cmd = exec.CommandContext(ctx, "npx", "--version")
+	logger.Debug("Running %s", logger.Bold(strings.Join(cmd.Args, " ")))
+	out, err = cmd.CombinedOutput()
+	if err != nil {
+		logger.Debug("failed to check npx version: are you running a recent enough version of node?")
+		return
+	}
+
+	logger.Debug("npx version: %s", strings.TrimSpace(string(out)))
 }
