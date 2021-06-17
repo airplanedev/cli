@@ -1,5 +1,5 @@
 // This file includes a shim that will execute your task code.
-import task from "../{{.ImportPath}}";
+import task from "../{{.Entrypoint}}";
 
 async function main() {
   if (process.argv.length !== 3) {

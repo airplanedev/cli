@@ -79,6 +79,8 @@ type Interface interface {
 
 type PrepareRunOptions struct {
 	// Path is the file path leading to the task's entrypoint.
+	//
+	// It should be an absolute path.
 	Path string
 
 	// ParamValues specifies the user-provided parameter values to

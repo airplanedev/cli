@@ -11,22 +11,15 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Python shim code.
-//go:embed shim.py
-var pythonShim string
-
 // Python creates a dockerfile for Python.
 func python(root string, args api.KindOptions) (string, error) {
-	entrypoint, _ := args["entrypoint"].(string)
-	main := filepath.Join(root, entrypoint)
-	init := filepath.Join(root, "__init__.py")
-	reqs := filepath.Join(root, "requirements.txt")
-
 	if args["shim"] != "true" {
 		return pythonLegacy(root, args)
 	}
 
-	if err := fsx.AssertExistsAll(main); err != nil {
+	// Assert that the entrypoint file exists:
+	entrypoint, _ := args["entrypoint"].(string)
+	if err := fsx.AssertExistsAll(filepath.Join(root, entrypoint)); err != nil {
 		return "", err
 	}
 
@@ -35,19 +28,15 @@ func python(root string, args api.KindOptions) (string, error) {
 		return "", err
 	}
 
-	shim, err := applyTemplate(pythonShim, struct {
-		Entrypoint string
-	}{
-		Entrypoint: filepath.Join("/airplane", entrypoint),
-	})
+	shim, err := PythonShim(entrypoint)
 	if err != nil {
-		return "", errors.Wrapf(err, "rendering shim")
+		return "", err
 	}
 
 	const dockerfile = `
     FROM {{ .Base }}
     WORKDIR /airplane
-    RUN echo '{{.Shim}}' > /shim.py
+    RUN mkdir -p .airplane && echo '{{.Shim}}' > .airplane/shim.py
     {{if not .HasInit}}
     RUN touch __init__.py
     {{end}}
@@ -55,27 +44,42 @@ func python(root string, args api.KindOptions) (string, error) {
 		{{if .HasRequirements}}
     RUN pip install -r requirements.txt
 		{{end}}
-    ENTRYPOINT ["python", "/shim.py", "/airplane/{{ .Entrypoint }}"]
+    ENTRYPOINT ["python", ".airplane/shim.py"]
 	`
 
 	df, err := applyTemplate(dockerfile, struct {
 		Base            string
 		Shim            string
-		Entrypoint      string
 		HasRequirements bool
 		HasInit         bool
 	}{
 		Base:            v.String(),
 		Shim:            strings.Join(strings.Split(shim, "\n"), "\\n\\\n"),
-		Entrypoint:      entrypoint,
-		HasRequirements: fsx.Exists(reqs),
-		HasInit:         fsx.Exists(init),
+		HasRequirements: fsx.Exists(filepath.Join(root, "requirements.txt")),
+		HasInit:         fsx.Exists(filepath.Join(root, "__init__.py")),
 	})
 	if err != nil {
 		return "", errors.Wrapf(err, "rendering dockerfile")
 	}
 
 	return df, nil
+}
+
+//go:embed python-shim.py
+var pythonShim string
+
+// PythonShim generates a shim file for running Python tasks.
+func PythonShim(entrypoint string) (string, error) {
+	shim, err := applyTemplate(pythonShim, struct {
+		Entrypoint string
+	}{
+		Entrypoint: entrypoint,
+	})
+	if err != nil {
+		return "", errors.Wrapf(err, "rendering shim")
+	}
+
+	return shim, nil
 }
 
 // PythonLegacy generates a dockerfile for legacy python support.
