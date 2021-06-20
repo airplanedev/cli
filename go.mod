@@ -9,7 +9,6 @@ require (
 	github.com/airplanedev/archiver v1.1.3-0.20210415184012-094191384ed3
 	github.com/alecthomas/jsonschema v0.0.0-20210413112511-5c9c23bdc720
 	github.com/andybalholm/brotli v1.0.3 // indirect
-	github.com/blang/semver v3.5.1+incompatible
 	github.com/blang/semver/v4 v4.0.0
 	github.com/containerd/continuity v0.0.0-20210313171317-968621f0704d // indirect
 	github.com/docker/docker v20.10.5+incompatible
@@ -20,7 +19,7 @@ require (
 	github.com/golang/snappy v0.0.3 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/gosimple/slug v1.9.0
-	github.com/joho/godotenv v1.3.0 // indirect
+	github.com/joho/godotenv v1.3.0
 	github.com/kr/pty v1.1.8 // indirect
 	github.com/kr/text v0.2.0
 	github.com/mattn/go-isatty v0.0.12
