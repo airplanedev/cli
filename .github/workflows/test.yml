@@ -24,10 +24,12 @@ jobs:
         run: |
           go test -covermode atomic -coverprofile=covprofile ./...
 
+      # goveralls is a Go integration for Coveralls:
+      # https://github.com/mattn/goveralls
       - name: Install goveralls
         run: go get github.com/mattn/goveralls
       - name: Send coverage
-        env:
-          COVERALLS_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
+        # env:
+        #   COVERALLS_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
         run: goveralls -coverprofile=covprofile -service=github
         
