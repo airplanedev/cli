@@ -19,21 +19,19 @@ jobs:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: ${{ runner.os }}-go-
-      - name: Install dependencies
+      - name: Run tests
         run: |
-          go mod download
+          go test -covermode atomic -coverprofile=covprofile ./...
 
       # goveralls is a Go integration for Coveralls:
       # https://github.com/mattn/goveralls
       - name: Install goveralls
+        env:
+          GO111MODULE: off
         run: go get github.com/mattn/goveralls
       - name: Send coverage
         env:
           COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        # `go env` command fixes an issue where goveralls
-        # reports issues with the go.sum file:
-        # https://github.com/golang/go/issues/44129
         run: |
-          go env -w GOFLAGS=-mod=mod
-          goveralls -service=github -show
+          goveralls -coverprofile=covprofile -service=github -show
         

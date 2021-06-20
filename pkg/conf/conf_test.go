@@ -37,33 +37,33 @@ func TestConfig(t *testing.T) {
 		assert.Equal("foo", cfg.Tokens["airplane.dev"])
 	})
 
-	// t.Run("overwrite", func(t *testing.T) {
-	// 	var assert = require.New(t)
-	// 	var homedir = tempdir(t)
-	// 	var path = filepath.Join(homedir, ".airplane", "config")
+	t.Run("overwrite", func(t *testing.T) {
+		var assert = require.New(t)
+		var homedir = tempdir(t)
+		var path = filepath.Join(homedir, ".airplane", "config")
 
-	// 	{
-	// 		err := Write(path, Config{
-	// 			Tokens: map[string]string{"airplane.dev": "foo"},
-	// 		})
-	// 		assert.NoError(err)
+		{
+			err := Write(path, Config{
+				Tokens: map[string]string{"airplane.dev": "foo"},
+			})
+			assert.NoError(err)
 
-	// 		cfg, err := Read(path)
-	// 		assert.NoError(err)
-	// 		assert.Equal("foo", cfg.Tokens["airplane.dev"])
-	// 	}
+			cfg, err := Read(path)
+			assert.NoError(err)
+			assert.Equal("foo", cfg.Tokens["airplane.dev"])
+		}
 
-	// 	{
-	// 		err := Write(path, Config{
-	// 			Tokens: map[string]string{"airplane.dev": "baz"},
-	// 		})
-	// 		assert.NoError(err)
+		{
+			err := Write(path, Config{
+				Tokens: map[string]string{"airplane.dev": "baz"},
+			})
+			assert.NoError(err)
 
-	// 		cfg, err := Read(path)
-	// 		assert.NoError(err)
-	// 		assert.Equal("baz", cfg.Tokens["airplane.dev"])
-	// 	}
-	// })
+			cfg, err := Read(path)
+			assert.NoError(err)
+			assert.Equal("baz", cfg.Tokens["airplane.dev"])
+		}
+	})
 }
 
 func tempdir(t testing.TB) string {
