@@ -30,7 +30,10 @@ jobs:
       - name: Send coverage
         env:
           COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # `go env` command fixes an issue where goveralls
+        # reports issues with the go.sum file:
+        # https://github.com/golang/go/issues/44129
         run: |
           go env -w GOFLAGS=-mod=mod
-          goveralls -service=github -show -debug
+          goveralls -service=github -show
         
