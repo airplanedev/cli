@@ -2,6 +2,7 @@ package conf
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -68,6 +69,9 @@ func Write(path string, cfg Config) error {
 	if err != nil {
 		return errors.Wrap(err, "marshal config")
 	}
+
+	// Testing codecov...
+	fmt.Printf("testing")
 
 	if err := ioutil.WriteFile(path, buf, 0600); err != nil {
 		return errors.Wrap(err, "write config")
