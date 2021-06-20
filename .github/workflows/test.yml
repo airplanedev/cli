@@ -19,6 +19,9 @@ jobs:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: ${{ runner.os }}-go-
+      - name: Install dependencies
+        run: |
+          go mod download
 
       # goveralls is a Go integration for Coveralls:
       # https://github.com/mattn/goveralls
