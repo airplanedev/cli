@@ -37,13 +37,14 @@ func python(root string, args api.KindOptions) (string, error) {
     FROM {{ .Base }}
     WORKDIR /airplane
     RUN mkdir -p .airplane && echo '{{.Shim}}' > .airplane/shim.py
+		{{if .HasRequirements}}
+		ADD requirements.txt .
+    RUN pip install -r requirements.txt
+		{{end}}
     {{if not .HasInit}}
     RUN touch __init__.py
     {{end}}
-    COPY . .
-		{{if .HasRequirements}}
-    RUN pip install -r requirements.txt
-		{{end}}
+    ADD . .
     ENTRYPOINT ["python", ".airplane/shim.py"]
 	`
 
