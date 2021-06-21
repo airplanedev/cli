@@ -20,6 +20,7 @@ require (
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/gosimple/slug v1.9.0
 	github.com/joho/godotenv v1.3.0
+	github.com/jpillora/backoff v1.0.0
 	github.com/kr/pty v1.1.8 // indirect
 	github.com/kr/text v0.2.0
 	github.com/mattn/go-isatty v0.0.12
