@@ -49,7 +49,6 @@ func python(root string, args api.KindOptions) (string, error) {
 		Base            string
 		Shim            string
 		HasRequirements bool
-		HasInit         bool
 	}{
 		Base:            v.String(),
 		Shim:            strings.Join(strings.Split(shim, "\n"), "\\n\\\n"),
