@@ -94,11 +94,10 @@ func node(root string, options api.KindOptions) (string, error) {
 		RUN [ -z "${BUILD_NPM_TOKEN}" ] || echo "//registry.npmjs.org/:_authToken=${BUILD_NPM_TOKEN}" > .npmrc
 
 		RUN npm install -g typescript@4.2
+		COPY . /airplane
 
 		{{if not .HasPackageJSON}}
 		RUN echo '{}' > /airplane/package.json
-		{{else}}
-		ADD package.json ./airplane
 		{{end}}
 
 		{{if .IsYarn}}
@@ -114,8 +113,6 @@ func node(root string, options api.KindOptions) (string, error) {
 		RUN npm install @types/node
 		{{end}}
 		{{end}}
-
-		ADD . /airplane
 
 		RUN mkdir -p /airplane/.airplane/dist && \
 			echo '{{.Shim}}' > /airplane/.airplane/shim.ts && \
