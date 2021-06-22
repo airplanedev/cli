@@ -1,34 +1,24 @@
 package build
 
 import (
-	"bufio"
 	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
-	"text/template"
 	"unicode"
 
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/logger"
+	"github.com/airplanedev/cli/pkg/utils/bufiox"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	dockerJSONMessage "github.com/docker/docker/pkg/jsonmessage"
 	"github.com/mattn/go-isatty"
 	"github.com/pkg/errors"
 )
-
-// Args represent build arguments.
-//
-// The arguments depend on the builder used.
-//
-// TODO(amir): refine this, we need the build args
-// to be typed so we can show their usage in the CLI.
-type Args map[string]string
 
 // RegistryAuth represents the registry auth.
 type RegistryAuth struct {
@@ -56,10 +46,10 @@ type LocalConfig struct {
 	// If empty, it assumes the "image" builder.
 	Builder string
 
-	// Args are the build arguments to use.
+	// Options are the build arguments to use.
 	//
-	// When nil, it uses an empty map of arguments.
-	Args Args
+	// When nil, it uses an empty map of options.
+	Options api.KindOptions
 
 	// Auth represents the registry auth to use.
 	//
@@ -73,14 +63,14 @@ type LocalConfig struct {
 type DockerfileConfig struct {
 	Builder string
 	Root    string
-	Args    Args
+	Options api.KindOptions
 }
 
 // Builder implements an image builder.
 type Builder struct {
 	root     string
 	name     string
-	args     Args
+	options  api.KindOptions
 	auth     *RegistryAuth
 	buildEnv map[string]string
 	client   *client.Client
@@ -96,8 +86,8 @@ func New(c LocalConfig) (*Builder, error) {
 		c.Builder = string(NameImage)
 	}
 
-	if c.Args == nil {
-		c.Args = make(Args)
+	if c.Options == nil {
+		c.Options = api.KindOptions{}
 	}
 
 	if c.Auth == nil {
@@ -115,7 +105,7 @@ func New(c LocalConfig) (*Builder, error) {
 	return &Builder{
 		root:     c.Root,
 		name:     c.Builder,
-		args:     c.Args,
+		options:  c.Options,
 		auth:     c.Auth,
 		buildEnv: c.BuildEnv,
 		client:   client,
@@ -144,7 +134,7 @@ func (b *Builder) Build(ctx context.Context, taskID, version string) (*Response,
 	dockerfile, err := BuildDockerfile(DockerfileConfig{
 		Builder: b.name,
 		Root:    b.root,
-		Args:    b.args,
+		Options: b.options,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "creating dockerfile")
@@ -184,7 +174,7 @@ func (b *Builder) Build(ctx context.Context, taskID, version string) (*Response,
 	}
 	defer resp.Body.Close()
 
-	scanner := bufio.NewScanner(resp.Body)
+	scanner := bufiox.NewScanner(resp.Body)
 	for scanner.Scan() {
 		var event *dockerJSONMessage.JSONMessage
 		if err := json.Unmarshal(scanner.Bytes(), &event); err != nil {
@@ -194,6 +184,9 @@ func (b *Builder) Build(ctx context.Context, taskID, version string) (*Response,
 		if err := event.Display(os.Stderr, isatty.IsTerminal(os.Stderr.Fd())); err != nil {
 			return nil, errors.Wrap(err, "docker build")
 		}
+	}
+	if err := scanner.Err(); err != nil {
+		return nil, errors.Wrap(err, "scanning")
 	}
 
 	return &Response{
@@ -216,7 +209,7 @@ func (b *Builder) Push(ctx context.Context, uri string) error {
 	}
 	defer resp.Close()
 
-	scanner := bufio.NewScanner(resp)
+	scanner := bufiox.NewScanner(resp)
 	for scanner.Scan() {
 		var event *dockerJSONMessage.JSONMessage
 		if err := json.Unmarshal(scanner.Bytes(), &event); err != nil {
@@ -226,6 +219,9 @@ func (b *Builder) Push(ctx context.Context, uri string) error {
 		if err := event.Display(os.Stderr, isatty.IsTerminal(os.Stderr.Fd())); err != nil {
 			return errors.Wrap(err, "docker push")
 		}
+	}
+	if err := scanner.Err(); err != nil {
+		return errors.Wrap(err, "scanning")
 	}
 
 	return nil
@@ -264,16 +260,6 @@ func sanitizeTaskID(s string) string {
 	return s
 }
 
-// exist ensures that all paths exists or returns an error.
-func exist(paths ...string) error {
-	for _, p := range paths {
-		if _, err := os.Stat(p); os.IsNotExist(err) {
-			return fmt.Errorf("build: the file %s is required", path.Base(p))
-		}
-	}
-	return nil
-}
-
 // TODO: this can merge with TaskKind
 type Name string
 
@@ -298,30 +284,16 @@ func NeedsBuilding(kind api.TaskKind) bool {
 func BuildDockerfile(c DockerfileConfig) (string, error) {
 	switch Name(c.Builder) {
 	case NameGo:
-		return golang(c.Root, c.Args)
+		return golang(c.Root, c.Options)
 	case NameDeno:
-		return deno(c.Root, c.Args)
+		return deno(c.Root, c.Options)
 	case NamePython:
-		return python(c.Root, c.Args)
+		return python(c.Root, c.Options)
 	case NameNode:
-		return node(c.Root, c.Args)
+		return node(c.Root, c.Options)
 	case NameDockerfile:
-		return dockerfile(c.Root, c.Args)
+		return dockerfile(c.Root, c.Options)
 	default:
 		return "", errors.Errorf("build: unknown builder type %q", c.Builder)
 	}
-}
-
-func templatize(t string, data interface{}) (string, error) {
-	tmpl, err := template.New("airplane").Parse(t)
-	if err != nil {
-		return "", errors.Wrap(err, "parsing template")
-	}
-
-	var buf strings.Builder
-	if err := tmpl.Execute(&buf, data); err != nil {
-		return "", err
-	}
-
-	return buf.String(), nil
 }

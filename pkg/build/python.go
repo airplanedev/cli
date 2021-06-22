@@ -1,18 +1,94 @@
 package build
 
 import (
+	_ "embed"
 	"path/filepath"
 	"strings"
 	"text/template"
+
+	"github.com/airplanedev/cli/pkg/api"
+	"github.com/airplanedev/cli/pkg/fsx"
+	"github.com/pkg/errors"
 )
 
 // Python creates a dockerfile for Python.
-func python(root string, args Args) (string, error) {
-	var entrypoint = args["entrypoint"]
+func python(root string, args api.KindOptions) (string, error) {
+	if args["shim"] != "true" {
+		return pythonLegacy(root, args)
+	}
+
+	// Assert that the entrypoint file exists:
+	entrypoint, _ := args["entrypoint"].(string)
+	if err := fsx.AssertExistsAll(filepath.Join(root, entrypoint)); err != nil {
+		return "", err
+	}
+
+	v, err := GetVersion(NamePython, "3")
+	if err != nil {
+		return "", err
+	}
+
+	shim, err := PythonShim(entrypoint)
+	if err != nil {
+		return "", err
+	}
+
+	const dockerfile = `
+    FROM {{ .Base }}
+    WORKDIR /airplane
+    RUN mkdir -p .airplane && echo '{{.Shim}}' > .airplane/shim.py
+    {{if not .HasInit}}
+    RUN touch __init__.py
+    {{end}}
+    COPY . .
+		{{if .HasRequirements}}
+    RUN pip install -r requirements.txt
+		{{end}}
+    ENTRYPOINT ["python", ".airplane/shim.py"]
+	`
+
+	df, err := applyTemplate(dockerfile, struct {
+		Base            string
+		Shim            string
+		HasRequirements bool
+		HasInit         bool
+	}{
+		Base:            v.String(),
+		Shim:            strings.Join(strings.Split(shim, "\n"), "\\n\\\n"),
+		HasRequirements: fsx.Exists(filepath.Join(root, "requirements.txt")),
+		HasInit:         fsx.Exists(filepath.Join(root, "__init__.py")),
+	})
+	if err != nil {
+		return "", errors.Wrapf(err, "rendering dockerfile")
+	}
+
+	return df, nil
+}
+
+//go:embed python-shim.py
+var pythonShim string
+
+// PythonShim generates a shim file for running Python tasks.
+func PythonShim(entrypoint string) (string, error) {
+	shim, err := applyTemplate(pythonShim, struct {
+		Entrypoint string
+	}{
+		Entrypoint: entrypoint,
+	})
+	if err != nil {
+		return "", errors.Wrapf(err, "rendering shim")
+	}
+
+	return shim, nil
+}
+
+// PythonLegacy generates a dockerfile for legacy python support.
+func pythonLegacy(root string, args api.KindOptions) (string, error) {
+	var entrypoint, _ = args["entrypoint"].(string)
 	var main = filepath.Join(root, entrypoint)
 	var reqs = filepath.Join(root, "requirements.txt")
 
-	if err := exist(main); err != nil {
+	if err := fsx.AssertExistsAll(main); err != nil {
 		return "", err
 	}
 
@@ -43,7 +119,7 @@ func python(root string, args Args) (string, error) {
 	}{
 		Base:            v.String(),
 		Entrypoint:      entrypoint,
-		HasRequirements: exist(reqs) == nil,
+		HasRequirements: fsx.AssertExistsAll(reqs) == nil,
 	}); err != nil {
 		return "", err
 	}

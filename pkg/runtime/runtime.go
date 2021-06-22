@@ -8,12 +8,12 @@
 package runtime
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"path/filepath"
 
 	"github.com/airplanedev/cli/pkg/api"
-	"github.com/airplanedev/cli/pkg/fs"
 )
 
 var (
@@ -21,6 +21,12 @@ var (
 	//
 	// It can be checked via `errors.Is(err, ErrMissing)`.
 	ErrMissing = errors.New("runtime: resource is missing")
+
+	// ErrNotImplemented is returned when a runtime does not
+	// support preparing a run.
+	//
+	// It can be checked via `errors.Is(err, ErrNotImplemented)`.
+	ErrNotImplemented = errors.New("runtime: not implemented")
 )
 
 // Settings represent Airplane specific settings.
@@ -44,11 +50,8 @@ type Interface interface {
 
 	// Root attempts to detect the root of the given task path.
 	//
-	// It returns the suggested root, if a root directory is not
-	// found the method returns an `ErrMissing`.
-	//
 	// Typically runtimes will look for a specific file such as
-	// `package.json` or `requirements.txt`, they'll use `runtime.Pathof()`.
+	// `package.json` or `requirements.txt`, they'll use `fs.Find()`.
 	Root(path string) (dir string, err error)
 
 	// Kind returns a task kind that matches the runtime.
@@ -60,6 +63,32 @@ type Interface interface {
 	// FormatComment formats a string into a comment using
 	// the relevant comment characters for this runtime.
 	FormatComment(s string) string
+
+	// PrepareRun should prepare a local run of a task.
+	//
+	// It must create a temporary directory, install any dependencies
+	// and prepare the script to be run.
+	//
+	// On success the method returns a slice that represents an `cmd.Exec`
+	// options which contains the command to be run and its arguments.
+	//
+	// If running the script locally is not supported the method returns
+	// an `ErrNotImplemented`.
+	PrepareRun(ctx context.Context, opts PrepareRunOptions) ([]string, error)
+}
+
+type PrepareRunOptions struct {
+	// Path is the file path leading to the task's entrypoint.
+	//
+	// It should be an absolute path.
+	Path string
+
+	// ParamValues specifies the user-provided parameter values to
+	// execute this run with.
+	ParamValues api.Values
+
+	// KindOptions specifies any runtime-specific task configuration.
+	KindOptions api.KindOptions
 }
 
 // Runtimes is a collection of registered runtimes.
@@ -80,28 +109,4 @@ func Lookup(path string) (Interface, bool) {
 	ext := filepath.Ext(path)
 	r, ok := runtimes[ext]
 	return r, ok
-}
-
-const (
-	// Separator converted to string to abort pathof at root.
-	sep = string(filepath.Separator)
-)
-
-// Pathof attempts to find the path of the given filename.
-//
-// The method recursively visits parent dirs until the given
-// filename is found, If the file is not found the method
-// returns an `ErrMissing`.
-func Pathof(parent, filename string) (string, error) {
-	dst := filepath.Join(parent, filename)
-
-	if !fs.Exists(dst) {
-		next := filepath.Dir(parent)
-		if next == "." || next == sep {
-			return "", ErrMissing
-		}
-		return Pathof(next, filename)
-	}
-
-	return parent, nil
 }

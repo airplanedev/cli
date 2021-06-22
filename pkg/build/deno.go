@@ -5,15 +5,17 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/airplanedev/cli/pkg/api"
+	"github.com/airplanedev/cli/pkg/fsx"
 	"github.com/pkg/errors"
 )
 
 // Deno creates a dockerfile for Deno.
-func deno(root string, args Args) (string, error) {
-	var entrypoint = args["entrypoint"]
-	var main = filepath.Join(root, entrypoint)
+func deno(root string, options api.KindOptions) (string, error) {
+	entrypoint, _ := options["entrypoint"].(string)
+	main := filepath.Join(root, entrypoint)
 
-	if err := exist(main); err != nil {
+	if err := fsx.AssertExistsAll(main); err != nil {
 		return "", err
 	}
 

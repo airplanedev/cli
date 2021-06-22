@@ -275,6 +275,11 @@ func (c Client) GetBuildLogs(ctx context.Context, buildID string, since time.Tim
 	return
 }
 
+func (c Client) ListResources(ctx context.Context) (res ListResourcesResponse, err error) {
+	err = c.do(ctx, "GET", "/resources/list", nil, &res)
+	return
+}
+
 // Do sends a request with `method`, `path`, `payload` and `reply`.
 func (c Client) do(ctx context.Context, method, path string, payload, reply interface{}) error {
 	var url = "https://" + c.host() + "/v0" + path

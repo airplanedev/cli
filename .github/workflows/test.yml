@@ -19,5 +19,19 @@ jobs:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: ${{ runner.os }}-go-
-      - run: go get ./...
-      - run: make test
+      - name: Run tests
+        run: |
+          go test -covermode atomic -coverprofile=covprofile ./...
+
+      # goveralls is a Go integration for Coveralls:
+      # https://github.com/mattn/goveralls
+      - name: Install goveralls
+        env:
+          GO111MODULE: off
+        run: go get github.com/mattn/goveralls
+      - name: Send coverage
+        env:
+          COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          goveralls -coverprofile=covprofile -service=github -show
+        

@@ -55,7 +55,7 @@ type GoDefinition struct {
 }
 
 type NodeDefinition struct {
-	Workdir     string `yaml:"workdir" mapstructure:"workdir"`
+	Workdir     string `yaml:"workdir,omitempty" mapstructure:"workdir"`
 	Entrypoint  string `yaml:"entrypoint" mapstructure:"entrypoint"`
 	Language    string `yaml:"language" mapstructure:"language"`
 	NodeVersion string `yaml:"nodeVersion" mapstructure:"nodeVersion"`

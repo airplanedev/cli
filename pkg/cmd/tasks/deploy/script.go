@@ -36,9 +36,7 @@ func deployFromScript(ctx context.Context, cfg config) error {
 
 	slug, ok := runtime.Slug(code)
 	if !ok {
-		return &unlinked{
-			path: cfg.file,
-		}
+		return runtime.ErrNotLinked{Path: cfg.file}
 	}
 
 	task, err := client.GetTask(ctx, slug)
@@ -66,14 +64,17 @@ func deployFromScript(ctx context.Context, cfg config) error {
 	var taskroot = filepath.Dir(abs)
 
 	if root, err := r.Root(abs); err == nil {
-		def.Node.Entrypoint = strings.TrimPrefix(abs, root)
+		setEntrypoint(&def, strings.TrimPrefix(abs, root))
 		taskroot = root
 	} else {
-		def.Node.Entrypoint = filepath.Base(abs)
+		setEntrypoint(&def, filepath.Base(abs))
 	}
 
-	if wd, err := r.Workdir(abs); err == nil {
-		def.Node.Workdir = strings.TrimPrefix(wd, taskroot)
+	// TODO(amir): move to `d.SetWorkdir()`.
+	if def.Node != nil {
+		if wd, err := r.Workdir(abs); err == nil {
+			def.Node.Workdir = strings.TrimPrefix(wd, taskroot)
+		}
 	}
 
 	kind, kindOptions, err := def.GetKindAndOptions()
@@ -126,23 +127,16 @@ To execute %s:
 	return nil
 }
 
-// Unlinked explains an unlinked code error.
-type unlinked struct {
-	path string
-}
-
-// Error implementation.
-func (u unlinked) Error() string {
-	return fmt.Sprintf(
-		"the file %s is not linked to a task",
-		u.path,
-	)
-}
-
-// ExplainError implementation.
-func (u unlinked) ExplainError() string {
-	return fmt.Sprintf(
-		"You can link the file by running:\n  airplane init --slug <slug> %s",
-		u.path,
-	)
+// SetEntrypoint sets the entrypoint on d.
+//
+// TODO(amir): move this to `def.SetEntrypoint()` or whatever.
+func setEntrypoint(d *definitions.Definition, ep string) {
+	switch kind, _, _ := d.GetKindAndOptions(); kind {
+	case api.TaskKindNode:
+		d.Node.Entrypoint = ep
+	case api.TaskKindPython:
+		d.Python.Entrypoint = ep
+	default:
+		panic(fmt.Sprintf("setEntrypoint received unexpected kind %q", kind))
+	}
 }

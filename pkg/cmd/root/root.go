@@ -15,6 +15,7 @@ import (
 	"github.com/airplanedev/cli/pkg/cmd/runs"
 	"github.com/airplanedev/cli/pkg/cmd/tasks"
 	"github.com/airplanedev/cli/pkg/cmd/tasks/deploy"
+	"github.com/airplanedev/cli/pkg/cmd/tasks/dev"
 	"github.com/airplanedev/cli/pkg/cmd/tasks/execute"
 	"github.com/airplanedev/cli/pkg/cmd/tasks/initcmd"
 	"github.com/airplanedev/cli/pkg/cmd/version"
@@ -37,11 +38,11 @@ func New() *cobra.Command {
 		Use:   "airplane <command>",
 		Short: "Airplane CLI",
 		Example: heredoc.Doc(`
-		airplane deploy -f ./task.yml
-		airplane execute my_task
+			airplane deploy -f ./task.yml
+			airplane execute my_task
 
-		airplane deploy -f github.com/airplanedev/examples/node/hello-world-javascript/airplane.yml
-		airplane execute hello_world
+			airplane deploy -f github.com/airplanedev/examples/node/hello-world-javascript/airplane.yml
+			airplane execute hello_world
 		`),
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			if c, err := conf.ReadDefault(); err == nil {
@@ -90,6 +91,7 @@ func New() *cobra.Command {
 	// Aliases for popular namespaced commands:
 	cmd.AddCommand(initcmd.New(cfg))
 	cmd.AddCommand(deploy.New(cfg))
+	cmd.AddCommand(dev.New(cfg))
 	cmd.AddCommand(execute.New(cfg))
 	cmd.AddCommand(login.New(cfg))
 	cmd.AddCommand(logout.New(cfg))

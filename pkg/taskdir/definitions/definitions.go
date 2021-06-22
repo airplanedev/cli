@@ -73,7 +73,7 @@ func NewDefinitionFromTask(task api.Task) (Definition, error) {
 		return Definition{}, errors.Errorf("unknown kind specified: %s", task.Kind)
 	}
 
-	if taskDef != nil {
+	if taskDef != nil && task.KindOptions != nil {
 		if err := mapstructure.Decode(task.KindOptions, taskDef); err != nil {
 			return Definition{}, errors.Wrap(err, "decoding options")
 		}

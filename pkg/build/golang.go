@@ -5,17 +5,19 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/airplanedev/cli/pkg/api"
+	"github.com/airplanedev/cli/pkg/fsx"
 	"github.com/pkg/errors"
 )
 
 // Golang creates a dockerfile for Go.
-func golang(root string, args Args) (string, error) {
-	var gomod = filepath.Join(root, "go.mod")
-	var gosum = filepath.Join(root, "go.sum")
-	var entrypoint = args["entrypoint"]
-	var main = filepath.Join(root, entrypoint)
+func golang(root string, options api.KindOptions) (string, error) {
+	gomod := filepath.Join(root, "go.mod")
+	gosum := filepath.Join(root, "go.sum")
+	entrypoint, _ := options["entrypoint"].(string)
+	main := filepath.Join(root, entrypoint)
 
-	if err := exist(gomod, main); err != nil {
+	if err := fsx.AssertExistsAll(gomod, main); err != nil {
 		return "", err
 	}
 
@@ -54,7 +56,7 @@ ENTRYPOINT ["/bin/main"]
 	}{
 		Base:       v.String(),
 		Entrypoint: filepath.Join("/airplane", entrypoint),
-		HasGoSum:   exist(gosum) == nil,
+		HasGoSum:   fsx.AssertExistsAll(gosum) == nil,
 	}); err != nil {
 		return "", err
 	}

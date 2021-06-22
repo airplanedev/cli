@@ -2,6 +2,7 @@ package print
 
 import (
 	"encoding/json"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -163,20 +164,32 @@ func (t Table) run(run api.Run) {
 
 // print outputs as table
 func (t Table) outputs(outputs api.Outputs) {
-	i := 0
-	for key, values := range outputs {
-		fmt.Fprintln(os.Stdout, "")
-		fmt.Fprintln(os.Stdout, key)
+	// Sort the output keys to match the UI.
+	keys := []string{}
+	for key := range outputs {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
 
+	for _, key := range keys {
+		fmt.Fprintln(os.Stdout, "")
+
+		fmt.Fprintln(os.Stdout, logger.Bold(formatOutputName(key)))
+
+		values := outputs[key]
 		ok, jsonObjects := parseArrayOfJsonObject(values)
 		if ok {
 			printOutputTable(jsonObjects)
 		} else {
 			printOutputArray(values)
 		}
-		i++
 	}
 	fmt.Fprintln(os.Stdout, "")
+}
+
+// formatOutputName converts output_name -> Output Name.
+func formatOutputName(key string) string {
+	return strings.Title(strings.ReplaceAll(key, "_", " "))
 }
 
 func parseArrayOfJsonObject(values []interface{}) (bool, []JsonObject) {
@@ -228,7 +241,8 @@ func printOutputArray(values []interface{}) {
 func newTableWriter() *tablewriter.Table {
 	tw := tablewriter.NewWriter(os.Stdout)
 	tw.SetBorder(true)
-	tw.SetAutoWrapText(false)
+	tw.SetAutoWrapText(true)
+	tw.SetColWidth(70)
 	return tw
 }
 

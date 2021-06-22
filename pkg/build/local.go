@@ -26,24 +26,14 @@ func local(ctx context.Context, req Request) (*Response, error) {
 		return nil, err
 	}
 
-	args := make(map[string]string, len(options))
-
-	for k, v := range options {
-		if sv, ok := v.(string); !ok {
-			return nil, errors.New("unexpected non-string option for builder arg")
-		} else {
-			args[k] = sv
-		}
-	}
-
 	if req.Shim {
-		args["shim"] = "true"
+		options["shim"] = "true"
 	}
 
 	b, err := New(LocalConfig{
 		Root:    req.Root,
 		Builder: string(kind),
-		Args:    args,
+		Options: options,
 		Auth: &RegistryAuth{
 			Token: registry.Token,
 			Repo:  registry.Repo,

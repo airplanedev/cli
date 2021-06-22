@@ -1,7 +1,7 @@
-// Utilities for working with CLI inputs and API values
-package execute
+package params
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"reflect"
@@ -10,21 +10,73 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/logger"
-	"github.com/airplanedev/cli/pkg/params"
 	"github.com/airplanedev/cli/pkg/utils"
 	"github.com/pkg/errors"
 )
 
-// promptForParamValues attempts to prompt user for param values, setting them on `params`
-// If no TTY, errors unless there are no parameters
-// If TTY, prompts for parameters (if any) and asks user to confirm
-func promptForParamValues(client *api.Client, task api.Task, paramValues map[string]interface{}) error {
-	if !utils.CanPrompt() {
-		// Don't error if there are no params
-		if len(task.Parameters) == 0 {
-			return nil
+// CLI parses a list of flags as Airplane parameters and returns the values.
+//
+// A flag.ErrHelp error will be returned if a -h or --help was provided, in which case
+// this function will print out help text on how to pass this task's parameters as flags.
+func CLI(args []string, client *api.Client, task api.Task) (api.Values, error) {
+	values := api.Values{}
+
+	if len(args) > 0 {
+		// If args have been passed in, parse them as flags
+		set := flagset(task, values)
+		if err := set.Parse(args); err != nil {
+			return nil, err
 		}
-		// Otherwise, error since we have no params and no way to prompt for it
+	} else {
+		// Otherwise, try to prompt for parameters
+		if err := promptForParamValues(client, task, values); err != nil {
+			return nil, err
+		}
+	}
+
+	return values, nil
+}
+
+// Flagset returns a new flagset from the given task parameters.
+func flagset(task api.Task, args api.Values) *flag.FlagSet {
+	var set = flag.NewFlagSet(task.Name, flag.ContinueOnError)
+
+	set.Usage = func() {
+		logger.Log("\n%s Usage:", task.Name)
+		set.VisitAll(func(f *flag.Flag) {
+			logger.Log("  --%s %s (default: %q)", f.Name, f.Usage, f.DefValue)
+		})
+		logger.Log("")
+	}
+
+	for i := range task.Parameters {
+		// Scope p here (& not above) so we can use it in the closure.
+		// See also: https://github.com/golang/go/wiki/CommonMistakes#using-goroutines-on-loop-iterator-variables
+		p := task.Parameters[i]
+		set.Func(p.Slug, p.Desc, func(v string) (err error) {
+			args[p.Slug], err = ParseInput(p, v)
+			if err != nil {
+				return errors.Wrap(err, "converting input to API value")
+			}
+			return
+		})
+	}
+
+	return set
+}
+
+// promptForParamValues attempts to prompt user for param values, setting them on `params`
+// If there are no parameters, does nothing.
+// If TTY, prompts for parameters and then asks user to confirm.
+// If no TTY, errors.
+func promptForParamValues(client *api.Client, task api.Task, paramValues map[string]interface{}) error {
+	if len(task.Parameters) == 0 {
+		return nil
+	}
+
+	if !utils.CanPrompt() {
+		// Error since we have no params and no way to prompt for it
+		// TODO: if all parameters optional (or have defaults), do not error.
 		logger.Log("Parameters were not specified! Task has %d parameter(s):\n", len(task.Parameters))
 		for _, param := range task.Parameters {
 			var req string
@@ -36,10 +88,6 @@ func promptForParamValues(client *api.Client, task api.Task, paramValues map[str
 		}
 		return errors.New("missing parameters")
 	}
-
-	logger.Log("You are about to run %s:", logger.Bold(task.Name))
-	logger.Log(logger.Gray(client.TaskURL(task.Slug)))
-	logger.Log("")
 
 	for _, param := range task.Parameters {
 		if param.Type == api.TypeUpload {
@@ -66,7 +114,7 @@ func promptForParamValues(client *api.Client, task api.Task, paramValues map[str
 			return errors.Wrap(err, "asking prompt for param")
 		}
 
-		value, err := params.ParseInput(param, inputValue)
+		value, err := ParseInput(param, inputValue)
 		if err != nil {
 			return err
 		}
@@ -74,6 +122,7 @@ func promptForParamValues(client *api.Client, task api.Task, paramValues map[str
 			paramValues[param.Slug] = value
 		}
 	}
+
 	confirmed := false
 	if err := survey.AskOne(&survey.Confirm{
 		Message: "Execute?",
@@ -84,13 +133,14 @@ func promptForParamValues(client *api.Client, task api.Task, paramValues map[str
 	if !confirmed {
 		return errors.New("user cancelled")
 	}
+
 	return nil
 }
 
 // promptForParam returns a survey.Prompt matching the param type
 func promptForParam(param api.Parameter) (survey.Prompt, error) {
 	message := fmt.Sprintf("%s %s:", param.Name, logger.Gray("(--%s)", param.Slug))
-	defaultValue, err := params.APIValueToInput(param, param.Default)
+	defaultValue, err := APIValueToInput(param, param.Default)
 	if err != nil {
 		return nil, err
 	}
@@ -105,7 +155,7 @@ func promptForParam(param api.Parameter) (survey.Prompt, error) {
 		return &survey.Select{
 			Message: message,
 			Help:    param.Desc,
-			Options: []string{params.YesString, params.NoString},
+			Options: []string{YesString, NoString},
 			Default: dv,
 		}, nil
 	default:
@@ -129,7 +179,7 @@ func validateInput(param api.Parameter) func(interface{}) error {
 		default:
 			return errors.Errorf("unexpected answer of type %s", reflect.TypeOf(a).Name())
 		}
-		return params.ValidateInput(param, v)
+		return ValidateInput(param, v)
 	}
 }
 

@@ -1,6 +1,7 @@
 package runtime
 
 import (
+	"fmt"
 	"net/url"
 	"path"
 	"regexp"
@@ -23,18 +24,42 @@ func Comment(r Interface, task api.Task) string {
 	return r.FormatComment("Linked to " + task.URL + " [do not edit this line]")
 }
 
-func Slug(code []byte) (string, bool) {
+// Slug returns the slug from the given code.
+//
+// Ok is true if the slug was found and isn't empty.
+func Slug(code []byte) (slug string, ok bool) {
 	result := commentRegex.FindSubmatch(code)
 	if len(result) == 0 {
-		return "", false
+		return
 	}
 
 	u, err := url.Parse(string(result[1]))
 	if err != nil {
-		return "", false
+		return
 	}
 
-	_, slug := path.Split(u.Path)
+	_, slug = path.Split(u.Path)
+	ok = slug != ""
+	return
+}
 
-	return slug, slug != ""
+// ErrNotLinked is an error that is raised when a path unexpectedly
+// does not contain a slug. It can be used to explain to a user how
+// they should link that file with a task.
+type ErrNotLinked struct {
+	Path string
+}
+
+func (e ErrNotLinked) Error() string {
+	return fmt.Sprintf(
+		"the file %s is not linked to a task",
+		e.Path,
+	)
+}
+
+func (e ErrNotLinked) ExplainError() string {
+	return fmt.Sprintf(
+		"You can link the file by running:\n  airplane init --slug <slug> %s",
+		e.Path,
+	)
 }
