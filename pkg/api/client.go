@@ -66,11 +66,6 @@ type Client struct {
 	//
 	// When empty the client will return an error.
 	Token string
-
-	// MaxAttempts to make on temporary API errors.
-	//
-	// If zero, defaults to 5.
-	MaxAttempts int
 }
 
 // AppURL returns the app URL.
@@ -356,14 +351,6 @@ func (c Client) do(ctx context.Context, method, path string, payload, reply inte
 	}
 
 	return nil
-}
-
-// MaxAttempts returns the configured max attempts.
-func (c Client) maxAttempts() int {
-	if c.MaxAttempts > 0 {
-		return c.MaxAttempts
-	}
-	return 5
 }
 
 // Host returns the configured endpoint.
