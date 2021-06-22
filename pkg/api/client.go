@@ -15,9 +15,22 @@ import (
 
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/version"
-	"github.com/jpillora/backoff"
+	"github.com/hashicorp/go-retryablehttp"
 	"github.com/pkg/errors"
 )
+
+var (
+	// Client tolerates minor outages and retries.
+	client *http.Client
+)
+
+func init() {
+	rc := retryablehttp.NewClient()
+	rc.RetryMax = 5
+	rc.RetryWaitMin = 50 * time.Millisecond
+	rc.RetryWaitMax = 1 * time.Second
+	client = rc.StandardClient()
+}
 
 // Error represents an API error.
 type Error struct {
@@ -28,33 +41,6 @@ type Error struct {
 // Error implementation.
 func (err Error) Error() string {
 	return fmt.Sprintf("api: %d - %s", err.Code, err.Message)
-}
-
-// Temporary returns true if the error is temporary.
-func (err Error) Temporary() bool {
-	return err.Code == 503
-}
-
-// Temporary returns true if the given err is temporary.
-func temporary(err error) bool {
-	var t interface{ Temporary() bool }
-
-	if errors.As(err, &t) {
-		return t.Temporary()
-	}
-
-	return false
-}
-
-// Timeout returns ture if the given err is a timeout.
-func timeout(err error) bool {
-	var t interface{ Timeout() bool }
-
-	if errors.As(err, &t) {
-		return t.Timeout()
-	}
-
-	return false
 }
 
 const (
@@ -127,31 +113,31 @@ func (c Client) TaskURL(slug string) string {
 
 // AuthInfo responds with the currently authenticated details.
 func (c Client) AuthInfo(ctx context.Context) (res AuthInfoResponse, err error) {
-	err = c.Do(ctx, "GET", "/auth/info", nil, &res)
+	err = c.do(ctx, "GET", "/auth/info", nil, &res)
 	return
 }
 
 // GetRegistryToken responds with the registry token.
 func (c Client) GetRegistryToken(ctx context.Context) (res RegistryTokenResponse, err error) {
-	err = c.Do(ctx, "POST", "/registry/getToken", nil, &res)
+	err = c.do(ctx, "POST", "/registry/getToken", nil, &res)
 	return
 }
 
 // CreateTask creates a task with the given request.
 func (c Client) CreateTask(ctx context.Context, req CreateTaskRequest) (res CreateTaskResponse, err error) {
-	err = c.Do(ctx, "POST", "/tasks/create", req, &res)
+	err = c.do(ctx, "POST", "/tasks/create", req, &res)
 	return
 }
 
 // UpdateTask updates a task with the given req.
 func (c Client) UpdateTask(ctx context.Context, req UpdateTaskRequest) (res UpdateTaskResponse, err error) {
-	err = c.Do(ctx, "POST", "/tasks/update", req, &res)
+	err = c.do(ctx, "POST", "/tasks/update", req, &res)
 	return
 }
 
 // ListTasks lists all tasks.
 func (c Client) ListTasks(ctx context.Context) (res ListTasksResponse, err error) {
-	err = c.Do(ctx, "GET", "/tasks/list", nil, &res)
+	err = c.do(ctx, "GET", "/tasks/list", nil, &res)
 	if err != nil {
 		return
 	}
@@ -167,7 +153,7 @@ func (c Client) GetUniqueSlug(ctx context.Context, name, preferredSlug string) (
 		"name": []string{name},
 		"slug": []string{preferredSlug},
 	}
-	err = c.Do(ctx, "GET", "/tasks/getUniqueSlug?"+q.Encode(), nil, &res)
+	err = c.do(ctx, "GET", "/tasks/getUniqueSlug?"+q.Encode(), nil, &res)
 	return
 }
 
@@ -179,13 +165,13 @@ func (c Client) ListRuns(ctx context.Context, taskID string) (resp ListRunsRespo
 		"limit":  []string{"100"},
 	}
 
-	err = c.Do(ctx, "GET", "/runs/list?"+q.Encode(), nil, &resp)
+	err = c.do(ctx, "GET", "/runs/list?"+q.Encode(), nil, &resp)
 	return
 }
 
 // RunTask runs a task.
 func (c Client) RunTask(ctx context.Context, req RunTaskRequest) (res RunTaskResponse, err error) {
-	err = c.Do(ctx, "POST", "/runs/create", req, &res)
+	err = c.do(ctx, "POST", "/runs/create", req, &res)
 	return
 }
 
@@ -201,7 +187,7 @@ func (c Client) Watcher(ctx context.Context, req RunTaskRequest) (*Watcher, erro
 // GetRun returns a run by id.
 func (c Client) GetRun(ctx context.Context, id string) (res GetRunResponse, err error) {
 	q := url.Values{"runID": []string{id}}
-	err = c.Do(ctx, "GET", "/runs/get?"+q.Encode(), nil, &res)
+	err = c.do(ctx, "GET", "/runs/get?"+q.Encode(), nil, &res)
 	return
 }
 
@@ -214,21 +200,21 @@ func (c Client) GetLogs(ctx context.Context, runID string, since time.Time) (res
 	if logger.EnableDebug {
 		q.Set("level", "debug")
 	}
-	err = c.Do(ctx, "GET", "/runs/getLogs?"+q.Encode(), nil, &res)
+	err = c.do(ctx, "GET", "/runs/getLogs?"+q.Encode(), nil, &res)
 	return
 }
 
 // GetOutputs returns the outputs by runID.
 func (c Client) GetOutputs(ctx context.Context, runID string) (res GetOutputsResponse, err error) {
 	q := url.Values{"runID": []string{runID}}
-	err = c.Do(ctx, "GET", "/runs/getOutputs?"+q.Encode(), nil, &res)
+	err = c.do(ctx, "GET", "/runs/getOutputs?"+q.Encode(), nil, &res)
 	return
 }
 
 // GetTask returns a task by its slug.
 func (c Client) GetTask(ctx context.Context, slug string) (res Task, err error) {
 	q := url.Values{"slug": []string{slug}}
-	err = c.Do(ctx, "GET", "/tasks/get?"+q.Encode(), nil, &res)
+	err = c.do(ctx, "GET", "/tasks/get?"+q.Encode(), nil, &res)
 
 	if err, ok := err.(Error); ok && err.Code == 404 {
 		return res, &TaskMissingError{
@@ -246,50 +232,50 @@ func (c Client) GetTask(ctx context.Context, slug string) (res Task, err error) 
 
 // GetConfig returns a config by name and tag.
 func (c Client) GetConfig(ctx context.Context, req GetConfigRequest) (res GetConfigResponse, err error) {
-	err = c.Do(ctx, "POST", "/configs/get", req, &res)
+	err = c.do(ctx, "POST", "/configs/get", req, &res)
 	return
 }
 
 // SetConfig sets a config, creating it if new and updating it if already exists.
 func (c Client) SetConfig(ctx context.Context, req SetConfigRequest) (err error) {
-	err = c.Do(ctx, "POST", "/configs/set", req, nil)
+	err = c.do(ctx, "POST", "/configs/set", req, nil)
 	return
 }
 
 // GetBuild returns metadata about a hosted build.
 func (c Client) GetBuild(ctx context.Context, id string) (res GetBuildResponse, err error) {
 	q := url.Values{"id": []string{id}}
-	err = c.Do(ctx, "GET", "/builds/get?"+q.Encode(), nil, &res)
+	err = c.do(ctx, "GET", "/builds/get?"+q.Encode(), nil, &res)
 	return
 }
 
 // CreateBuild creates an Airplane build and returns metadata about it.
 func (c Client) CreateBuild(ctx context.Context, req CreateBuildRequest) (res CreateBuildResponse, err error) {
-	err = c.Do(ctx, "POST", "/builds/create", req, &res)
+	err = c.do(ctx, "POST", "/builds/create", req, &res)
 	return
 }
 
 // CreateBuildUpload creates an Airplane upload and returns metadata about it.
 func (c Client) CreateBuildUpload(ctx context.Context, req CreateBuildUploadRequest) (res CreateBuildUploadResponse, err error) {
-	err = c.Do(ctx, "POST", "/builds/createUpload", req, &res)
+	err = c.do(ctx, "POST", "/builds/createUpload", req, &res)
 	return
 }
 
 // CreateAPIKey creates a new API key and returns data about it.
 func (c Client) CreateAPIKey(ctx context.Context, req CreateAPIKeyRequest) (res CreateAPIKeyResponse, err error) {
-	err = c.Do(ctx, "POST", "/apiKeys/create", req, &res)
+	err = c.do(ctx, "POST", "/apiKeys/create", req, &res)
 	return
 }
 
 // ListAPIKeys lists API keys.
 func (c Client) ListAPIKeys(ctx context.Context) (res ListAPIKeysResponse, err error) {
-	err = c.Do(ctx, "GET", "/apiKeys/list", nil, &res)
+	err = c.do(ctx, "GET", "/apiKeys/list", nil, &res)
 	return
 }
 
 // DeleteAPIKey deletes an API key.
 func (c Client) DeleteAPIKey(ctx context.Context, req DeleteAPIKeyRequest) (err error) {
-	err = c.Do(ctx, "POST", "/apiKeys/delete", req, nil)
+	err = c.do(ctx, "POST", "/apiKeys/delete", req, nil)
 	return
 }
 
@@ -303,48 +289,13 @@ func (c Client) GetBuildLogs(ctx context.Context, buildID string, since time.Tim
 	if logger.EnableDebug {
 		q.Set("level", "debug")
 	}
-	err = c.Do(ctx, "GET", "/builds/getLogs?"+q.Encode(), nil, &res)
+	err = c.do(ctx, "GET", "/builds/getLogs?"+q.Encode(), nil, &res)
 	return
 }
 
 func (c Client) ListResources(ctx context.Context) (res ListResourcesResponse, err error) {
-	err = c.Do(ctx, "GET", "/resources/list", nil, &res)
+	err = c.do(ctx, "GET", "/resources/list", nil, &res)
 	return
-}
-
-// Do sends a request with `method`, `path`, `payload` and `reply`.
-//
-// The method will retry up to the configured max attempts with backoff.
-func (c Client) Do(ctx context.Context, method, path string, payload, reply interface{}) error {
-	var max = c.maxAttempts()
-	var err error
-	var j int
-
-	var b = &backoff.Backoff{
-		Min:    100 * time.Millisecond,
-		Max:    1 * time.Second,
-		Factor: 2,
-		Jitter: true,
-	}
-
-	for {
-		if j++; j > max {
-			return errors.Wrapf(err, "max attempts of %d reached", max)
-		}
-
-		if err = c.Do(ctx, method, path, payload, reply); err == nil {
-			return nil
-		}
-
-		if temporary(err) || timeout(err) {
-			if err := sleep(ctx, b.Duration()); err != nil {
-				return err
-			}
-			continue
-		}
-
-		return err
-	}
 }
 
 // Do sends a request with `method`, `path`, `payload` and `reply`.
@@ -374,7 +325,7 @@ func (c Client) do(ctx context.Context, method, path string, payload, reply inte
 	req.Header.Set("X-Airplane-Client", "cli")
 	req.Header.Set("X-Airplane-Version", version.Get())
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := client.Do(req)
 
 	if resp != nil {
 		defer func() {
