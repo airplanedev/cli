@@ -368,15 +368,3 @@ func (c Client) token() (string, error) {
 	}
 	return c.Token, nil
 }
-
-// Sleep sleeps a maximum of ctx or d.
-func sleep(ctx context.Context, d time.Duration) error {
-	t := time.NewTimer(d)
-	defer t.Stop()
-	select {
-	case <-t.C:
-		return nil
-	case <-ctx.Done():
-		return ctx.Err()
-	}
-}
