@@ -33,6 +33,7 @@ func run(ctx context.Context, c *cli.Config) error {
 	}
 
 	logger.Log("You're all set!\n\nTo see what tasks you can run, try:\n    airplane tasks list")
+	segment.Track()
 	return nil
 }
 
@@ -94,6 +95,10 @@ func login(ctx context.Context, c *cli.Config) error {
 			cfg.Tokens = map[string]string{}
 		}
 		cfg.Tokens[c.Client.Host] = token
+		if cfg.UserIDs == nil {
+			cfg.UserIDs = map[string]string{}
+		}
+		cfg.UserIDs[c.Client.Host] = "TODO"
 		if err := conf.WriteDefault(cfg); err != nil {
 			return err
 		}

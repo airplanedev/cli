@@ -9,6 +9,7 @@ import (
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/trap"
 	"github.com/airplanedev/cli/pkg/utils"
+	"github.com/getsentry/sentry-go"
 	"github.com/pkg/errors"
 	_ "github.com/segmentio/events/v2/text"
 )
@@ -29,9 +30,7 @@ func main() {
 			return
 		}
 
-		if logger.EnableDebug {
-			logger.Debug("Error: %+v", err)
-		}
+		logger.Debug("Error: %+v", err)
 		logger.Log("")
 		if exerr, ok := errors.Cause(err).(utils.ErrorExplained); ok {
 			logger.Error(capitalize(exerr.Error()))
@@ -41,6 +40,12 @@ func main() {
 			logger.Error(capitalize(errors.Cause(err).Error()))
 		}
 		logger.Log("")
+
+		// TODO: is this too noisy?
+		sentryID := sentry.CaptureException(err)
+		if sentryID != nil {
+			logger.Debug("Sentry event ID: %s", *sentryID)
+		}
 
 		os.Exit(1)
 	}

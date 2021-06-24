@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/MakeNowJust/heredoc"
+	"github.com/airplanedev/cli/pkg/analytics"
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/cmd/apikeys"
@@ -48,6 +49,9 @@ func New() *cobra.Command {
 			if c, err := conf.ReadDefault(); err == nil {
 				cfg.Client.Token = c.Tokens[cfg.Client.Host]
 			}
+			if err := analytics.Init(); err != nil {
+				logger.Debug("error in analytics.Init: %v", err)
+			}
 
 			switch output {
 			case "json":
@@ -64,6 +68,9 @@ func New() *cobra.Command {
 			trap.Printf = logger.Log
 
 			return nil
+		},
+		PersistentPostRun: func(cmd *cobra.Command, args []string) {
+			analytics.Close()
 		},
 	}
 
