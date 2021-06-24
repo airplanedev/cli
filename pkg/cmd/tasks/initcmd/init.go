@@ -74,7 +74,6 @@ func run(ctx context.Context, cfg config) error {
 		return fmt.Errorf("unable to deploy task with %q file extension", ext)
 	}
 
-	logger.Step("Fetching %q task", cfg.slug)
 	task, err := client.GetTask(ctx, cfg.slug)
 	if err != nil {
 		return err
