@@ -146,7 +146,7 @@ func suggest(file string) {
 		file,
 	)
 	logger.Suggest(
-		"🧪 To execute the task locally:",
+		"⚡ To execute the task locally:",
 		"airplane execute %s",
 		file,
 	)

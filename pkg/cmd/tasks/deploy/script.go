@@ -122,12 +122,12 @@ func deployFromScript(ctx context.Context, cfg config) error {
 	}
 
 	logger.Suggest(
-		"🧪 To execute the task locally:",
+		"⚡ To execute the task locally:",
 		cmd,
 	)
 
 	logger.Suggest(
-		"🧪 To execute the task from the UI:",
+		"⚡ To execute the task from the UI:",
 		client.TaskURL(task.Slug),
 	)
 	return nil
