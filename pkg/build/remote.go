@@ -21,7 +21,7 @@ import (
 )
 
 func remote(ctx context.Context, req Request) (*Response, error) {
-	buildLog(api.LogLevelInfo, logger.Gray("Building %s directory...", relpath(req.Root)))
+	buildLog(api.LogLevelInfo, logger.Gray("Building with %s as root...", relpath(req.Root)))
 
 	// Before performing a remote build, we must first update kind/kindOptions
 	// since the remote build relies on pulling those from the tasks table (for now).
@@ -29,7 +29,7 @@ func remote(ctx context.Context, req Request) (*Response, error) {
 		return nil, err
 	}
 
-	buildLog(api.LogLevelInfo, logger.Gray("Fetching registry token..."))
+	buildLog(api.LogLevelInfo, logger.Gray("Authenticating with Airplane..."))
 	registry, err := req.Client.GetRegistryToken(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "getting registry token")
