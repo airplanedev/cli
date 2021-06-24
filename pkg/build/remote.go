@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -20,12 +21,15 @@ import (
 )
 
 func remote(ctx context.Context, req Request) (*Response, error) {
+	buildLog(api.LogLevelInfo, logger.Gray("Building with %s as root...", relpath(req.Root)))
+
 	// Before performing a remote build, we must first update kind/kindOptions
 	// since the remote build relies on pulling those from the tasks table (for now).
 	if err := updateKindAndOptions(ctx, req.Client, req.Def, req.Shim); err != nil {
 		return nil, err
 	}
 
+	buildLog(api.LogLevelInfo, logger.Gray("Authenticating with Airplane..."))
 	registry, err := req.Client.GetRegistryToken(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "getting registry token")
@@ -42,7 +46,7 @@ func remote(ctx context.Context, req Request) (*Response, error) {
 		return nil, err
 	}
 
-	uploadID, err := uploadArchive(ctx, req.Client, archivePath)
+	uploadID, err := uploadArchive(ctx, req.Root, req.Client, archivePath)
 	if err != nil {
 		return nil, err
 	}
@@ -141,7 +145,7 @@ func archiveTaskDir(def definitions.Definition, root string, archivePath string)
 	return nil
 }
 
-func uploadArchive(ctx context.Context, client *api.Client, archivePath string) (string, error) {
+func uploadArchive(ctx context.Context, root string, client *api.Client, archivePath string) (string, error) {
 	archive, err := os.OpenFile(archivePath, os.O_RDONLY, 0)
 	if err != nil {
 		return "", errors.Wrap(err, "opening archive file")
@@ -154,7 +158,9 @@ func uploadArchive(ctx context.Context, client *api.Client, archivePath string) 
 	}
 	sizeBytes := int(info.Size())
 
-	buildLog(api.LogLevelInfo, logger.Gray("Uploading %s build archive...", humanize.Bytes(uint64(sizeBytes))))
+	buildLog(api.LogLevelInfo, logger.Gray("Uploading %s build archive...",
+		humanize.Bytes(uint64(sizeBytes)),
+	))
 
 	upload, err := client.CreateBuildUpload(ctx, api.CreateBuildUploadRequest{
 		SizeBytes: sizeBytes,
@@ -240,4 +246,18 @@ func buildLog(level api.LogLevel, msg string, args ...interface{}) {
 	} else {
 		logger.Log("["+logger.Yellow("build")+"] "+msg, args...)
 	}
+}
+
+// Relpath returns the relative using root and the cwd.
+func relpath(root string) string {
+	if path, err := os.Getwd(); err == nil {
+		if rp, err := filepath.Rel(path, root); err == nil {
+			if len(rp) == 0 || rp == "." {
+				// "." can be missed easily, change it to ./
+				return "./"
+			}
+			return "./" + rp
+		}
+	}
+	return root
 }

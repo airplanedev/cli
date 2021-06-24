@@ -37,13 +37,11 @@ func python(root string, args api.KindOptions) (string, error) {
     FROM {{ .Base }}
     WORKDIR /airplane
     RUN mkdir -p .airplane && echo '{{.Shim}}' > .airplane/shim.py
-    {{if not .HasInit}}
-    RUN touch __init__.py
+    {{if .HasRequirements}}
+    COPY requirements.txt .
+    RUN pip install -r requirements.txt
     {{end}}
     COPY . .
-		{{if .HasRequirements}}
-    RUN pip install -r requirements.txt
-		{{end}}
     ENTRYPOINT ["python", ".airplane/shim.py"]
 	`
 
@@ -51,12 +49,10 @@ func python(root string, args api.KindOptions) (string, error) {
 		Base            string
 		Shim            string
 		HasRequirements bool
-		HasInit         bool
 	}{
 		Base:            v.String(),
 		Shim:            strings.Join(strings.Split(shim, "\n"), "\\n\\\n"),
 		HasRequirements: fsx.Exists(filepath.Join(root, "requirements.txt")),
-		HasInit:         fsx.Exists(filepath.Join(root, "__init__.py")),
 	})
 	if err != nil {
 		return "", errors.Wrapf(err, "rendering dockerfile")
