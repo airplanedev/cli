@@ -132,7 +132,7 @@ func deployFromYaml(ctx context.Context, cfg config) error {
 		return errors.Wrapf(err, "updating task %s", def.Slug)
 	}
 
-	cmd := fmt.Sprintf("airplane execute %s", def.Slug)
+	cmd := fmt.Sprintf("airplane dev %s", def.Slug)
 	if len(def.Parameters) > 0 {
 		cmd += " -- [parameters]"
 	}

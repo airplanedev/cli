@@ -116,7 +116,7 @@ func deployFromScript(ctx context.Context, cfg config) error {
 		return err
 	}
 
-	cmd := fmt.Sprintf("airplane execute %s", cfg.file)
+	cmd := fmt.Sprintf("airplane dev %s", cfg.file)
 	if len(def.Parameters) > 0 {
 		cmd += " -- [parameters]"
 	}
