@@ -15,9 +15,22 @@ import (
 
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/version"
-
+	"github.com/hashicorp/go-retryablehttp"
 	"github.com/pkg/errors"
 )
+
+var (
+	// Client tolerates minor outages and retries.
+	client *http.Client
+)
+
+func init() {
+	rc := retryablehttp.NewClient()
+	rc.RetryMax = 5
+	rc.RetryWaitMin = 50 * time.Millisecond
+	rc.RetryWaitMax = 1 * time.Second
+	client = rc.StandardClient()
+}
 
 // Error represents an API error.
 type Error struct {
@@ -285,9 +298,6 @@ func (c Client) do(ctx context.Context, method, path string, payload, reply inte
 	var url = "https://" + c.host() + "/v0" + path
 	var body io.Reader
 
-	// TODO(amir): validate before sending?
-	//
-	// maybe `if v, ok := payload.(validator); ok { v.validate() }`
 	if payload != nil {
 		buf, err := json.Marshal(payload)
 		if err != nil {
@@ -310,7 +320,7 @@ func (c Client) do(ctx context.Context, method, path string, payload, reply inte
 	req.Header.Set("X-Airplane-Client", "cli")
 	req.Header.Set("X-Airplane-Version", version.Get())
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := client.Do(req)
 
 	if resp != nil {
 		defer func() {

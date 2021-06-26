@@ -22,6 +22,16 @@ func Log(msg string, args ...interface{}) {
 	}
 }
 
+// Step prints a step that was performed.
+func Step(msg string, args ...interface{}) {
+	Log("- "+msg, args...)
+}
+
+// Suggest suggests a command with title and args.
+func Suggest(title, command string, args ...interface{}) {
+	Log("\n"+Gray(title)+"\n  "+command, args...)
+}
+
 // Error logs an error message.
 func Error(msg string, args ...interface{}) {
 	fmt.Fprintf(os.Stderr, Red("Error: ")+msg+"\n", args...)

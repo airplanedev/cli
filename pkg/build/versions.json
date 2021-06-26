@@ -38,8 +38,8 @@
   "python": {
     "3": {
       "image": "registry.hub.docker.com/library/python",
-      "tag": "3.9.4-buster",
-      "digest": "sha256:b004a71e38f8ace26e7554d5c2fa802a8bb39a5818cbe10ab49fd0b408a40c20"
+      "tag": "3.9.4-alpine3.13",
+      "digest": "sha256:419a7502c95b49946fbdd8228b32243597d9e9f191ddfe5468a3b9b3fe64051d"
     }
   }
 }
