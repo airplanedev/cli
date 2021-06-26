@@ -41,7 +41,6 @@ func main() {
 		}
 		logger.Log("")
 
-		// TODO: is this too noisy?
 		sentryID := sentry.CaptureException(err)
 		if sentryID != nil {
 			logger.Debug("Sentry event ID: %s", *sentryID)
