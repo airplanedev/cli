@@ -2,6 +2,8 @@ package cli
 
 import (
 	"github.com/airplanedev/cli/pkg/api"
+	"github.com/airplanedev/cli/pkg/logger"
+	"github.com/dgrijalva/jwt-go"
 )
 
 // Config represents command configuration.
@@ -21,6 +23,31 @@ type Config struct {
 
 	// Version indicates if the CLI version should be printed.
 	Version bool
+}
+
+func (c Config) TokenInfo() TokenParse {
+	var res TokenParse
+	token := c.Client.Token
+	if token == "" {
+		return res
+	}
+	t, _, err := new(jwt.Parser).ParseUnverified(token, jwt.MapClaims{})
+	if err != nil {
+		logger.Debug("error parsing token: %v", err)
+		return res
+	}
+	claims, ok := t.Claims.(jwt.MapClaims)
+	if !ok {
+		return res
+	}
+	res.UserID = claims["userID"].(string)
+	res.TeamID = claims["teamID"].(string)
+	return res
+}
+
+type TokenParse struct {
+	UserID string
+	TeamID string
 }
 
 // Must should be used for Cobra initialize commands that can return an error

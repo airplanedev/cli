@@ -16,46 +16,53 @@ import (
 )
 
 // DeployFromScript deploys from the given script.
-func deployFromScript(ctx context.Context, cfg config) error {
-	var client = cfg.client
-	var ext = filepath.Ext(cfg.file)
+func deployFromScript(ctx context.Context, cfg config) (trackProps, error) {
+	client := cfg.client
+	ext := filepath.Ext(cfg.file)
+	props := trackProps{
+		from: "script",
+	}
 
 	if ext == "" {
-		return errors.New("cannot deploy a file without extension")
+		return props, errors.New("cannot deploy a file without extension")
 	}
 
 	r, ok := runtime.Lookup(cfg.file)
 	if !ok {
-		return fmt.Errorf("cannot deploy a file with extension of %q", ext)
+		return props, fmt.Errorf("cannot deploy a file with extension of %q", ext)
 	}
 
 	code, err := ioutil.ReadFile(cfg.file)
 	if err != nil {
-		return fmt.Errorf("reading %s - %w", cfg.file, err)
+		return props, fmt.Errorf("reading %s - %w", cfg.file, err)
 	}
 
 	slug, ok := runtime.Slug(code)
 	if !ok {
-		return runtime.ErrNotLinked{Path: cfg.file}
+		return props, runtime.ErrNotLinked{Path: cfg.file}
 	}
 
 	task, err := client.GetTask(ctx, slug)
 	if err != nil {
-		return err
+		return props, err
 	}
+	props.kind = task.Kind
+	props.taskID = task.ID
+	props.taskSlug = task.Slug
+	props.taskName = task.Name
 
 	if task.Kind != r.Kind() {
-		return fmt.Errorf("'%s' is a %s task. Expected a %s task.", task.Name, task.Kind, r.Kind())
+		return props, fmt.Errorf("'%s' is a %s task. Expected a %s task.", task.Name, task.Kind, r.Kind())
 	}
 
 	def, err := definitions.NewDefinitionFromTask(task)
 	if err != nil {
-		return err
+		return props, err
 	}
 
 	abs, err := filepath.Abs(cfg.file)
 	if err != nil {
-		return err
+		return props, err
 	}
 
 	// Detect the root of the task, if found ensure
@@ -79,7 +86,7 @@ func deployFromScript(ctx context.Context, cfg config) error {
 
 	kind, kindOptions, err := def.GetKindAndOptions()
 	if err != nil {
-		return err
+		return props, err
 	}
 
 	resp, err := build.Run(ctx, build.Request{
@@ -91,8 +98,10 @@ func deployFromScript(ctx context.Context, cfg config) error {
 		TaskEnv: def.Env,
 		Shim:    true,
 	})
+	props.buildLocal = cfg.local
+	props.buildID = resp.BuildID
 	if err != nil {
-		return err
+		return props, err
 	}
 
 	_, err = client.UpdateTask(ctx, api.UpdateTaskRequest{
@@ -113,7 +122,7 @@ func deployFromScript(ctx context.Context, cfg config) error {
 		Timeout:          def.Timeout,
 	})
 	if err != nil {
-		return err
+		return props, err
 	}
 
 	cmd := fmt.Sprintf("airplane execute %s", cfg.file)
@@ -124,7 +133,7 @@ func deployFromScript(ctx context.Context, cfg config) error {
 To execute %s:
 - From the CLI: %s
 - From the UI: %s`, def.Name, cmd, client.TaskURL(task.Slug))
-	return nil
+	return props, nil
 }
 
 // SetEntrypoint sets the entrypoint on d.

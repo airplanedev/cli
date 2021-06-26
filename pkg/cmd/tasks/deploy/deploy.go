@@ -3,8 +3,10 @@ package deploy
 import (
 	"context"
 	"path/filepath"
+	"time"
 
 	"github.com/MakeNowJust/heredoc"
+	"github.com/airplanedev/cli/pkg/analytics"
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/cmd/auth/login"
@@ -15,13 +17,17 @@ import (
 )
 
 type config struct {
+	root   *cli.Config
 	client *api.Client
 	file   string
 	local  bool
 }
 
 func New(c *cli.Config) *cobra.Command {
-	var cfg = config{client: c.Client}
+	var cfg = config{
+		root:   c,
+		client: c.Client,
+	}
 
 	cmd := &cobra.Command{
 		Use:   "deploy",
@@ -56,12 +62,38 @@ func New(c *cli.Config) *cobra.Command {
 	return cmd
 }
 
-func run(ctx context.Context, cfg config) error {
-	var ext = filepath.Ext(cfg.file)
+// Set of properties to track when deploying
+type trackProps struct {
+	from       string
+	kind       api.TaskKind
+	taskID     string
+	taskSlug   string
+	taskName   string
+	buildLocal bool
+	buildID    string
+}
 
+func run(ctx context.Context, cfg config) error {
+	ext := filepath.Ext(cfg.file)
+	start := time.Now()
+
+	var props trackProps
+	var err error
 	if ext == ".yml" || ext == ".yaml" {
-		return deployFromYaml(ctx, cfg)
+		props, err = deployFromYaml(ctx, cfg)
+	} else {
+		props, err = deployFromScript(ctx, cfg)
 	}
 
-	return deployFromScript(ctx, cfg)
+	analytics.Track(cfg.root, "CLI deploy", map[string]interface{}{
+		"from":             props.from,
+		"kind":             props.kind,
+		"task_id":          props.taskID,
+		"task_slug":        props.taskSlug,
+		"task_name":        props.taskName,
+		"build_id":         props.buildID,
+		"errored":          err != nil,
+		"duration_seconds": time.Since(start).Seconds(),
+	})
+	return err
 }

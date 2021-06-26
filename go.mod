@@ -11,11 +11,12 @@ require (
 	github.com/andybalholm/brotli v1.0.3 // indirect
 	github.com/blang/semver/v4 v4.0.0
 	github.com/containerd/continuity v0.0.0-20210313171317-968621f0704d // indirect
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/docker/docker v20.10.5+incompatible
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/dustin/go-humanize v1.0.0
 	github.com/fatih/color v1.10.0
-	github.com/getsentry/sentry-go v0.11.0 // indirect
+	github.com/getsentry/sentry-go v0.11.0
 	github.com/go-git/go-git/v5 v5.2.0
 	github.com/golang/snappy v0.0.3 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
@@ -42,6 +43,6 @@ require (
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/sys v0.0.0-20210309074719-68d13333faf2 // indirect
 	golang.org/x/text v0.3.5 // indirect
-	gopkg.in/segmentio/analytics-go.v3 v3.1.0 // indirect
+	gopkg.in/segmentio/analytics-go.v3 v3.1.0
 	gopkg.in/yaml.v3 v3.0.0-20200605160147-a5ece683394c
 )

@@ -1,10 +1,12 @@
 package analytics
 
 import (
+	"fmt"
 	"os"
 	"time"
 
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/conf"
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/getsentry/sentry-go"
@@ -18,6 +20,7 @@ var (
 )
 
 func Init() error {
+	fmt.Printf("segment %s sentry %s\n", segmentWriteKey, sentryDSN)
 	c, err := conf.ReadDefault()
 	if err != nil {
 		return err
@@ -52,7 +55,8 @@ func Init() error {
 	}
 	segmentClient = analytics.New(segmentWriteKey)
 	return sentry.Init(sentry.ClientOptions{
-		Dsn: sentryDSN,
+		Dsn:   sentryDSN,
+		Debug: true,
 	})
 }
 
@@ -81,13 +85,14 @@ type TrackOpts struct {
 
 // Track sends a track event to Segment.
 // event should match "[event] by [user]" - e.g. "[Invite Sent] by [Alice]"
-func Track(userID string, event string, properties map[string]interface{}) {
-	props := analytics.NewProperties()
+func Track(c *cli.Config, event string, properties map[string]interface{}) {
+	ti := c.TokenInfo()
+	props := analytics.NewProperties().Set("team_id", ti.TeamID)
 	for k, v := range properties {
 		props = props.Set(k, v)
 	}
 	enqueue(analytics.Track{
-		UserId:     userID,
+		UserId:     ti.UserID,
 		Event:      event,
 		Properties: props,
 		Integrations: map[string]interface{}{

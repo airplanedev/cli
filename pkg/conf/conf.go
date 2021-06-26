@@ -17,7 +17,6 @@ var (
 // Config represents the configuration.
 type Config struct {
 	Tokens          map[string]string `json:"tokens,omitempty"`
-	UserIDs         map[string]string `json:"userIDs,omitempty"`
 	EnableTelemetry string            `json:"enableTelemetry,omitempty"`
 }
 
