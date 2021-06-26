@@ -1,7 +1,6 @@
 package analytics
 
 import (
-	"fmt"
 	"os"
 	"time"
 
@@ -20,34 +19,16 @@ var (
 )
 
 func Init() error {
-	fmt.Printf("segment %s sentry %s\n", segmentWriteKey, sentryDSN)
 	c, err := conf.ReadDefault()
 	if err != nil {
 		return err
 	}
 	if c.EnableTelemetry == "" {
-		var allow bool
-		logger.Log("Is it OK to collect usage analytics and error reports? This data will solely be used to improve Airplane.")
-		logger.Log("")
-		prompt := &survey.Confirm{
-			Message: "Allow analytics and error reporting?",
-			Default: true,
-		}
-		if err := survey.AskOne(
-			prompt,
-			&allow,
-			survey.WithStdio(os.Stdin, os.Stderr, os.Stderr),
-		); err != nil {
+		// User has not specified one way or the other, ask them to opt-in.
+		if err := telemetryOptIn(c); err != nil {
 			return err
 		}
-		if allow {
-			c.EnableTelemetry = "yes"
-		} else {
-			c.EnableTelemetry = "no"
-		}
-		if err := conf.WriteDefault(c); err != nil {
-			return err
-		}
+		// Now try again.
 		return Init()
 	}
 	if c.EnableTelemetry != "yes" {
@@ -60,6 +41,34 @@ func Init() error {
 	})
 }
 
+func telemetryOptIn(c conf.Config) error {
+	var allow bool
+	logger.Log("Welcome to the Airplane CLI!")
+	logger.Log("")
+	logger.Log("Is it OK for Airplane to collect usage analytics and error reports? This data will solely be used to improve the service.")
+	logger.Log("")
+	prompt := &survey.Confirm{
+		Message: "Opt in",
+		Default: true,
+	}
+	if err := survey.AskOne(
+		prompt,
+		&allow,
+		survey.WithStdio(os.Stdin, os.Stderr, os.Stderr),
+	); err != nil {
+		return err
+	}
+	if allow {
+		c.EnableTelemetry = "yes"
+	} else {
+		c.EnableTelemetry = "no"
+	}
+	if err := conf.WriteDefault(c); err != nil {
+		return err
+	}
+	return nil
+}
+
 func Close() {
 	if segmentClient != nil {
 		if err := segmentClient.Close(); err != nil {
@@ -67,13 +76,6 @@ func Close() {
 		}
 	}
 	sentry.Flush(1 * time.Second)
-}
-
-func enqueue(msg analytics.Message) {
-	if err := segmentClient.Enqueue(msg); err != nil {
-		// Log but otherwise suppress the error
-		sentry.CaptureException(err)
-	}
 }
 
 type TrackOpts struct {
@@ -91,12 +93,15 @@ func Track(c *cli.Config, event string, properties map[string]interface{}) {
 	for k, v := range properties {
 		props = props.Set(k, v)
 	}
-	enqueue(analytics.Track{
+	if err := segmentClient.Enqueue(analytics.Track{
 		UserId:     ti.UserID,
 		Event:      event,
 		Properties: props,
 		Integrations: map[string]interface{}{
 			"Slack": true,
 		},
-	})
+	}); err != nil {
+		// Log but otherwise suppress the error
+		sentry.CaptureException(err)
+	}
 }

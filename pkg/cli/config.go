@@ -25,6 +25,8 @@ type Config struct {
 	Version bool
 }
 
+// TokenInfo parses UNVERIFIED JWT information - this information can be spoofed.
+// Should only be used for low-sensitivity use cases like analytics.
 func (c Config) TokenInfo() TokenParse {
 	var res TokenParse
 	token := c.Client.Token
