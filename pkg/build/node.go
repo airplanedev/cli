@@ -94,7 +94,6 @@ func node(root string, options api.KindOptions) (string, error) {
 		RUN [ -z "${BUILD_NPM_TOKEN}" ] || echo "//registry.npmjs.org/:_authToken=${BUILD_NPM_TOKEN}" > .npmrc
 
 		RUN npm install -g typescript@4.2
-
 		COPY . /airplane
 
 		{{if not .HasPackageJSON}}

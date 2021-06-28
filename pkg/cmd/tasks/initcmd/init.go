@@ -67,6 +67,8 @@ func run(ctx context.Context, cfg config) error {
 		return fmt.Errorf("expected <path> %q to have a file extension", cfg.file)
 	}
 
+	logger.Step("Initializing %s", cfg.file)
+
 	r, ok := runtime.Lookup(cfg.file)
 	if !ok {
 		return fmt.Errorf("unable to deploy task with %q file extension", ext)
@@ -88,8 +90,8 @@ func run(ctx context.Context, cfg config) error {
 		}
 
 		if slug, ok := runtime.Slug(buf); ok && slug == task.Slug {
-			logger.Log("%s is already linked to %s", cfg.file, cfg.slug)
-			suggestDeploy(cfg.file)
+			logger.Step("%s is already linked to %s", cfg.file, cfg.slug)
+			suggest(cfg.file)
 			return nil
 		}
 
@@ -103,6 +105,7 @@ func run(ctx context.Context, cfg config) error {
 			return nil
 		}
 
+		logger.Step("Linking %s to %s", cfg.file, cfg.slug)
 		code := []byte(runtime.Comment(r, task))
 		code = append(code, '\n', '\n')
 		code = append(code, buf...)
@@ -111,8 +114,8 @@ func run(ctx context.Context, cfg config) error {
 			return err
 		}
 
-		logger.Log("Linked %s to %s", cfg.file, cfg.slug)
-		suggestDeploy(cfg.file)
+		logger.Step("Linked %s to %s", cfg.file, cfg.slug)
+		suggest(cfg.file)
 		return nil
 	}
 
@@ -129,15 +132,23 @@ func run(ctx context.Context, cfg config) error {
 		return err
 	}
 
-	logger.Log("Initialized a task at %s", cfg.file)
-	suggestDeploy(cfg.file)
+	logger.Step("Write starter code to %s", cfg.file)
+	suggest(cfg.file)
 	return nil
 }
 
-// SuggestDeploy suggests a deploy to the user.
-func suggestDeploy(file string) {
-	logger.Log("You can deploy this task with:")
-	logger.Log("  airplane deploy %s", file)
+// suggest suggests next steps.
+func suggest(file string) {
+	logger.Suggest(
+		"🛫 To deploy your task to Airplane:",
+		"airplane deploy %s",
+		file,
+	)
+	logger.Suggest(
+		"⚡ To execute the task locally:",
+		"airplane execute %s",
+		file,
+	)
 }
 
 // Patch asks the user if he would like to patch a file

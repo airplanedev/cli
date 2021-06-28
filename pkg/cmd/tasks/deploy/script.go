@@ -120,10 +120,16 @@ func deployFromScript(ctx context.Context, cfg config) error {
 	if len(def.Parameters) > 0 {
 		cmd += " -- [parameters]"
 	}
-	logger.Log(`
-To execute %s:
-- From the CLI: %s
-- From the UI: %s`, def.Name, cmd, client.TaskURL(task.Slug))
+
+	logger.Suggest(
+		"⚡ To execute the task locally:",
+		cmd,
+	)
+
+	logger.Suggest(
+		"⚡ To execute the task from the UI:",
+		client.TaskURL(task.Slug),
+	)
 	return nil
 }
 
