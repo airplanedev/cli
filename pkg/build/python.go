@@ -36,7 +36,7 @@ func python(root string, args api.KindOptions) (string, error) {
 	const dockerfile = `
     FROM {{ .Base }}
     WORKDIR /airplane
-    RUN mkdir -p .airplane && echo '{{.Shim}}' > .airplane/shim.py
+    RUN mkdir -p .airplane && {{.InlineShim}} > .airplane/shim.py
     {{if .HasRequirements}}
     COPY requirements.txt .
     RUN pip install -r requirements.txt
@@ -47,11 +47,11 @@ func python(root string, args api.KindOptions) (string, error) {
 
 	df, err := applyTemplate(dockerfile, struct {
 		Base            string
-		Shim            string
+		InlineShim      string
 		HasRequirements bool
 	}{
 		Base:            v.String(),
-		Shim:            strings.Join(strings.Split(shim, "\n"), "\\n\\\n"),
+		InlineShim:      inlineString(shim),
 		HasRequirements: fsx.Exists(filepath.Join(root, "requirements.txt")),
 	})
 	if err != nil {
