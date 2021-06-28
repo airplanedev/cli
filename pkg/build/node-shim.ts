@@ -21,10 +21,10 @@ async function main() {
     //  - (params: object) => Promise<void>
     //
     // At build-time, TS will know what the type of the task function is.
-    // Therefore, cast as `any` so that TS does not throw an error if
+    // Therefore, cast as `any` so that TS doesn't throw an error if
     // task does not expect a parameter.
     //
-    // We could add a type assertion here to enforce that users do not supply
+    // We could add a type assertion here to enforce that users don't supply
     // a function that doesn't match one of the signatures above, however
     // the TS error that users would see would not be easy to read, even with
     // TS familiarity.
