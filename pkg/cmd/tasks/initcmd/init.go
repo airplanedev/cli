@@ -132,7 +132,7 @@ func run(ctx context.Context, cfg config) error {
 		return err
 	}
 
-	logger.Step("Write starter code to %s", cfg.file)
+	logger.Step("Wrote starter code to %s", cfg.file)
 	suggest(cfg.file)
 	return nil
 }
