@@ -28,7 +28,7 @@ func python(root string, args api.KindOptions) (string, error) {
 		return "", err
 	}
 
-	shim, err := PythonShim(entrypoint)
+	shim, err := PythonShim("/airplane", entrypoint)
 	if err != nil {
 		return "", err
 	}
@@ -36,7 +36,7 @@ func python(root string, args api.KindOptions) (string, error) {
 	const dockerfile = `
     FROM {{ .Base }}
     WORKDIR /airplane
-    RUN mkdir -p .airplane && echo '{{.Shim}}' > .airplane/shim.py
+    RUN mkdir -p .airplane && {{.InlineShim}} > .airplane/shim.py
     {{if .HasRequirements}}
     COPY requirements.txt .
     RUN pip install -r requirements.txt
@@ -47,11 +47,11 @@ func python(root string, args api.KindOptions) (string, error) {
 
 	df, err := applyTemplate(dockerfile, struct {
 		Base            string
-		Shim            string
+		InlineShim      string
 		HasRequirements bool
 	}{
 		Base:            v.String(),
-		Shim:            strings.Join(strings.Split(shim, "\n"), "\\n\\\n"),
+		InlineShim:      inlineString(shim),
 		HasRequirements: fsx.Exists(filepath.Join(root, "requirements.txt")),
 	})
 	if err != nil {
@@ -65,10 +65,12 @@ func python(root string, args api.KindOptions) (string, error) {
 var pythonShim string
 
 // PythonShim generates a shim file for running Python tasks.
-func PythonShim(entrypoint string) (string, error) {
+func PythonShim(taskRoot, entrypoint string) (string, error) {
 	shim, err := applyTemplate(pythonShim, struct {
+		TaskRoot   string
 		Entrypoint string
 	}{
+		TaskRoot:   taskRoot,
 		Entrypoint: entrypoint,
 	})
 	if err != nil {
