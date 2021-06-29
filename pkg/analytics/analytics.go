@@ -7,10 +7,12 @@ import (
 	"github.com/airplanedev/cli/pkg/conf"
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/utils"
+	"github.com/airplanedev/cli/pkg/version"
 	"github.com/getsentry/sentry-go"
 	"gopkg.in/segmentio/analytics-go.v3"
 )
 
+// Set by Go Releaser.
 var (
 	segmentClient   analytics.Client
 	segmentWriteKey string
@@ -35,8 +37,9 @@ func Init(debug bool) error {
 	}
 	segmentClient = analytics.New(segmentWriteKey)
 	return sentry.Init(sentry.ClientOptions{
-		Dsn:   sentryDSN,
-		Debug: debug,
+		Dsn:     sentryDSN,
+		Debug:   debug,
+		Release: version.Get(),
 	})
 }
 
