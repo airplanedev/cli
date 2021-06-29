@@ -61,14 +61,15 @@ func deployFromScript(ctx context.Context, cfg config) error {
 	// Detect the root of the task, if found ensure
 	// that the entrypoint and the root are included
 	// in the build.
-	var taskroot = filepath.Dir(abs)
-
-	if root, err := r.Root(abs); err == nil {
-		setEntrypoint(&def, strings.TrimPrefix(abs, root))
-		taskroot = root
-	} else {
-		setEntrypoint(&def, filepath.Base(abs))
+	taskroot, err := r.Root(abs)
+	if err != nil {
+		return err
 	}
+	entrypoint, err := filepath.Rel(taskroot, abs)
+	if err != nil {
+		return err
+	}
+	setEntrypoint(&def, entrypoint)
 
 	// TODO(amir): move to `d.SetWorkdir()`.
 	if def.Node != nil {

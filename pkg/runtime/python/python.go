@@ -59,7 +59,7 @@ func (r Runtime) PrepareRun(ctx context.Context, opts runtime.PrepareRunOptions)
 	if err != nil {
 		return nil, errors.Wrap(err, "entrypoint is not within the task root")
 	}
-	shim, err := build.PythonShim(entrypoint)
+	shim, err := build.PythonShim(root, entrypoint)
 	if err != nil {
 		return nil, err
 	}
