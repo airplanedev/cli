@@ -141,7 +141,7 @@ func run(ctx context.Context, cfg config) error {
 
 	print.Outputs(state.Outputs)
 
-	analytics.Track(cfg.root, "CLI execute", map[string]interface{}{
+	analytics.Track(cfg.root, "Run Executed", map[string]interface{}{
 		"task_id":   task.ID,
 		"task_name": task.Name,
 		"status":    state.Status,

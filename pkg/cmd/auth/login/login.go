@@ -34,7 +34,7 @@ func run(ctx context.Context, c *cli.Config) error {
 	}
 
 	logger.Log("You're all set!\n\nTo see what tasks you can run, try:\n    airplane tasks list")
-	analytics.Track(c, "CLI login", nil)
+	analytics.Track(c, "User Logged In", nil)
 	return nil
 }
 

@@ -1,13 +1,12 @@
 package analytics
 
 import (
-	"os"
 	"time"
 
-	"github.com/AlecAivazis/survey/v2"
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/conf"
 	"github.com/airplanedev/cli/pkg/logger"
+	"github.com/airplanedev/cli/pkg/utils"
 	"github.com/getsentry/sentry-go"
 	"gopkg.in/segmentio/analytics-go.v3"
 )
@@ -23,7 +22,7 @@ func Init(debug bool) error {
 	if err != nil {
 		return err
 	}
-	if c.EnableTelemetry == "" {
+	if c.EnableTelemetry == nil {
 		// User has not specified one way or the other, ask them to opt-in.
 		if err := telemetryOptIn(c); err != nil {
 			return err
@@ -31,7 +30,7 @@ func Init(debug bool) error {
 		// Now try again.
 		return Init(debug)
 	}
-	if c.EnableTelemetry != "yes" {
+	if !*c.EnableTelemetry {
 		return nil
 	}
 	segmentClient = analytics.New(segmentWriteKey)
@@ -43,26 +42,13 @@ func Init(debug bool) error {
 
 func telemetryOptIn(c conf.Config) error {
 	var allow bool
-	logger.Log("Welcome to the Airplane CLI!")
-	logger.Log("")
 	logger.Log("Is it OK for Airplane to collect usage analytics and error reports? This data will solely be used to improve the service.")
 	logger.Log("")
-	prompt := &survey.Confirm{
-		Message: "Opt in",
-		Default: true,
-	}
-	if err := survey.AskOne(
-		prompt,
-		&allow,
-		survey.WithStdio(os.Stdin, os.Stderr, os.Stderr),
-	); err != nil {
+	allow, err := utils.Confirm("Opt in")
+	if err != nil {
 		return err
 	}
-	if allow {
-		c.EnableTelemetry = "yes"
-	} else {
-		c.EnableTelemetry = "no"
-	}
+	c.EnableTelemetry = &allow
 	if err := conf.WriteDefault(c); err != nil {
 		return err
 	}
@@ -88,20 +74,30 @@ type TrackOpts struct {
 // Track sends a track event to Segment.
 // event should match "[event] by [user]" - e.g. "[Invite Sent] by [Alice]"
 func Track(c *cli.Config, event string, properties map[string]interface{}) {
-	ti := c.TokenInfo()
-	props := analytics.NewProperties().Set("team_id", ti.TeamID)
+	if segmentClient == nil {
+		return
+	}
+	tok := c.ParseTokenForAnalytics()
+	props := analytics.NewProperties().Set("team_id", tok.TeamID)
 	for k, v := range properties {
 		props = props.Set(k, v)
 	}
-	if err := segmentClient.Enqueue(analytics.Track{
-		UserId:     ti.UserID,
+	enqueue(analytics.Track{
+		UserId:     tok.UserID,
 		Event:      event,
 		Properties: props,
 		Integrations: map[string]interface{}{
 			"Slack": true,
 		},
-	}); err != nil {
-		// Log but otherwise suppress the error
+	})
+}
+
+func enqueue(msg analytics.Message) {
+	if segmentClient == nil {
+		return
+	}
+	if err := segmentClient.Enqueue(msg); err != nil {
+		// Log (but otherwise suppress) the error
 		sentry.CaptureException(err)
 	}
 }

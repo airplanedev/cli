@@ -85,7 +85,7 @@ func run(ctx context.Context, cfg config) error {
 		props, err = deployFromScript(ctx, cfg)
 	}
 
-	analytics.Track(cfg.root, "CLI deploy", map[string]interface{}{
+	analytics.Track(cfg.root, "Task Deployed", map[string]interface{}{
 		"from":             props.from,
 		"kind":             props.kind,
 		"task_id":          props.taskID,
