@@ -5,7 +5,7 @@ import json
 import sys
 
 def run(args):
-    sys.path.append("{{.Taskroot}}")
+    sys.path.append("{{.TaskRoot}}")
     
     if len(args) != 2:
         raise Exception("usage: python ./shim.py <args>")

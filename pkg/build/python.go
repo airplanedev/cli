@@ -65,12 +65,12 @@ func python(root string, args api.KindOptions) (string, error) {
 var pythonShim string
 
 // PythonShim generates a shim file for running Python tasks.
-func PythonShim(taskroot, entrypoint string) (string, error) {
+func PythonShim(taskRoot, entrypoint string) (string, error) {
 	shim, err := applyTemplate(pythonShim, struct {
-		Taskroot   string
+		TaskRoot   string
 		Entrypoint string
 	}{
-		Taskroot:   taskroot,
+		TaskRoot:   taskRoot,
 		Entrypoint: entrypoint,
 	})
 	if err != nil {
