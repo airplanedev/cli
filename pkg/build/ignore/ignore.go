@@ -100,7 +100,7 @@ func Patterns(path string) ([]string, error) {
 		// Nothing additional to append
 		return excludes, nil
 	case err != nil:
-		return nil, errors.Wrap(err, "opening .airplaneignore")
+		return nil, errors.Wrap(err, "opening "+ignorefile)
 	}
 	fileExcludes := []string{}
 	for _, ex := range strings.Split(string(bs), "\n") {
