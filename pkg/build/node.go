@@ -127,6 +127,8 @@ func NodeShim(entrypoint string) (string, error) {
 	// Remove the `.ts` suffix if one exists, since tsc doesn't accept
 	// import paths with `.ts` endings. `.js` endings are fine.
 	entrypoint = strings.TrimSuffix(entrypoint, ".ts")
+	// The shim is stored under the .airplane directory.
+	entrypoint = filepath.Join("../", entrypoint)
 
 	shim, err := applyTemplate(nodeShim, struct {
 		Entrypoint string

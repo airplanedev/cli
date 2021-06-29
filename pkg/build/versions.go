@@ -8,6 +8,18 @@ import (
 )
 
 //go:embed versions.json
+//
+// If you change the versions in this file, make sure to:
+//   1. Update the digest to match. The tags are just a convenience to note
+//      which version the digest correlates to without consulting DockerHub.
+//   2. Manually push the new base images into the public cache in the
+//      Airplane Registry. See Slab:
+//      https://airplane.slab.com/posts/publishing-to-the-public-cache-registry-8bzwq93d
+//   3. Alpine-based images will not work with shim-based builders, but it's
+//      a straightforward change if we end up wanting it (different echo
+//      semantics than debian-based images). These base images are cached on
+//      our agents, so for the most part, we don't need to worry about the
+//      size of the base image.
 var versionsJSON []byte
 
 // Versions contains a mapping table of (builder, version) to
