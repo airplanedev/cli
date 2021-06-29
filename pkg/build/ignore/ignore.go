@@ -112,3 +112,39 @@ func Patterns(path string) ([]string, error) {
 	excludes = append(excludes, fileExcludes...)
 	return excludes, nil
 }
+
+// DockerignorePatterns returns the ignore patterns formatted according to
+// the .dockerignore format.
+func DockerignorePatterns(path string) ([]string, error) {
+	patterns, err := Patterns(path)
+	if err != nil {
+		return nil, err
+	}
+
+	diPatterns := []string{}
+	for _, p := range patterns {
+		diPatterns = append(diPatterns, toDockerignore(p))
+	}
+
+	return diPatterns, nil
+}
+
+// toDockerIgnore converts from .airplaneignore format to .dockerignore
+// format. It is based on:
+// https://github.com/LinusU/gitignore-to-dockerignore/blob/master/index.js
+func toDockerignore(g string) string {
+	g = strings.TrimSpace(g)
+
+	switch {
+	case g == "":
+		return ""
+	case strings.HasPrefix(g, "!/"):
+		return "!" + g[2:]
+	case strings.HasPrefix(g, "!"):
+		return "!**/" + g[1:]
+	case strings.HasPrefix(g, "/"):
+		return g[1:]
+	default:
+		return "**/" + g
+	}
+}

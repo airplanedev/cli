@@ -126,13 +126,9 @@ func (b *Builder) Build(ctx context.Context, taskID, version string) (*Response,
 	var name = "task-" + sanitizeTaskID(taskID)
 	var uri = repo + "/" + name + ":" + version
 
-	patterns, err := ignore.Patterns(b.root)
+	patterns, err := ignore.DockerignorePatterns(b.root)
 	if err != nil {
 		return nil, err
-	}
-	for i := range patterns {
-		// Convert .gitignore-style format -> .dockerignore-style format.
-		patterns[i] = "**/" + patterns[i]
 	}
 	tree, err := NewTree(TreeOptions{
 		ExcludePatterns: patterns,
