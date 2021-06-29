@@ -132,14 +132,20 @@ func deployFromYaml(ctx context.Context, cfg config) error {
 		return errors.Wrapf(err, "updating task %s", def.Slug)
 	}
 
-	cmd := fmt.Sprintf("airplane execute %s", def.Slug)
+	cmd := fmt.Sprintf("airplane exec %s", def.Slug)
 	if len(def.Parameters) > 0 {
 		cmd += " -- [parameters]"
 	}
-	logger.Log(`
-To execute %s:
-- From the CLI: %s
-- From the UI: %s`, def.Name, cmd, client.TaskURL(def.Slug))
+
+	logger.Suggest(
+		"⚡ To execute the task from the CLI:",
+		cmd,
+	)
+
+	logger.Suggest(
+		"⚡ To execute the task from the UI:",
+		client.TaskURL(def.Slug),
+	)
 
 	return nil
 }

@@ -29,6 +29,8 @@ func init() {
 	rc.RetryMax = 5
 	rc.RetryWaitMin = 50 * time.Millisecond
 	rc.RetryWaitMax = 1 * time.Second
+	// Disable DEBUG log messages:
+	rc.Logger = nil
 	client = rc.StandardClient()
 }
 
