@@ -18,7 +18,7 @@ var (
 	sentryDSN       string
 )
 
-func Init() error {
+func Init(debug bool) error {
 	c, err := conf.ReadDefault()
 	if err != nil {
 		return err
@@ -29,7 +29,7 @@ func Init() error {
 			return err
 		}
 		// Now try again.
-		return Init()
+		return Init(debug)
 	}
 	if c.EnableTelemetry != "yes" {
 		return nil
@@ -37,7 +37,7 @@ func Init() error {
 	segmentClient = analytics.New(segmentWriteKey)
 	return sentry.Init(sentry.ClientOptions{
 		Dsn:   sentryDSN,
-		Debug: true,
+		Debug: debug,
 	})
 }
 

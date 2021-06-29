@@ -47,7 +47,7 @@ func New() *cobra.Command {
 			if c, err := conf.ReadDefault(); err == nil {
 				cfg.Client.Token = c.Tokens[cfg.Client.Host]
 			}
-			if err := analytics.Init(); err != nil {
+			if err := analytics.Init(cfg.DebugMode); err != nil {
 				logger.Debug("error in analytics.Init: %v", err)
 			}
 
