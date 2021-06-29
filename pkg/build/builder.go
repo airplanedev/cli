@@ -11,6 +11,7 @@ import (
 	"unicode"
 
 	"github.com/airplanedev/cli/pkg/api"
+	"github.com/airplanedev/cli/pkg/build/ignore"
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/utils/bufiox"
 	"github.com/docker/docker/api/types"
@@ -125,7 +126,17 @@ func (b *Builder) Build(ctx context.Context, taskID, version string) (*Response,
 	var name = "task-" + sanitizeTaskID(taskID)
 	var uri = repo + "/" + name + ":" + version
 
-	tree, err := NewTree()
+	patterns, err := ignore.Patterns(b.root)
+	if err != nil {
+		return nil, err
+	}
+	for i := range patterns {
+		// Convert .gitignore-style format -> .dockerignore-style format.
+		patterns[i] = "**/" + patterns[i]
+	}
+	tree, err := NewTree(TreeOptions{
+		ExcludePatterns: patterns,
+	})
 	if err != nil {
 		return nil, errors.Wrap(err, "new tree")
 	}

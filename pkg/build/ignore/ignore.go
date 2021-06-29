@@ -13,8 +13,8 @@ import (
 
 // Returns an IgnoreFunc that can be used with airplanedev/archiver to filter
 // out files that match a default list or user-provided .airplaneignore.
-func GetIgnoreFunc(taskRootPath string) (func(filePath string, info os.FileInfo) (bool, error), error) {
-	excludes, err := getIgnorePatterns(taskRootPath)
+func Func(taskRootPath string) (func(filePath string, info os.FileInfo) (bool, error), error) {
+	excludes, err := Patterns(taskRootPath)
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +59,7 @@ func GetIgnoreFunc(taskRootPath string) (func(filePath string, info os.FileInfo)
 	}, nil
 }
 
-func getIgnorePatterns(path string) ([]string, error) {
+func Patterns(path string) ([]string, error) {
 	// Start with default set of excludes.
 	// We exclude the same files regardless of kind because you might have both JS and PY tasks and
 	// want pyc files excluded just the same.
@@ -100,7 +100,7 @@ func getIgnorePatterns(path string) ([]string, error) {
 		// Nothing additional to append
 		return excludes, nil
 	case err != nil:
-		return nil, err
+		return nil, errors.Wrap(err, "opening .airplaneignore")
 	}
 	fileExcludes := []string{}
 	for _, ex := range strings.Split(string(bs), "\n") {
