@@ -40,7 +40,7 @@ func node(root string, options api.KindOptions) (string, error) {
 		HasPackageLock bool
 		IsYarn         bool
 		HasShimDeps    bool
-		Shim           string
+		InlineShim     string
 		IsTS           bool
 		TscArgs        string
 	}{
@@ -66,8 +66,7 @@ func node(root string, options api.KindOptions) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	// To inline the shim into a Dockerfile, insert `\n\` characters:
-	cfg.Shim = strings.Join(strings.Split(shim, "\n"), "\\n\\\n")
+	cfg.InlineShim = inlineString(shim)
 
 	// The following Dockerfile can build both JS and TS tasks. In general, we're
 	// aiming for recent EC202x support and for support for import/export syntax.
@@ -115,7 +114,7 @@ func node(root string, options api.KindOptions) (string, error) {
 		{{end}}
 
 		RUN mkdir -p /airplane/.airplane/dist && \
-			echo '{{.Shim}}' > /airplane/.airplane/shim.ts && \
+			{{.InlineShim}} > /airplane/.airplane/shim.ts && \
 			tsc {{.TscArgs}}
 		ENTRYPOINT ["node", "/airplane/.airplane/dist/.airplane/shim.js"]
 	`, cfg)
