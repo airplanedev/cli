@@ -49,3 +49,12 @@ func applyTemplate(t string, data interface{}) (string, error) {
 
 	return buf.String(), nil
 }
+
+func inlineString(s string) string {
+	// To inline a multi-line string into a Dockerfile, insert `\n\` characters:
+	s = strings.Join(strings.Split(s, "\n"), "\\n\\\n")
+	// Since the string is wrapped in single-quotes, escape any single-quotes
+	// inside of the target string.
+	s = strings.ReplaceAll(s, "'", `'"'"'`)
+	return "echo '" + s + "'"
+}

@@ -133,7 +133,7 @@ func archiveTaskDir(def definitions.Definition, root string, archivePath string)
 
 	var err error
 	arch := archiver.NewTarGz()
-	arch.Tar.IncludeFunc, err = ignore.GetIgnoreFunc(root)
+	arch.Tar.IncludeFunc, err = ignore.Func(root)
 	if err != nil {
 		return err
 	}

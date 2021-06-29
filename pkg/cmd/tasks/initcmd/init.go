@@ -67,8 +67,6 @@ func run(ctx context.Context, cfg config) error {
 		return fmt.Errorf("expected <path> %q to have a file extension", cfg.file)
 	}
 
-	logger.Step("Initializing %s", cfg.file)
-
 	r, ok := runtime.Lookup(cfg.file)
 	if !ok {
 		return fmt.Errorf("unable to deploy task with %q file extension", ext)
@@ -91,7 +89,7 @@ func run(ctx context.Context, cfg config) error {
 
 		if slug, ok := runtime.Slug(buf); ok && slug == task.Slug {
 			logger.Step("%s is already linked to %s", cfg.file, cfg.slug)
-			suggest(cfg.file)
+			suggestNextSteps(cfg.file)
 			return nil
 		}
 
@@ -115,7 +113,7 @@ func run(ctx context.Context, cfg config) error {
 		}
 
 		logger.Step("Linked %s to %s", cfg.file, cfg.slug)
-		suggest(cfg.file)
+		suggestNextSteps(cfg.file)
 		return nil
 	}
 
@@ -132,21 +130,20 @@ func run(ctx context.Context, cfg config) error {
 		return err
 	}
 
-	logger.Step("Write starter code to %s", cfg.file)
-	suggest(cfg.file)
+	logger.Step("Created %s", cfg.file)
+	suggestNextSteps(cfg.file)
 	return nil
 }
 
-// suggest suggests next steps.
-func suggest(file string) {
+func suggestNextSteps(file string) {
 	logger.Suggest(
-		"🛫 To deploy your task to Airplane:",
-		"airplane deploy %s",
+		"⚡ To execute the task locally:",
+		"airplane dev %s",
 		file,
 	)
 	logger.Suggest(
-		"⚡ To execute the task locally:",
-		"airplane execute %s",
+		"🛫 To deploy your task to Airplane:",
+		"airplane deploy %s",
 		file,
 	)
 }

@@ -16,21 +16,29 @@ import (
 // a tarball and pass it onto the build operation.
 type Tree struct {
 	root string
+	opts TreeOptions
+}
+
+type TreeOptions struct {
+	// ExcludePatterns is a list of .dockerignore-style ignores.
+	// These files will not be copied to the temporary directory.
+	ExcludePatterns []string
 }
 
 // NewTree returns a new tree in a temporary directory.
-func NewTree() (*Tree, error) {
+func NewTree(opts TreeOptions) (*Tree, error) {
 	tmpdir, err := ioutil.TempDir("", "airplane_context_*")
 	if err != nil {
 		return nil, errors.Wrap(err, "tempdir")
 	}
-	return &Tree{root: tmpdir}, nil
+	return &Tree{root: tmpdir, opts: opts}, nil
 }
 
 // Copy copies src into the tree.
 func (t *Tree) Copy(src string) error {
 	r, err := archive.TarWithOptions(src, &archive.TarOptions{
-		Compression: archive.Uncompressed,
+		Compression:     archive.Uncompressed,
+		ExcludePatterns: t.opts.ExcludePatterns,
 	})
 	if err != nil {
 		return errors.Wrap(err, "tar with options")

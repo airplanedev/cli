@@ -13,8 +13,8 @@ import (
 
 // Returns an IgnoreFunc that can be used with airplanedev/archiver to filter
 // out files that match a default list or user-provided .airplaneignore.
-func GetIgnoreFunc(taskRootPath string) (func(filePath string, info os.FileInfo) (bool, error), error) {
-	excludes, err := getIgnorePatterns(taskRootPath)
+func Func(taskRootPath string) (func(filePath string, info os.FileInfo) (bool, error), error) {
+	excludes, err := Patterns(taskRootPath)
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +59,7 @@ func GetIgnoreFunc(taskRootPath string) (func(filePath string, info os.FileInfo)
 	}, nil
 }
 
-func getIgnorePatterns(path string) ([]string, error) {
+func Patterns(path string) ([]string, error) {
 	// Start with default set of excludes.
 	// We exclude the same files regardless of kind because you might have both JS and PY tasks and
 	// want pyc files excluded just the same.
@@ -100,7 +100,7 @@ func getIgnorePatterns(path string) ([]string, error) {
 		// Nothing additional to append
 		return excludes, nil
 	case err != nil:
-		return nil, err
+		return nil, errors.Wrap(err, "opening "+ignorefile)
 	}
 	fileExcludes := []string{}
 	for _, ex := range strings.Split(string(bs), "\n") {
@@ -111,4 +111,40 @@ func getIgnorePatterns(path string) ([]string, error) {
 	logger.Debug("Found %s - using %d exclude rule(s):\n  %s", ignorefile, len(fileExcludes), strings.Join(fileExcludes, "\n  "))
 	excludes = append(excludes, fileExcludes...)
 	return excludes, nil
+}
+
+// DockerignorePatterns returns the ignore patterns formatted according to
+// the .dockerignore format.
+func DockerignorePatterns(path string) ([]string, error) {
+	patterns, err := Patterns(path)
+	if err != nil {
+		return nil, err
+	}
+
+	diPatterns := []string{}
+	for _, p := range patterns {
+		diPatterns = append(diPatterns, toDockerignore(p))
+	}
+
+	return diPatterns, nil
+}
+
+// toDockerIgnore converts from .airplaneignore format to .dockerignore
+// format. It is based on:
+// https://github.com/LinusU/gitignore-to-dockerignore/blob/master/index.js
+func toDockerignore(g string) string {
+	g = strings.TrimSpace(g)
+
+	switch {
+	case g == "":
+		return ""
+	case strings.HasPrefix(g, "!/"):
+		return "!" + g[2:]
+	case strings.HasPrefix(g, "!"):
+		return "!**/" + g[1:]
+	case strings.HasPrefix(g, "/"):
+		return g[1:]
+	default:
+		return "**/" + g
+	}
 }
