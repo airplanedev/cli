@@ -3,10 +3,8 @@ package deploy
 import (
 	"context"
 	"path/filepath"
-	"time"
 
 	"github.com/MakeNowJust/heredoc"
-	"github.com/airplanedev/cli/pkg/analytics"
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/cmd/auth/login"
@@ -63,7 +61,7 @@ func New(c *cli.Config) *cobra.Command {
 }
 
 // Set of properties to track when deploying
-type trackProps struct {
+type taskDeployedProps struct {
 	from       string
 	kind       api.TaskKind
 	taskID     string
@@ -75,25 +73,10 @@ type trackProps struct {
 
 func run(ctx context.Context, cfg config) error {
 	ext := filepath.Ext(cfg.file)
-	start := time.Now()
 
-	var props trackProps
-	var err error
 	if ext == ".yml" || ext == ".yaml" {
-		props, err = deployFromYaml(ctx, cfg)
-	} else {
-		props, err = deployFromScript(ctx, cfg)
+		return deployFromYaml(ctx, cfg)
 	}
 
-	analytics.Track(cfg.root, "Task Deployed", map[string]interface{}{
-		"from":             props.from,
-		"kind":             props.kind,
-		"task_id":          props.taskID,
-		"task_slug":        props.taskSlug,
-		"task_name":        props.taskName,
-		"build_id":         props.buildID,
-		"errored":          err != nil,
-		"duration_seconds": time.Since(start).Seconds(),
-	})
-	return err
+	return deployFromScript(ctx, cfg)
 }
