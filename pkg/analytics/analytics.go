@@ -36,7 +36,7 @@ func Init(cfg *cli.Config) error {
 		return nil
 	}
 	if cfg.WithTelemetry && !*c.EnableTelemetry {
-		logger.Warning("Enabling usage analytics and error reports because --with-telemetry was set.")
+		logger.Warning("Temporarily enabling usage analytics and error reports, because --with-telemetry was set.")
 	}
 	segmentClient, err = analytics.NewWithConfig(segmentWriteKey, analytics.Config{
 		DefaultContext: &analytics.Context{

@@ -14,7 +14,7 @@ import (
 )
 
 // DeployFromYaml deploys from a yaml file.
-func deployFromYaml(ctx context.Context, cfg config) (err error) {
+func deployFromYaml(ctx context.Context, cfg config) (rErr error) {
 	client := cfg.client
 	props := taskDeployedProps{
 		from: "yaml",
@@ -28,44 +28,43 @@ func deployFromYaml(ctx context.Context, cfg config) (err error) {
 			"task_slug":        props.taskSlug,
 			"task_name":        props.taskName,
 			"build_id":         props.buildID,
-			"errored":          err != nil,
+			"errored":          rErr != nil,
 			"duration_seconds": time.Since(start).Seconds(),
 		})
 	}()
 
 	dir, err := taskdir.Open(cfg.file)
 	if err != nil {
-		return
+		return err
 	}
 	defer dir.Close()
 
 	def, err := dir.ReadDefinition()
 	if err != nil {
-		return
+		return err
 	}
 
 	def, err = def.Validate()
 	if err != nil {
-		return
+		return err
 	}
 	props.taskSlug = def.Slug
 
 	err = ensureConfigsExist(ctx, client, def)
 	if err != nil {
-		return
+		return err
 	}
 
 	kind, kindOptions, err := def.GetKindAndOptions()
 	if err != nil {
-		return
+		return err
 	}
 	props.kind = kind
 
 	// Remap resources from ref -> name to ref -> id.
 	resp, err := client.ListResources(ctx)
 	if err != nil {
-		err = errors.Wrap(err, "fetching resources")
-		return
+		return errors.Wrap(err, "fetching resources")
 	}
 	resourcesByName := map[string]api.Resource{}
 	for _, resource := range resp.Resources {
@@ -76,8 +75,7 @@ func deployFromYaml(ctx context.Context, cfg config) (err error) {
 		if res, ok := resourcesByName[name]; ok {
 			resources[ref] = res.ID
 		} else {
-			err = errors.Errorf("unknown resource: %s", name)
-			return
+			return errors.Errorf("unknown resource: %s", name)
 		}
 	}
 
@@ -110,24 +108,21 @@ func deployFromYaml(ctx context.Context, cfg config) (err error) {
 			Timeout:          def.Timeout,
 		})
 		if err != nil {
-			err = errors.Wrapf(err, "creating task %s", def.Slug)
-			return
+			return errors.Wrapf(err, "creating task %s", def.Slug)
 		}
 
 		task, err = client.GetTask(ctx, def.Slug)
 		if err != nil {
-			err = errors.Wrap(err, "fetching created task")
-			return
+			return errors.Wrap(err, "fetching created task")
 		}
 	} else if err != nil {
-		err = errors.Wrap(err, "getting task")
-		return
+		return errors.Wrap(err, "getting task")
 	}
 	props.taskID = task.ID
 	props.taskName = task.Name
 
 	if build.NeedsBuilding(kind) {
-		resp, bErr := build.Run(ctx, build.Request{
+		resp, err := build.Run(ctx, build.Request{
 			Local:  cfg.local,
 			Client: client,
 			Root:   dir.DefinitionRootPath(),
@@ -136,9 +131,8 @@ func deployFromYaml(ctx context.Context, cfg config) (err error) {
 		})
 		props.buildLocal = cfg.local
 		props.buildID = resp.BuildID
-		if bErr != nil {
-			err = bErr
-			return
+		if err != nil {
+			return err
 		}
 		image = &resp.ImageURL
 	}
@@ -161,8 +155,7 @@ func deployFromYaml(ctx context.Context, cfg config) (err error) {
 		Timeout:          def.Timeout,
 	})
 	if err != nil {
-		err = errors.Wrapf(err, "updating task %s", def.Slug)
-		return
+		return errors.Wrapf(err, "updating task %s", def.Slug)
 	}
 
 	cmd := fmt.Sprintf("airplane exec %s", def.Slug)
@@ -179,4 +172,5 @@ func deployFromYaml(ctx context.Context, cfg config) (err error) {
 		"⚡ To execute the task from the UI:",
 		client.TaskURL(def.Slug),
 	)
+	return nil
 }
