@@ -35,7 +35,17 @@ func Init(debug bool) error {
 	if !*c.EnableTelemetry {
 		return nil
 	}
-	segmentClient = analytics.New(segmentWriteKey)
+	segmentClient, err = analytics.NewWithConfig(segmentWriteKey, analytics.Config{
+		DefaultContext: &analytics.Context{
+			App: analytics.AppInfo{
+				Name:    "cli",
+				Version: version.Get(),
+			},
+		},
+	})
+	if err != nil {
+		return err
+	}
 	return sentry.Init(sentry.ClientOptions{
 		Dsn:     sentryDSN,
 		Debug:   debug,
