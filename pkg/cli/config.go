@@ -21,6 +21,10 @@ type Config struct {
 	// debug output to guide end-users through issues.
 	DebugMode bool
 
+	// WithTelemetry indicates if the CLI should send usage analytics and errors, even if it's been
+	// previously disabled.
+	WithTelemetry bool
+
 	// Version indicates if the CLI version should be printed.
 	Version bool
 }
