@@ -155,7 +155,7 @@ func patch(slug, file string) (ok bool, err error) {
 		&survey.Confirm{
 			Message: fmt.Sprintf("Would you like to link %s to %s?", file, slug),
 			Help:    "Linking this file will add a special airplane comment.",
-			Default: false,
+			Default: true,
 		},
 		&ok,
 	)
