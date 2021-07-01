@@ -24,6 +24,8 @@ type Request struct {
 // Response represents a build response.
 type Response struct {
 	ImageURL string
+	// Optional, only if applicable
+	BuildID string
 }
 
 // Run runs the build and returns an image URL.

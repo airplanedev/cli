@@ -73,6 +73,7 @@ func remote(ctx context.Context, req Request) (*Response, error) {
 
 	return &Response{
 		ImageURL: imageURL,
+		BuildID:  build.Build.ID,
 	}, nil
 }
 

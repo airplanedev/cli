@@ -6,7 +6,9 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"strings"
+	"time"
 
+	"github.com/airplanedev/cli/pkg/analytics"
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/build"
 	"github.com/airplanedev/cli/pkg/logger"
@@ -16,9 +18,25 @@ import (
 )
 
 // DeployFromScript deploys from the given script.
-func deployFromScript(ctx context.Context, cfg config) error {
-	var client = cfg.client
-	var ext = filepath.Ext(cfg.file)
+func deployFromScript(ctx context.Context, cfg config) (rErr error) {
+	client := cfg.client
+	ext := filepath.Ext(cfg.file)
+	props := taskDeployedProps{
+		from: "script",
+	}
+	start := time.Now()
+	defer func() {
+		analytics.Track(cfg.root, "Task Deployed", map[string]interface{}{
+			"from":             props.from,
+			"kind":             props.kind,
+			"task_id":          props.taskID,
+			"task_slug":        props.taskSlug,
+			"task_name":        props.taskName,
+			"build_id":         props.buildID,
+			"errored":          rErr != nil,
+			"duration_seconds": time.Since(start).Seconds(),
+		})
+	}()
 
 	if ext == "" {
 		return errors.New("cannot deploy a file without extension")
@@ -26,12 +44,12 @@ func deployFromScript(ctx context.Context, cfg config) error {
 
 	r, ok := runtime.Lookup(cfg.file)
 	if !ok {
-		return fmt.Errorf("cannot deploy a file with extension of %q", ext)
+		return errors.Errorf("cannot deploy a file with extension of %q", ext)
 	}
 
 	code, err := ioutil.ReadFile(cfg.file)
 	if err != nil {
-		return fmt.Errorf("reading %s - %w", cfg.file, err)
+		return errors.Wrapf(err, "reading %s", cfg.file)
 	}
 
 	slug, ok := runtime.Slug(code)
@@ -43,9 +61,13 @@ func deployFromScript(ctx context.Context, cfg config) error {
 	if err != nil {
 		return err
 	}
+	props.kind = task.Kind
+	props.taskID = task.ID
+	props.taskSlug = task.Slug
+	props.taskName = task.Name
 
 	if task.Kind != r.Kind() {
-		return fmt.Errorf("'%s' is a %s task. Expected a %s task.", task.Name, task.Kind, r.Kind())
+		return errors.Errorf("'%s' is a %s task. Expected a %s task.", task.Name, task.Kind, r.Kind())
 	}
 
 	def, err := definitions.NewDefinitionFromTask(task)
@@ -92,6 +114,8 @@ func deployFromScript(ctx context.Context, cfg config) error {
 		TaskEnv: def.Env,
 		Shim:    true,
 	})
+	props.buildLocal = cfg.local
+	props.buildID = resp.BuildID
 	if err != nil {
 		return err
 	}

@@ -5,10 +5,12 @@ import (
 	"os"
 	"strings"
 
+	"github.com/airplanedev/cli/pkg/analytics"
 	"github.com/airplanedev/cli/pkg/cmd/root"
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/trap"
 	"github.com/airplanedev/cli/pkg/utils"
+	"github.com/getsentry/sentry-go"
 	"github.com/pkg/errors"
 	_ "github.com/segmentio/events/v2/text"
 )
@@ -29,9 +31,7 @@ func main() {
 			return
 		}
 
-		if logger.EnableDebug {
-			logger.Debug("Error: %+v", err)
-		}
+		logger.Debug("Error: %+v", err)
 		logger.Log("")
 		if exerr, ok := errors.Cause(err).(utils.ErrorExplained); ok {
 			logger.Error(capitalize(exerr.Error()))
@@ -42,6 +42,12 @@ func main() {
 		}
 		logger.Log("")
 
+		sentryID := sentry.CaptureException(err)
+		if sentryID != nil {
+			logger.Debug("Sentry event ID: %s", *sentryID)
+		}
+
+		analytics.Close()
 		os.Exit(1)
 	}
 }

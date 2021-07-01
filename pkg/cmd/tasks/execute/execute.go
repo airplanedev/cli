@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/MakeNowJust/heredoc"
+	"github.com/airplanedev/cli/pkg/analytics"
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/cmd/auth/login"
@@ -140,11 +141,16 @@ func run(ctx context.Context, cfg config) error {
 
 	print.Outputs(state.Outputs)
 
+	analytics.Track(cfg.root, "Run Executed", map[string]interface{}{
+		"task_id":   task.ID,
+		"task_name": task.Name,
+		"status":    state.Status,
+	})
+
 	switch state.Status {
 	case api.RunFailed:
 		return errors.New("Run has failed")
 	}
-
 	return nil
 }
 

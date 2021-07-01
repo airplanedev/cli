@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/airplanedev/cli/pkg/analytics"
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/conf"
 	"github.com/airplanedev/cli/pkg/logger"
@@ -33,6 +34,7 @@ func run(ctx context.Context, c *cli.Config) error {
 	}
 
 	logger.Log("You're all set!\n\nTo see what tasks you can run, try:\n    airplane tasks list")
+	analytics.Track(c, "User Logged In", nil)
 	return nil
 }
 

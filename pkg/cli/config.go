@@ -2,6 +2,8 @@ package cli
 
 import (
 	"github.com/airplanedev/cli/pkg/api"
+	"github.com/airplanedev/cli/pkg/logger"
+	"github.com/dgrijalva/jwt-go"
 )
 
 // Config represents command configuration.
@@ -19,8 +21,39 @@ type Config struct {
 	// debug output to guide end-users through issues.
 	DebugMode bool
 
+	// WithTelemetry indicates if the CLI should send usage analytics and errors, even if it's been
+	// previously disabled.
+	WithTelemetry bool
+
 	// Version indicates if the CLI version should be printed.
 	Version bool
+}
+
+// ParseTokenForAnalytics parses UNVERIFIED JWT information - this information can be spoofed.
+// Should only be used for analytics, nothing sensitive.
+func (c Config) ParseTokenForAnalytics() AnalyticsToken {
+	var res AnalyticsToken
+	token := c.Client.Token
+	if token == "" {
+		return res
+	}
+	t, _, err := new(jwt.Parser).ParseUnverified(token, jwt.MapClaims{})
+	if err != nil {
+		logger.Debug("error parsing token: %v", err)
+		return res
+	}
+	claims, ok := t.Claims.(jwt.MapClaims)
+	if !ok {
+		return res
+	}
+	res.UserID = claims["userID"].(string)
+	res.TeamID = claims["teamID"].(string)
+	return res
+}
+
+type AnalyticsToken struct {
+	UserID string
+	TeamID string
 }
 
 // Must should be used for Cobra initialize commands that can return an error

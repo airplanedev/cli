@@ -3,7 +3,9 @@ package deploy
 import (
 	"context"
 	"fmt"
+	"time"
 
+	"github.com/airplanedev/cli/pkg/analytics"
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/build"
 	"github.com/airplanedev/cli/pkg/logger"
@@ -12,8 +14,24 @@ import (
 )
 
 // DeployFromYaml deploys from a yaml file.
-func deployFromYaml(ctx context.Context, cfg config) error {
-	var client = cfg.client
+func deployFromYaml(ctx context.Context, cfg config) (rErr error) {
+	client := cfg.client
+	props := taskDeployedProps{
+		from: "yaml",
+	}
+	start := time.Now()
+	defer func() {
+		analytics.Track(cfg.root, "Task Deployed", map[string]interface{}{
+			"from":             props.from,
+			"kind":             props.kind,
+			"task_id":          props.taskID,
+			"task_slug":        props.taskSlug,
+			"task_name":        props.taskName,
+			"build_id":         props.buildID,
+			"errored":          rErr != nil,
+			"duration_seconds": time.Since(start).Seconds(),
+		})
+	}()
 
 	dir, err := taskdir.Open(cfg.file)
 	if err != nil {
@@ -26,11 +44,14 @@ func deployFromYaml(ctx context.Context, cfg config) error {
 		return err
 	}
 
-	if def, err = def.Validate(); err != nil {
+	def, err = def.Validate()
+	if err != nil {
 		return err
 	}
+	props.taskSlug = def.Slug
 
-	if err := ensureConfigsExist(ctx, client, def); err != nil {
+	err = ensureConfigsExist(ctx, client, def)
+	if err != nil {
 		return err
 	}
 
@@ -38,6 +59,7 @@ func deployFromYaml(ctx context.Context, cfg config) error {
 	if err != nil {
 		return err
 	}
+	props.kind = kind
 
 	// Remap resources from ref -> name to ref -> id.
 	resp, err := client.ListResources(ctx)
@@ -68,7 +90,7 @@ func deployFromYaml(ctx context.Context, cfg config) error {
 	if _, ok := err.(*api.TaskMissingError); ok {
 		// A task with this slug does not exist, so we should create one.
 		logger.Log("Creating task...")
-		_, err := client.CreateTask(ctx, api.CreateTaskRequest{
+		_, err = client.CreateTask(ctx, api.CreateTaskRequest{
 			Slug:             def.Slug,
 			Name:             def.Name,
 			Description:      def.Description,
@@ -96,6 +118,8 @@ func deployFromYaml(ctx context.Context, cfg config) error {
 	} else if err != nil {
 		return errors.Wrap(err, "getting task")
 	}
+	props.taskID = task.ID
+	props.taskName = task.Name
 
 	if build.NeedsBuilding(kind) {
 		resp, err := build.Run(ctx, build.Request{
@@ -105,6 +129,8 @@ func deployFromYaml(ctx context.Context, cfg config) error {
 			Def:    def,
 			TaskID: task.ID,
 		})
+		props.buildLocal = cfg.local
+		props.buildID = resp.BuildID
 		if err != nil {
 			return err
 		}
@@ -146,6 +172,5 @@ func deployFromYaml(ctx context.Context, cfg config) error {
 		"⚡ To execute the task from the UI:",
 		client.TaskURL(def.Slug),
 	)
-
 	return nil
 }

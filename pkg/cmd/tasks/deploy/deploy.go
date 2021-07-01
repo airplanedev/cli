@@ -15,13 +15,17 @@ import (
 )
 
 type config struct {
+	root   *cli.Config
 	client *api.Client
 	file   string
 	local  bool
 }
 
 func New(c *cli.Config) *cobra.Command {
-	var cfg = config{client: c.Client}
+	var cfg = config{
+		root:   c,
+		client: c.Client,
+	}
 
 	cmd := &cobra.Command{
 		Use:   "deploy",
@@ -56,8 +60,19 @@ func New(c *cli.Config) *cobra.Command {
 	return cmd
 }
 
+// Set of properties to track when deploying
+type taskDeployedProps struct {
+	from       string
+	kind       api.TaskKind
+	taskID     string
+	taskSlug   string
+	taskName   string
+	buildLocal bool
+	buildID    string
+}
+
 func run(ctx context.Context, cfg config) error {
-	var ext = filepath.Ext(cfg.file)
+	ext := filepath.Ext(cfg.file)
 
 	if ext == ".yml" || ext == ".yaml" {
 		return deployFromYaml(ctx, cfg)

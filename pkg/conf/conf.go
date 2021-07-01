@@ -16,7 +16,8 @@ var (
 
 // Config represents the configuration.
 type Config struct {
-	Tokens map[string]string `json:"tokens,omitempty"`
+	Tokens          map[string]string `json:"tokens,omitempty"`
+	EnableTelemetry *bool             `json:"enableTelemetry,omitempty"`
 }
 
 // Path returns the default config path.
