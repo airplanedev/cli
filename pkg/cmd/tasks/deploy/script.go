@@ -105,6 +105,7 @@ func deployFromScript(ctx context.Context, cfg config) (rErr error) {
 		return err
 	}
 
+	props.buildLocal = cfg.local
 	resp, err := build.Run(ctx, build.Request{
 		Local:   cfg.local,
 		Client:  client,
@@ -114,11 +115,10 @@ func deployFromScript(ctx context.Context, cfg config) (rErr error) {
 		TaskEnv: def.Env,
 		Shim:    true,
 	})
-	props.buildLocal = cfg.local
-	props.buildID = resp.BuildID
 	if err != nil {
 		return err
 	}
+	props.buildID = resp.BuildID
 
 	_, err = client.UpdateTask(ctx, api.UpdateTaskRequest{
 		Slug:             def.Slug,
