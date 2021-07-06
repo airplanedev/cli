@@ -34,16 +34,16 @@ func python(root string, args api.KindOptions) (string, error) {
 	}
 
 	const dockerfile = `
-    FROM {{ .Base }}
-    WORKDIR /airplane
-    RUN mkdir -p .airplane && {{.InlineShim}} > .airplane/shim.py
-    {{if .HasRequirements}}
-    COPY requirements.txt .
-    RUN pip install -r requirements.txt
-    {{end}}
-    COPY . .
-    ENTRYPOINT ["python", ".airplane/shim.py"]
-	`
+FROM {{ .Base }}
+WORKDIR /airplane
+RUN mkdir -p .airplane && {{.InlineShim}} > .airplane/shim.py
+{{if .HasRequirements}}
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+{{end}}
+COPY . .
+ENTRYPOINT ["python", ".airplane/shim.py"]
+`
 
 	df, err := applyTemplate(dockerfile, struct {
 		Base            string
@@ -91,15 +91,15 @@ func pythonLegacy(root string, args api.KindOptions) (string, error) {
 	}
 
 	t, err := template.New("python").Parse(`
-    FROM {{ .Base }}
-    WORKDIR /airplane
-		{{if not .HasRequirements}}
-		RUN echo > requirements.txt
-		{{end}}
-    COPY . .
-    RUN pip install -r requirements.txt
-    ENTRYPOINT ["python", "/airplane/{{ .Entrypoint }}"]
-	`)
+FROM {{ .Base }}
+WORKDIR /airplane
+{{if not .HasRequirements}}
+RUN echo > requirements.txt
+{{end}}
+COPY . .
+RUN pip install -r requirements.txt
+ENTRYPOINT ["python", "/airplane/{{ .Entrypoint }}"]
+`)
 	if err != nil {
 		return "", err
 	}

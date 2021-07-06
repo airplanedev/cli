@@ -82,42 +82,42 @@ func node(root string, options api.KindOptions) (string, error) {
 	// Down the road, we may want to give customers more control over this build process
 	// in which case we could introduce an extra step for performing build commands.
 	return applyTemplate(`
-		FROM {{.Base}}
+FROM {{.Base}}
 
-		WORKDIR /airplane{{.Workdir}}
+WORKDIR /airplane{{.Workdir}}
 
-		# Support setting BUILD_NPM_RC or BUILD_NPM_TOKEN to configure private registry auth
-		ARG BUILD_NPM_RC
-		ARG BUILD_NPM_TOKEN
-		RUN [ -z "${BUILD_NPM_RC}" ] || echo "${BUILD_NPM_RC}" > .npmrc
-		RUN [ -z "${BUILD_NPM_TOKEN}" ] || echo "//registry.npmjs.org/:_authToken=${BUILD_NPM_TOKEN}" > .npmrc
+# Support setting BUILD_NPM_RC or BUILD_NPM_TOKEN to configure private registry auth
+ARG BUILD_NPM_RC
+ARG BUILD_NPM_TOKEN
+RUN [ -z "${BUILD_NPM_RC}" ] || echo "${BUILD_NPM_RC}" > .npmrc
+RUN [ -z "${BUILD_NPM_TOKEN}" ] || echo "//registry.npmjs.org/:_authToken=${BUILD_NPM_TOKEN}" > .npmrc
 
-		RUN npm install -g typescript@4.2
-		COPY . /airplane
+RUN npm install -g typescript@4.2
+COPY . /airplane
 
-		{{if not .HasPackageJSON}}
-		RUN echo '{}' > /airplane/package.json
-		{{end}}
+{{if not .HasPackageJSON}}
+RUN echo '{}' > /airplane/package.json
+{{end}}
 
-		{{if .IsYarn}}
-		{{if .HasShimDeps}}
-		RUN yarn --non-interactive
-		{{else}}
-		RUN yarn add --non-interactive @types/node
-		{{end}}
-		{{else}}
-		{{if .HasShimDeps}}
-		RUN npm install
-		{{else}}
-		RUN npm install @types/node
-		{{end}}
-		{{end}}
+{{if .IsYarn}}
+{{if .HasShimDeps}}
+RUN yarn --non-interactive
+{{else}}
+RUN yarn add --non-interactive @types/node
+{{end}}
+{{else}}
+{{if .HasShimDeps}}
+RUN npm install
+{{else}}
+RUN npm install @types/node
+{{end}}
+{{end}}
 
-		RUN mkdir -p /airplane/.airplane/dist && \
-			{{.InlineShim}} > /airplane/.airplane/shim.ts && \
-			tsc {{.TscArgs}}
-		ENTRYPOINT ["node", "/airplane/.airplane/dist/.airplane/shim.js"]
-	`, cfg)
+RUN mkdir -p /airplane/.airplane/dist && \
+	{{.InlineShim}} > /airplane/.airplane/shim.ts && \
+	tsc {{.TscArgs}}
+ENTRYPOINT ["node", "/airplane/.airplane/dist/.airplane/shim.js"]
+`, cfg)
 }
 
 //go:embed node-shim.ts
@@ -269,24 +269,24 @@ func nodeLegacyBuilder(root string, options api.KindOptions) (string, error) {
 	}
 
 	return applyTemplate(`
-		FROM {{ .Base }}
-		
-		WORKDIR {{ .Workdir }}
-		
-		# Support setting BUILD_NPM_RC or BUILD_NPM_TOKEN to configure private registry auth
-		ARG BUILD_NPM_RC
-		ARG BUILD_NPM_TOKEN
-		RUN [ -z "${BUILD_NPM_RC}" ] || echo "${BUILD_NPM_RC}" > .npmrc
-		RUN [ -z "${BUILD_NPM_TOKEN}" ] || echo "//registry.npmjs.org/:_authToken=${BUILD_NPM_TOKEN}" > .npmrc
-		
-		COPY . {{ .Workdir }}
-		{{ range .Commands }}
-		RUN {{ . }}
-		{{ end }}
-		
-		WORKDIR {{ .BuildWorkdir }}
-		ENTRYPOINT ["node", "{{ .Main }}"]
-	`, struct {
+FROM {{ .Base }}
+
+WORKDIR {{ .Workdir }}
+
+# Support setting BUILD_NPM_RC or BUILD_NPM_TOKEN to configure private registry auth
+ARG BUILD_NPM_RC
+ARG BUILD_NPM_TOKEN
+RUN [ -z "${BUILD_NPM_RC}" ] || echo "${BUILD_NPM_RC}" > .npmrc
+RUN [ -z "${BUILD_NPM_TOKEN}" ] || echo "//registry.npmjs.org/:_authToken=${BUILD_NPM_TOKEN}" > .npmrc
+
+COPY . {{ .Workdir }}
+{{ range .Commands }}
+RUN {{ . }}
+{{ end }}
+
+WORKDIR {{ .BuildWorkdir }}
+ENTRYPOINT ["node", "{{ .Main }}"]
+`, struct {
 		Base         string
 		Workdir      string
 		BuildWorkdir string
