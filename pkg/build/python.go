@@ -6,6 +6,7 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/MakeNowJust/heredoc"
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/fsx"
 	"github.com/pkg/errors"
@@ -33,17 +34,17 @@ func python(root string, args api.KindOptions) (string, error) {
 		return "", err
 	}
 
-	const dockerfile = `
-FROM {{ .Base }}
-WORKDIR /airplane
-RUN mkdir -p .airplane && {{.InlineShim}} > .airplane/shim.py
-{{if .HasRequirements}}
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-{{end}}
-COPY . .
-ENTRYPOINT ["python", ".airplane/shim.py"]
-`
+	dockerfile := heredoc.Doc(`
+		FROM {{ .Base }}
+		WORKDIR /airplane
+		RUN mkdir -p .airplane && {{.InlineShim}} > .airplane/shim.py
+		{{if .HasRequirements}}
+		COPY requirements.txt .
+		RUN pip install -r requirements.txt
+		{{end}}
+		COPY . .
+		ENTRYPOINT ["python", ".airplane/shim.py"]
+	`)
 
 	df, err := applyTemplate(dockerfile, struct {
 		Base            string
@@ -90,16 +91,16 @@ func pythonLegacy(root string, args api.KindOptions) (string, error) {
 		return "", err
 	}
 
-	t, err := template.New("python").Parse(`
-FROM {{ .Base }}
-WORKDIR /airplane
-{{if not .HasRequirements}}
-RUN echo > requirements.txt
-{{end}}
-COPY . .
-RUN pip install -r requirements.txt
-ENTRYPOINT ["python", "/airplane/{{ .Entrypoint }}"]
-`)
+	t, err := template.New("python").Parse(heredoc.Doc(`
+		FROM {{ .Base }}
+		WORKDIR /airplane
+		{{if not .HasRequirements}}
+		RUN echo > requirements.txt
+		{{end}}
+		COPY . .
+		RUN pip install -r requirements.txt
+		ENTRYPOINT ["python", "/airplane/{{ .Entrypoint }}"]
+	`))
 	if err != nil {
 		return "", err
 	}
