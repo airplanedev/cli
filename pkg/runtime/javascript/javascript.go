@@ -116,7 +116,7 @@ func (r Runtime) FormatComment(s string) string {
 
 func (r Runtime) PrepareRun(ctx context.Context, opts runtime.PrepareRunOptions) ([]string, error) {
 	checkNodeVersion(ctx, opts.KindOptions)
-	tscGlobal, err := checkTscInstalled(ctx)
+	isTscNpx, err := checkTscInstalled(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -162,10 +162,10 @@ func (r Runtime) PrepareRun(ctx context.Context, opts runtime.PrepareRunOptions)
 
 	start := time.Now()
 	var cmd *exec.Cmd
-	if tscGlobal {
-		cmd = exec.CommandContext(ctx, "tsc", build.NodeTscArgs(".", opts.KindOptions)...)
-	} else {
+	if isTscNpx {
 		cmd = exec.CommandContext(ctx, "npx", append([]string{"-p", "typescript", "--no", "tsc", "--"}, build.NodeTscArgs(".", opts.KindOptions)...)...)
+	} else {
+		cmd = exec.CommandContext(ctx, "tsc", build.NodeTscArgs(".", opts.KindOptions)...)
 	}
 	cmd.Dir = root
 	logger.Debug("Running %s (in %s)", logger.Bold(strings.Join(cmd.Args, " ")), root)
@@ -219,7 +219,8 @@ func installShimDeps(ctx context.Context, root, path string) error {
 //
 // If not installed, it will auto-install tsc.
 //
-// Returns true if tsc is available locally and false if available globally.
+// Returns true if tsc is available through npx and false if available
+// on the user's PATH.
 func checkTscInstalled(ctx context.Context) (bool, error) {
 	// Check if the user has tsc installed in their local node_modules:
 	// note: --no will prevent installing typescript if not already installed.
