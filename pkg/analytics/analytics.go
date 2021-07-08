@@ -94,7 +94,9 @@ func Track(c *cli.Config, event string, properties map[string]interface{}) {
 		return
 	}
 	tok := c.ParseTokenForAnalytics()
-	props := analytics.NewProperties().Set("team_id", tok.TeamID)
+	props := analytics.NewProperties().
+		Set("team_id", tok.TeamID).
+		Set("cli_version", version.Get())
 	for k, v := range properties {
 		props = props.Set(k, v)
 	}
