@@ -158,11 +158,8 @@ func deployFromYaml(ctx context.Context, cfg config) (rErr error) {
 		return errors.Wrapf(err, "updating task %s", def.Slug)
 	}
 
+	// Leave off `-- [parameters]` for simplicity - user will get prompted.
 	cmd := fmt.Sprintf("airplane exec %s", def.Slug)
-	if len(def.Parameters) > 0 {
-		cmd += " -- [parameters]"
-	}
-
 	logger.Suggest(
 		"⚡ To execute the task from the CLI:",
 		cmd,
