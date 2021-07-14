@@ -147,7 +147,7 @@ func NodeTscArgs(root string, opts api.KindOptions) []string {
 	// https://github.com/tsconfig/bases/blob/master/bases/node16.json
 	tscTarget := "es2020"
 	tscLib := "es2020,dom"
-	if strings.HasPrefix(opts["nodeVersion"].(string), "12") {
+	if opts != nil && strings.HasPrefix(opts["nodeVersion"].(string), "12") {
 		tscTarget = "es2019"
 		tscLib = "es2019,dom"
 	}

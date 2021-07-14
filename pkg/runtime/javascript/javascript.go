@@ -116,7 +116,8 @@ func (r Runtime) FormatComment(s string) string {
 
 func (r Runtime) PrepareRun(ctx context.Context, opts runtime.PrepareRunOptions) ([]string, error) {
 	checkNodeVersion(ctx, opts.KindOptions)
-	if err := checkTscInstalled(ctx); err != nil {
+	isTscNpx, err := checkTscInstalled(ctx)
+	if err != nil {
 		return nil, err
 	}
 
@@ -160,7 +161,12 @@ func (r Runtime) PrepareRun(ctx context.Context, opts runtime.PrepareRunOptions)
 	}
 
 	start := time.Now()
-	cmd := exec.CommandContext(ctx, "npx", append([]string{"-p", "typescript", "--no", "tsc", "--"}, build.NodeTscArgs(".", opts.KindOptions)...)...)
+	var cmd *exec.Cmd
+	if isTscNpx {
+		cmd = exec.CommandContext(ctx, "npx", append([]string{"-p", "typescript", "--no", "tsc", "--"}, build.NodeTscArgs(".", opts.KindOptions)...)...)
+	} else {
+		cmd = exec.CommandContext(ctx, "tsc", build.NodeTscArgs(".", opts.KindOptions)...)
+	}
 	cmd.Dir = root
 	logger.Debug("Running %s (in %s)", logger.Bold(strings.Join(cmd.Args, " ")), root)
 	out, err := cmd.CombinedOutput()
@@ -209,38 +215,53 @@ func installShimDeps(ctx context.Context, root, path string) error {
 	return nil
 }
 
-// checkTscInstalled will verify that the Typescript CLI is installed
-// and confirm with the user if they are okay with us auto-installing it.
-func checkTscInstalled(ctx context.Context) error {
+// checkTscInstalled will verify that the Typescript CLI is installed.
+//
+// If not installed, it will auto-install tsc.
+//
+// Returns true if tsc is available through npx and false if available
+// on the user's PATH.
+func checkTscInstalled(ctx context.Context) (bool, error) {
+	// Check if the user has tsc installed in their local node_modules:
 	// note: --no will prevent installing typescript if not already installed.
 	cmd := exec.CommandContext(ctx, "npx", "-p", "typescript", "--no", "tsc", "--", "--version")
 	logger.Debug("Running %s", logger.Bold(strings.Join(cmd.Args, " ")))
 	if out, err := cmd.CombinedOutput(); err == nil {
 		logger.Debug("TypeScript version: %s", strings.TrimPrefix(strings.TrimSpace(string(out)), "Version "))
 		// tsc is installed, return early
-		return nil
+		return true, nil
+	}
+
+	// Otherwise, try and see if they have it installed globally.
+	cmd = exec.CommandContext(ctx, "tsc", "--version")
+	logger.Debug("Running %s", logger.Bold(strings.Join(cmd.Args, " ")))
+	if out, err := cmd.CombinedOutput(); err == nil {
+		logger.Debug("TypeScript version: %s", strings.TrimPrefix(strings.TrimSpace(string(out)), "Version "))
+		// tsc is installed, return early
+		return false, nil
 	}
 
 	// Typescript is not installed. Confirm with the user if they are
 	// okay with installing it.
-	cmd = exec.CommandContext(ctx, "npx", "-p", "typescript", "--yes", "tsc", "--version")
+	cmd = exec.CommandContext(ctx, "npm", "install", "--global", "typescript")
 	if utils.CanPrompt() {
 		logger.Log("Airplane needs to run %s to install the TypeScript CLI.", logger.Bold(strings.Join(cmd.Args, " ")))
 		confirmed, err := utils.Confirm("Run now?")
 		if err != nil {
-			return err
+			return false, err
 		}
 		if !confirmed {
-			return errors.New("unable to run without the TypeScript CLI")
+			return false, errors.New("unable to run without the TypeScript CLI")
 		}
 	}
 
 	logger.Debug("Running %s", logger.Bold(strings.Join(cmd.Args, " ")))
 	if err := cmd.Run(); err != nil {
-		return errors.Wrap(err, "installing tsc")
+		return false, errors.Wrap(err, "installing tsc")
 	}
 
-	return nil
+	// Since we installed tsc globally, return false.
+	return false, nil
 }
 
 // checkNodeVersion compares the major version of the currently installed
