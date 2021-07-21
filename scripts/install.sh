@@ -19,7 +19,7 @@ else
     download_uri="https://github.com/airplanedev/cli/releases/download/${1}/airplane_${target}.tar.gz"
 fi
 
-airplane_install="${AIRPLANE_INSTALL:-/usr/local}"
+airplane_install="${AIRPLANE_INSTALL:-$HOME/.airplane}"
 bin_dir="$airplane_install/bin"
 exe="$bin_dir/airplane"
 
