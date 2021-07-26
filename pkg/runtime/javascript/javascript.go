@@ -63,7 +63,8 @@ func (r Runtime) Workdir(path string) (string, error) {
 		return p, nil
 	}
 
-	return "", errors.New("a package.json could not be found")
+	// Otherwise default to immediate directory of path
+	return filepath.Dir(path), nil
 }
 
 // Root picks which directory to use as the root of a task's code.
@@ -83,8 +84,14 @@ func (r Runtime) Root(path string) (string, error) {
 	pkgjson := filepath.Join(root, "package.json")
 	buf, err := os.ReadFile(pkgjson)
 	if err != nil {
+		// No package.json, use workdir as root.
+		if os.IsNotExist(err) {
+			logger.Debug("no package.json found")
+			return root, nil
+		}
 		return "", errors.Wrapf(err, "javascript: reading %s", pkgjson)
 	}
+	logger.Debug("found package.json at %s", pkgjson)
 
 	var pkg struct {
 		Settings runtime.Settings `json:"airplane"`
