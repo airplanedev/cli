@@ -43,7 +43,7 @@ type UpdateTaskRequest struct {
 	Kind                       TaskKind          `json:"kind" yaml:"builder"`
 	KindOptions                KindOptions       `json:"kindOptions" yaml:"builderConfig"`
 	Repo                       string            `json:"repo" yaml:"repo"`
-	RequireExplicitPermissions bool              `json:"requireExplicitPermissions"`
+	RequireExplicitPermissions bool              `json:"requireExplicitPermissions" yaml:"-"`
 	Permissions                Permissions       `json:"permissions" yaml:"-"`
 	// TODO(amir): friendly type here (120s, 5m ...)
 	Timeout int `json:"timeout" yaml:"timeout"`
