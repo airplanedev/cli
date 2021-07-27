@@ -121,21 +121,23 @@ func deployFromScript(ctx context.Context, cfg config) (rErr error) {
 	props.buildID = resp.BuildID
 
 	_, err = client.UpdateTask(ctx, api.UpdateTaskRequest{
-		Slug:             def.Slug,
-		Name:             def.Name,
-		Description:      def.Description,
-		Image:            &resp.ImageURL,
-		Command:          []string{},
-		Arguments:        def.Arguments,
-		Parameters:       def.Parameters,
-		Constraints:      def.Constraints,
-		Env:              def.Env,
-		ResourceRequests: def.ResourceRequests,
-		Resources:        def.Resources,
-		Kind:             kind,
-		KindOptions:      kindOptions,
-		Repo:             def.Repo,
-		Timeout:          def.Timeout,
+		Slug:                       def.Slug,
+		Name:                       def.Name,
+		Description:                def.Description,
+		Image:                      &resp.ImageURL,
+		Command:                    []string{},
+		Arguments:                  def.Arguments,
+		Parameters:                 def.Parameters,
+		Constraints:                def.Constraints,
+		Env:                        def.Env,
+		ResourceRequests:           def.ResourceRequests,
+		Resources:                  def.Resources,
+		Kind:                       kind,
+		KindOptions:                kindOptions,
+		Repo:                       def.Repo,
+		RequireExplicitPermissions: task.RequireExplicitPermissions,
+		Permissions:                task.Permissions,
+		Timeout:                    def.Timeout,
 	})
 	if err != nil {
 		return err

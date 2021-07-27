@@ -138,21 +138,23 @@ func deployFromYaml(ctx context.Context, cfg config) (rErr error) {
 	}
 
 	_, err = client.UpdateTask(ctx, api.UpdateTaskRequest{
-		Slug:             def.Slug,
-		Name:             def.Name,
-		Description:      def.Description,
-		Image:            image,
-		Command:          command,
-		Arguments:        def.Arguments,
-		Parameters:       def.Parameters,
-		Constraints:      def.Constraints,
-		Env:              def.Env,
-		ResourceRequests: def.ResourceRequests,
-		Resources:        resources,
-		Kind:             kind,
-		KindOptions:      kindOptions,
-		Repo:             def.Repo,
-		Timeout:          def.Timeout,
+		Slug:                       def.Slug,
+		Name:                       def.Name,
+		Description:                def.Description,
+		Image:                      image,
+		Command:                    command,
+		Arguments:                  def.Arguments,
+		Parameters:                 def.Parameters,
+		Constraints:                def.Constraints,
+		Env:                        def.Env,
+		ResourceRequests:           def.ResourceRequests,
+		Resources:                  resources,
+		Kind:                       kind,
+		KindOptions:                kindOptions,
+		Repo:                       def.Repo,
+		RequireExplicitPermissions: task.RequireExplicitPermissions,
+		Permissions:                task.Permissions,
+		Timeout:                    def.Timeout,
 	})
 	if err != nil {
 		return errors.Wrapf(err, "updating task %s", def.Slug)
