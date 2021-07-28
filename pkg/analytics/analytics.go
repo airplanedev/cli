@@ -20,6 +20,7 @@ var (
 )
 
 func Init(cfg *cli.Config) error {
+	logger.Debug("huh??")
 	c, err := conf.ReadDefault()
 	if err != nil {
 		return err
@@ -49,11 +50,19 @@ func Init(cfg *cli.Config) error {
 	if err != nil {
 		return err
 	}
-	return sentry.Init(sentry.ClientOptions{
+	if err := sentry.Init(sentry.ClientOptions{
 		Dsn:     sentryDSN,
 		Debug:   cfg.DebugMode,
 		Release: version.Get(),
+	}); err != nil {
+		return err
+	}
+	tok := cfg.ParseTokenForAnalytics()
+	sentry.ConfigureScope(func(scope *sentry.Scope) {
+		scope.SetUser(sentry.User{ID: tok.UserID})
+		scope.SetTag("team_id", tok.TeamID)
 	})
+	return nil
 }
 
 func telemetryOptIn(c conf.Config) error {
