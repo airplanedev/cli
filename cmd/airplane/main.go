@@ -10,7 +10,6 @@ import (
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/trap"
 	"github.com/airplanedev/cli/pkg/utils"
-	"github.com/getsentry/sentry-go"
 	"github.com/pkg/errors"
 	_ "github.com/segmentio/events/v2/text"
 )
@@ -42,10 +41,7 @@ func main() {
 		}
 		logger.Log("")
 
-		sentryID := sentry.CaptureException(err)
-		if sentryID != nil {
-			logger.Debug("Sentry event ID: %s", *sentryID)
-		}
+		analytics.ReportError(err)
 
 		analytics.Close()
 		os.Exit(1)
