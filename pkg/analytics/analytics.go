@@ -20,7 +20,6 @@ var (
 )
 
 func Init(cfg *cli.Config) error {
-	logger.Debug("huh??")
 	c, err := conf.ReadDefault()
 	if err != nil {
 		return err
