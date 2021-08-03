@@ -68,6 +68,7 @@ const (
 	TaskKindImage      TaskKind = "image"
 	TaskKindNode       TaskKind = "node"
 	TaskKindPython     TaskKind = "python"
+	TaskKindShell      TaskKind = "shell"
 
 	TaskKindSQL  TaskKind = "sql"
 	TaskKindREST TaskKind = "rest"

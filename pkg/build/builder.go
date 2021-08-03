@@ -277,6 +277,7 @@ const (
 	NamePython     Name = "python"
 	NameNode       Name = "node"
 	NameDockerfile Name = "dockerfile"
+	NameShell      Name = "shell"
 )
 
 func NeedsBuilding(kind api.TaskKind) bool {
@@ -300,6 +301,8 @@ func BuildDockerfile(c DockerfileConfig) (string, error) {
 		return node(c.Root, c.Options)
 	case NameDockerfile:
 		return dockerfile(c.Root, c.Options)
+	case NameShell:
+		return shell(c.Root, c.Options)
 	default:
 		return "", errors.Errorf("build: unknown builder type %q", c.Builder)
 	}

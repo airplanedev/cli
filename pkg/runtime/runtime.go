@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 
 	"github.com/airplanedev/cli/pkg/api"
+	"github.com/airplanedev/cli/pkg/logger"
 )
 
 var (
@@ -102,6 +103,7 @@ func Register(ext string, r Interface) {
 		panic(fmt.Sprintf("runtime: %s already registered", ext))
 	}
 	runtimes[ext] = r
+	logger.Debug("registered runtime for %s", ext)
 }
 
 // Lookup returns a runtime by path.

@@ -166,6 +166,8 @@ func setEntrypoint(d *definitions.Definition, ep string) {
 		d.Node.Entrypoint = ep
 	case api.TaskKindPython:
 		d.Python.Entrypoint = ep
+	case api.TaskKindShell:
+		d.Shell.Entrypoint = ep
 	default:
 		panic(fmt.Sprintf("setEntrypoint received unexpected kind %q", kind))
 	}
