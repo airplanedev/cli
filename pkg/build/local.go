@@ -21,15 +21,9 @@ func local(ctx context.Context, req Request) (*Response, error) {
 		return nil, err
 	}
 
-	var kind api.TaskKind
-	var options api.KindOptions
-	if req.APIVersion() == "v2" {
-		kind = req.BuildConfig.Kind
-	} else {
-		kind, options, err = req.Def.GetKindAndOptions()
-		if err != nil {
-			return nil, err
-		}
+	kind, options, err := req.Def.GetKindAndOptions()
+	if err != nil {
+		return nil, err
 	}
 
 	if req.Shim {
@@ -39,7 +33,6 @@ func local(ctx context.Context, req Request) (*Response, error) {
 	b, err := New(LocalConfig{
 		Root:    req.Root,
 		Builder: string(kind),
-		Config:  req.BuildConfig,
 		Options: options,
 		Auth: &RegistryAuth{
 			Token: registry.Token,

@@ -47,9 +47,6 @@ type LocalConfig struct {
 	// If empty, it assumes the "image" builder.
 	Builder string
 
-	// New replacement
-	Config api.BuildConfig
-
 	// Options are the build arguments to use.
 	//
 	// When nil, it uses an empty map of options.
@@ -65,17 +62,15 @@ type LocalConfig struct {
 }
 
 type DockerfileConfig struct {
-	Builder     string
-	Root        string
-	Options     api.KindOptions
-	BuildConfig api.BuildConfig
+	Builder string
+	Root    string
+	Options api.KindOptions
 }
 
 // Builder implements an image builder.
 type Builder struct {
 	root     string
 	name     string
-	config   api.BuildConfig
 	options  api.KindOptions
 	auth     *RegistryAuth
 	buildEnv map[string]string
@@ -84,7 +79,7 @@ type Builder struct {
 
 // New returns a new local builder with c.
 func New(c LocalConfig) (*Builder, error) {
-	if c.Config.Kind == "" && !filepath.IsAbs(c.Root) {
+	if !filepath.IsAbs(c.Root) {
 		return nil, fmt.Errorf("build: expected an absolute root path, got %q", c.Root)
 	}
 
@@ -111,7 +106,6 @@ func New(c LocalConfig) (*Builder, error) {
 	return &Builder{
 		root:     c.Root,
 		name:     c.Builder,
-		config:   c.Config,
 		options:  c.Options,
 		auth:     c.Auth,
 		buildEnv: c.BuildEnv,
@@ -145,10 +139,9 @@ func (b *Builder) Build(ctx context.Context, taskID, version string) (*Response,
 	defer tree.Close()
 
 	dockerfile, err := BuildDockerfile(DockerfileConfig{
-		Builder:     b.name,
-		Root:        b.root,
-		Options:     b.options,
-		BuildConfig: b.config,
+		Builder: b.name,
+		Root:    b.root,
+		Options: b.options,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "creating dockerfile")
@@ -295,7 +288,6 @@ func NeedsBuilding(kind api.TaskKind) bool {
 	}
 }
 
-// BuildDockerfile generates the dockerfile string
 func BuildDockerfile(c DockerfileConfig) (string, error) {
 	switch Name(c.Builder) {
 	case NameGo:
@@ -307,7 +299,7 @@ func BuildDockerfile(c DockerfileConfig) (string, error) {
 	case NameNode:
 		return node(c.Root, c.Options)
 	case NameDockerfile:
-		return dockerfile(c.Root, c.BuildConfig, c.Options)
+		return dockerfile(c.Root, c.Options)
 	default:
 		return "", errors.Errorf("build: unknown builder type %q", c.Builder)
 	}

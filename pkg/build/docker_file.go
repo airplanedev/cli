@@ -9,13 +9,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-func dockerfile(root string, buildConfig api.BuildConfig, options api.KindOptions) (string, error) {
-	var dockerfile string
-	if buildConfig.Kind != "" {
-		dockerfile = buildConfig.Dockerfile
-	} else {
-		dockerfile, _ = options["dockerfile"].(string)
-	}
+func dockerfile(root string, options api.KindOptions) (string, error) {
+	dockerfile, _ := options["dockerfile"].(string)
 	dockerfilePath := filepath.Join(root, dockerfile)
 	if err := fsx.AssertExistsAll(dockerfilePath); err != nil {
 		return "", err

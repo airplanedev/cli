@@ -3,7 +3,6 @@ package deploy
 import (
 	"context"
 	"path/filepath"
-	"strings"
 
 	"github.com/MakeNowJust/heredoc"
 	"github.com/airplanedev/cli/pkg/api"
@@ -74,12 +73,6 @@ type taskDeployedProps struct {
 
 func run(ctx context.Context, cfg config) error {
 	ext := filepath.Ext(cfg.file)
-
-	if strings.HasSuffix(strings.ToLower(cfg.file), ".task.json") ||
-		strings.HasSuffix(strings.ToLower(cfg.file), ".task.yaml") ||
-		strings.HasSuffix(strings.ToLower(cfg.file), ".task.yml") {
-		return deployFromTaskYAML(ctx, cfg)
-	}
 
 	if ext == ".yml" || ext == ".yaml" {
 		return deployFromYaml(ctx, cfg)

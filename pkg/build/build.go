@@ -12,26 +12,13 @@ import (
 
 // Request represents a build request.
 type Request struct {
-	Local       bool
-	Client      *api.Client
-	TaskID      string
-	BuildConfig api.BuildConfig
-	TaskEnv     api.TaskEnv
-
-	// TODO: delete these fields
-	Root string
-	Def  definitions.Definition
-	Shim bool
-}
-
-func (r Request) APIVersion() string {
-	if r.BuildConfig.Kind != "" {
-		return "v3"
-	}
-	if r.Shim {
-		return "v2"
-	}
-	return "v1"
+	Local   bool
+	Client  *api.Client
+	Root    string
+	Def     definitions.Definition
+	TaskID  string
+	TaskEnv api.TaskEnv
+	Shim    bool
 }
 
 // Response represents a build response.
