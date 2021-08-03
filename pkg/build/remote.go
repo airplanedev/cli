@@ -21,12 +21,15 @@ import (
 )
 
 func remote(ctx context.Context, req Request) (*Response, error) {
+	newBuildAPI := req.BuildConfig.Kind != ""
 	buildLog(api.LogLevelInfo, logger.Gray("Building with %s as root...", relpath(req.Root)))
 
-	// Before performing a remote build, we must first update kind/kindOptions
-	// since the remote build relies on pulling those from the tasks table (for now).
-	if err := updateKindAndOptions(ctx, req.Client, req.Def, req.Shim); err != nil {
-		return nil, err
+	if !newBuildAPI {
+		// Before performing a remote build, we must first update kind/kindOptions
+		// since the remote build relies on pulling those from the tasks table (for now).
+		if err := updateKindAndOptions(ctx, req.Client, req.Def, req.Shim); err != nil {
+			return nil, err
+		}
 	}
 
 	buildLog(api.LogLevelInfo, logger.Gray("Authenticating with Airplane..."))
@@ -42,6 +45,9 @@ func remote(ctx context.Context, req Request) (*Response, error) {
 	defer os.RemoveAll(tmpdir)
 
 	archivePath := path.Join(tmpdir, "archive.tar.gz")
+	if req.Root == "" {
+		return nil, errors.New("root is empty")
+	}
 	if err := archiveTaskDir(req.Def, req.Root, archivePath); err != nil {
 		return nil, err
 	}
@@ -55,6 +61,7 @@ func remote(ctx context.Context, req Request) (*Response, error) {
 		TaskID:         req.TaskID,
 		SourceUploadID: uploadID,
 		Env:            req.TaskEnv,
+		BuildConfig:    req.BuildConfig,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "creating build")

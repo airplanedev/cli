@@ -1,9 +1,11 @@
 package api
 
 import (
+	"database/sql/driver"
 	"encoding/json"
 	"time"
 
+	"github.com/pkg/errors"
 	"gopkg.in/yaml.v3"
 )
 
@@ -421,10 +423,35 @@ type GetBuildResponse struct {
 	Build Build `json:"build"`
 }
 
+type BuildConfig struct {
+	Kind       TaskKind `json:"kind" yaml:"kind"`
+	Slug       string   `json:"slug" yaml:"slug"`
+	Entrypoint string   `json:"entrypoint" yaml:"entrypoint"`
+
+	Root    string `json:"root" yaml:"root"`
+	Workdir string `json:"workdir" yaml:"workdir"`
+
+	Dockerfile string   `json:"dockerfile" yaml:"dockerfile"`
+	Command    []string `json:"command" yaml:"command"`
+}
+
+func (this BuildConfig) Value() (driver.Value, error) {
+	return json.Marshal(this)
+}
+
+func (this *BuildConfig) Scan(src interface{}) error {
+	source, ok := src.([]byte)
+	if !ok {
+		return errors.New("Type assertion .([]byte) failed")
+	}
+	return json.Unmarshal(source, this)
+}
+
 type CreateBuildRequest struct {
-	TaskID         string  `json:"taskID"`
-	SourceUploadID string  `json:"sourceUploadID"`
-	Env            TaskEnv `json:"env"`
+	TaskID         string      `json:"taskID"`
+	SourceUploadID string      `json:"sourceUploadID"`
+	Env            TaskEnv     `json:"env"`
+	BuildConfig    BuildConfig `json:"buildConfig"`
 }
 
 type CreateBuildResponse struct {
