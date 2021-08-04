@@ -42,6 +42,10 @@ func deployFromScript(ctx context.Context, cfg config) (rErr error) {
 		return errors.New("cannot deploy a file without extension")
 	}
 
+	// TODO: replace this with a call that:
+	// Looks up cfg.file, and if it's js/ts/py/sh do the original thing
+	// But if it's .task.yaml/jml/json, allow it to override things
+	// And...set options?
 	r, ok := runtime.Lookup(cfg.file)
 	if !ok {
 		return errors.Errorf("cannot deploy a file with extension of %q", ext)

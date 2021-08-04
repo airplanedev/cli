@@ -73,9 +73,6 @@ type taskDeployedProps struct {
 
 func run(ctx context.Context, cfg config) error {
 	ext := filepath.Ext(cfg.file)
-	if ext == ".sh" {
-		return deployFromNewConfig(ctx, cfg)
-	}
 
 	if ext == ".yml" || ext == ".yaml" {
 		return deployFromYaml(ctx, cfg)
