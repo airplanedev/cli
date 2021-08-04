@@ -36,6 +36,13 @@ func python(root string, args api.KindOptions) (string, error) {
 
 	dockerfile := heredoc.Doc(`
 		FROM {{ .Base }}
+
+		# Install common OS dependencies
+		RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
+			&& apt-get -y install --no-install-recommends \
+				libmemcached-dev \
+			&& apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
+
 		WORKDIR /airplane
 		RUN mkdir -p .airplane && {{.InlineShim}} > .airplane/shim.py
 		{{if .HasRequirements}}
