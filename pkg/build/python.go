@@ -36,7 +36,6 @@ func python(root string, args api.KindOptions) (string, error) {
 
 	dockerfile := heredoc.Doc(`
 		FROM {{ .Base }}
-
 		WORKDIR /airplane
 		RUN mkdir -p .airplane && {{.InlineShim}} > .airplane/shim.py
 		{{if .HasRequirements}}
