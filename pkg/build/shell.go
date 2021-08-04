@@ -8,7 +8,6 @@ import (
 	"github.com/MakeNowJust/heredoc"
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/fsx"
-	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/pkg/errors"
 )
 
@@ -31,8 +30,6 @@ func shell(root string, options api.KindOptions) (string, error) {
 	}
 	var dockerfileTemplate string
 	if dockerfile == "" {
-		logger.Log("No Dockerfile file found in root, using basic ubuntu image")
-		logger.Log("To use your own Dockerfile, place one at %s", filepath.Join(root, "Dockerfile"))
 		dockerfileTemplate = heredoc.Doc(`
 			FROM ubuntu:21.04
 			# Install some common libraries
@@ -64,7 +61,6 @@ func shell(root string, options api.KindOptions) (string, error) {
 				&& apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 		`)
 	} else {
-		logger.Log("Using Dockerfile at %s to build base image for shell script", dockerfile)
 		dockerfilePath := filepath.Join(root, dockerfile)
 		if err := fsx.AssertExistsAll(dockerfilePath); err != nil {
 			return "", err

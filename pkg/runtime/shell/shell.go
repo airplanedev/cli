@@ -10,6 +10,7 @@ import (
 
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/fsx"
+	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/runtime"
 	"github.com/pkg/errors"
 )
@@ -63,8 +64,11 @@ func (r Runtime) Workdir(path string) (string, error) {
 func (r Runtime) Root(path string) (string, error) {
 	root, ok := fsx.Find(path, "Dockerfile")
 	if !ok {
+		logger.Log("No Dockerfile file found - using a basic Ubuntu image")
+		logger.Log("To build an environment with your own Dockerfile, write one at\n  %s", filepath.Join(root, "Dockerfile"))
 		return filepath.Dir(path), nil
 	}
+	logger.Log("Using Dockerfile at %s to build the script environment", filepath.Join(root, "Dockerfile"))
 	return root, nil
 }
 
