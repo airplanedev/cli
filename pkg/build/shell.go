@@ -25,19 +25,15 @@ func shell(root string, options api.KindOptions) (string, error) {
 	}
 
 	// Build off of the dockerfile if provided:
-	var baseDockerfile string
-	dockerfile, _ := options["dockerfile"].(string)
-	// TOOD: should discovery already happen by the time we get options?
-	if dockerfile == "" {
-		// See if we can autodiscover a dockerfile in the root
-		if fsx.Exists(filepath.Join(root, "Dockerfile")) {
-			dockerfile = "Dockerfile"
-		}
+	var dockerfile string
+	if fsx.Exists(filepath.Join(root, "Dockerfile")) {
+		dockerfile = "Dockerfile"
 	}
+	var dockerfileTemplate string
 	if dockerfile == "" {
 		logger.Log("No Dockerfile file found in root, using basic ubuntu image")
 		logger.Log("To use your own Dockerfile, place one at %s", filepath.Join(root, "Dockerfile"))
-		baseDockerfile = heredoc.Doc(`
+		dockerfileTemplate = heredoc.Doc(`
 			FROM ubuntu:21.04
 			# Install some common libraries
 			RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
@@ -77,10 +73,11 @@ func shell(root string, options api.KindOptions) (string, error) {
 		if err != nil {
 			return "", errors.Wrap(err, "opening dockerfile")
 		}
-		baseDockerfile = string(contents)
+		dockerfileTemplate = string(contents)
 	}
 
-	dfTemplate := baseDockerfile + heredoc.Doc(`
+	// Extend template with our own logic - set up a WORKDIR and shim.
+	dockerfileTemplate = dockerfileTemplate + heredoc.Doc(`
 		WORKDIR /airplane
 		RUN mkdir -p .airplane && {{.InlineShim}} > .airplane/shim.sh
 		
@@ -89,18 +86,13 @@ func shell(root string, options api.KindOptions) (string, error) {
 		
 		ENTRYPOINT ["bash", ".airplane/shim.sh"]
 	`)
-	df, err := applyTemplate(dfTemplate, struct {
+	return applyTemplate(dockerfileTemplate, struct {
 		InlineShim string
 		Entrypoint string
 	}{
 		InlineShim: inlineString(shim),
 		Entrypoint: entrypoint,
 	})
-	if err != nil {
-		return "", err
-	}
-
-	return df, nil
 }
 
 //go:embed shell-shim.sh

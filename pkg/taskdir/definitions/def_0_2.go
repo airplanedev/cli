@@ -67,7 +67,6 @@ type PythonDefinition struct {
 }
 
 type ShellDefinition struct {
-	Dockerfile string `yaml:"dockerfile" mapstructure:"dockerfile"`
 	Entrypoint string `yaml:"entrypoint" mapstructure:"entrypoint"`
 }
 
