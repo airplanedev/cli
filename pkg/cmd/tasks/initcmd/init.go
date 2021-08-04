@@ -104,6 +104,7 @@ func run(ctx context.Context, cfg config) error {
 			return nil
 		}
 
+		// TODO: fix this, this should put it under a shebang
 		logger.Step("Linking %s to %s", cfg.file, cfg.slug)
 		code := []byte(runtime.Comment(r, task))
 		code = append(code, '\n', '\n')

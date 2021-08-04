@@ -148,7 +148,8 @@ func (b *Builder) Build(ctx context.Context, taskID, version string) (*Response,
 	}
 	logger.Debug(strings.TrimSpace(dockerfile))
 
-	if err := tree.Write("Dockerfile", strings.NewReader(dockerfile)); err != nil {
+	dockerfilePath := "Dockerfile.airplane"
+	if err := tree.Write(dockerfilePath, strings.NewReader(dockerfile)); err != nil {
 		return nil, errors.Wrap(err, "writing dockerfile")
 	}
 
@@ -169,6 +170,7 @@ func (b *Builder) Build(ctx context.Context, taskID, version string) (*Response,
 	}
 
 	opts := types.ImageBuildOptions{
+		Dockerfile:  dockerfilePath,
 		Tags:        []string{uri},
 		BuildArgs:   buildArgs,
 		Platform:    "linux/amd64",
