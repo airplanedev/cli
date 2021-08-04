@@ -14,6 +14,9 @@ import (
 func shell(root string, options api.KindOptions) (string, error) {
 	// Assert that the entrypoint file exists:
 	entrypoint, _ := options["entrypoint"].(string)
+	if entrypoint == "" {
+		return "", errors.New("entrypoint is unexpectedly missing")
+	}
 	if err := fsx.AssertExistsAll(filepath.Join(root, entrypoint)); err != nil {
 		return "", err
 	}
