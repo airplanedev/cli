@@ -24,12 +24,14 @@ func shell(root string, options api.KindOptions) (string, error) {
 	}
 
 	// Build off of the dockerfile if provided:
-	var dockerfile string
-	if fsx.Exists(filepath.Join(root, "Dockerfile")) {
-		dockerfile = "Dockerfile"
-	}
 	var dockerfileTemplate string
-	if dockerfile == "" {
+	if dockerfilePath := filepath.Join(root, "Dockerfile"); fsx.Exists(dockerfilePath) {
+		contents, err := ioutil.ReadFile(dockerfilePath)
+		if err != nil {
+			return "", errors.Wrap(err, "opening dockerfile")
+		}
+		dockerfileTemplate = string(contents)
+	} else {
 		dockerfileTemplate = heredoc.Doc(`
 			FROM ubuntu:21.04
 			# Install some common libraries
@@ -60,16 +62,6 @@ func shell(root string, options api.KindOptions) (string, error) {
 					strace \
 				&& apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 		`)
-	} else {
-		dockerfilePath := filepath.Join(root, dockerfile)
-		if err := fsx.AssertExistsAll(dockerfilePath); err != nil {
-			return "", err
-		}
-		contents, err := ioutil.ReadFile(dockerfilePath)
-		if err != nil {
-			return "", errors.Wrap(err, "opening dockerfile")
-		}
-		dockerfileTemplate = string(contents)
 	}
 
 	// Extend template with our own logic - set up a WORKDIR and shim.
