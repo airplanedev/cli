@@ -98,7 +98,7 @@ func (r Runtime) Generate(t api.Task) ([]byte, error) {
 	var buf bytes.Buffer
 
 	if err := code.Execute(&buf, args); err != nil {
-		return nil, fmt.Errorf("javascript: template execute - %w", err)
+		return nil, fmt.Errorf("python: template execute - %w", err)
 	}
 
 	return buf.Bytes(), nil
