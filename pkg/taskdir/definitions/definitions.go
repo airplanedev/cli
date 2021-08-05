@@ -61,6 +61,10 @@ func NewDefinitionFromTask(task api.Task) (Definition, error) {
 			def.Image.Image = *task.Image
 		}
 
+	} else if task.Kind == api.TaskKindShell {
+		def.Shell = &ShellDefinition{}
+		taskDef = &def.Shell
+
 	} else if task.Kind == api.TaskKindSQL {
 		def.SQL = &SQLDefinition{}
 		taskDef = &def.SQL
@@ -111,6 +115,11 @@ func (def Definition) GetKindAndOptions() (api.TaskKind, api.KindOptions, error)
 			return "", api.KindOptions{}, errors.Wrap(err, "decoding Python definition")
 		}
 		return api.TaskKindPython, options, nil
+	} else if def.Shell != nil {
+		if err := mapstructure.Decode(def.Shell, &options); err != nil {
+			return "", api.KindOptions{}, errors.Wrap(err, "decoding Shell definition")
+		}
+		return api.TaskKindShell, options, nil
 	} else if def.SQL != nil {
 		if err := mapstructure.Decode(def.SQL, &options); err != nil {
 			return "", api.KindOptions{}, errors.Wrap(err, "decoding SQL definition")

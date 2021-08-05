@@ -23,6 +23,7 @@ type Definition_0_2 struct {
 	Go         *GoDefinition         `yaml:"go,omitempty"`
 	Node       *NodeDefinition       `yaml:"node,omitempty"`
 	Python     *PythonDefinition     `yaml:"python,omitempty"`
+	Shell      *ShellDefinition      `yaml:"shell,omitempty"`
 
 	SQL  *SQLDefinition  `yaml:"sql,omitempty"`
 	REST *RESTDefinition `yaml:"rest,omitempty"`
@@ -62,6 +63,10 @@ type NodeDefinition struct {
 }
 
 type PythonDefinition struct {
+	Entrypoint string `yaml:"entrypoint" mapstructure:"entrypoint"`
+}
+
+type ShellDefinition struct {
 	Entrypoint string `yaml:"entrypoint" mapstructure:"entrypoint"`
 }
 

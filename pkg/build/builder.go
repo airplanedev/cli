@@ -148,7 +148,8 @@ func (b *Builder) Build(ctx context.Context, taskID, version string) (*Response,
 	}
 	logger.Debug(strings.TrimSpace(dockerfile))
 
-	if err := tree.Write("Dockerfile", strings.NewReader(dockerfile)); err != nil {
+	dockerfilePath := "Dockerfile.airplane"
+	if err := tree.Write(dockerfilePath, strings.NewReader(dockerfile)); err != nil {
 		return nil, errors.Wrap(err, "writing dockerfile")
 	}
 
@@ -169,6 +170,7 @@ func (b *Builder) Build(ctx context.Context, taskID, version string) (*Response,
 	}
 
 	opts := types.ImageBuildOptions{
+		Dockerfile:  dockerfilePath,
 		Tags:        []string{uri},
 		BuildArgs:   buildArgs,
 		Platform:    "linux/amd64",
@@ -277,6 +279,7 @@ const (
 	NamePython     Name = "python"
 	NameNode       Name = "node"
 	NameDockerfile Name = "dockerfile"
+	NameShell      Name = "shell"
 )
 
 func NeedsBuilding(kind api.TaskKind) bool {
@@ -300,6 +303,8 @@ func BuildDockerfile(c DockerfileConfig) (string, error) {
 		return node(c.Root, c.Options)
 	case NameDockerfile:
 		return dockerfile(c.Root, c.Options)
+	case NameShell:
+		return shell(c.Root, c.Options)
 	default:
 		return "", errors.Errorf("build: unknown builder type %q", c.Builder)
 	}
