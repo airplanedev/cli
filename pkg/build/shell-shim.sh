@@ -1,4 +1,14 @@
 #!/bin/bash
 
-# TODO: set up env vars - for each argument, split by first =, set AP_FIRST_PART=SECOND_PART
+# Params are based in as e.g. param_slug_1=value1, param_slug_2=value2
+# Export as environment varaibles, e.g. AP_PARAM_SLUG_1=value1, AP_PARAM_SLUG_2=value2
+for param in "$@"; do
+    param_slug="$(cut -d '=' -f 1 <<< "${param}")"
+    param_value="$(cut -d '=' -f 2 <<< "${param}")"
+    # Convert to uppercase
+    var_name="$(echo "PARAM_${param_slug}" | tr '[:lower:]' '[:upper:]')"
+    # Export env var
+    export "${var_name}"="${param_value}"
+done
+
 exec "{{ .Entrypoint }}"
