@@ -73,29 +73,22 @@ func (r Runtime) PrepareRun(ctx context.Context, opts runtime.PrepareRunOptions)
 		return nil, errors.Wrap(err, "serializing param values")
 	}
 
-	return []string{"python", filepath.Join(root, ".airplane/shim.py"), string(pv)}, nil
+	return []string{"python3", filepath.Join(root, ".airplane/shim.py"), string(pv)}, nil
 }
 
+// Checks for python3 binary, as per PEP 0394:
+// https://www.python.org/dev/peps/pep-0394/#recommendation
 func checkPythonInstalled(ctx context.Context) error {
-	cmd := exec.CommandContext(ctx, "python", "--version")
+	cmd := exec.CommandContext(ctx, "python3", "--version")
 	logger.Debug("Running %s", logger.Bold(strings.Join(cmd.Args, " ")))
-	out, err := cmd.CombinedOutput()
+	err := cmd.Run()
 	if err != nil {
 		return errors.New(heredoc.Doc(`
-		It looks like the Python CLI is not installed.
+		It looks like the python3 command is not installed.
 
-		You can install it from here: https://www.python.org/downloads
+		Ensure Python 3 is installed and the python3 command exists: https://www.python.org/downloads
 	`))
 	}
-
-	if strings.HasPrefix(string(out), "Python 2.") {
-		return errors.New(heredoc.Doc(`
-			Python 2 is not supported by Airplane.
-
-			To run Python tasks locally, you'll need to upgrade your local Python installation to Python 3.
-		`))
-	}
-
 	return nil
 }
 
@@ -105,7 +98,7 @@ func (r Runtime) Generate(t api.Task) ([]byte, error) {
 	var buf bytes.Buffer
 
 	if err := code.Execute(&buf, args); err != nil {
-		return nil, fmt.Errorf("javascript: template execute - %w", err)
+		return nil, fmt.Errorf("python: template execute - %w", err)
 	}
 
 	return buf.Bytes(), nil
