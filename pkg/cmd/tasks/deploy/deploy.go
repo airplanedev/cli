@@ -10,6 +10,7 @@ import (
 	"github.com/airplanedev/cli/pkg/cmd/auth/login"
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/utils"
+	"github.com/airplanedev/cli/pkg/version"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -72,6 +73,10 @@ type taskDeployedProps struct {
 }
 
 func run(ctx context.Context, cfg config) error {
+	if err := version.CheckLatest(ctx); err != nil {
+		return err
+	}
+
 	ext := filepath.Ext(cfg.file)
 
 	if ext == ".yml" || ext == ".yaml" {
