@@ -148,18 +148,22 @@ func (b *Builder) Build(ctx context.Context, taskID, version string) (*Response,
 	}
 	logger.Debug(strings.TrimSpace(dockerfile))
 
-	dockerfilePath := "Dockerfile.airplane"
+	dockerfilePath := ".airplane/Dockerfile"
+	logger.Debug("writing dockerfile to %s", dockerfilePath)
+	if err := tree.MkdirAll(filepath.Dir(dockerfilePath)); err != nil {
+		return nil, err
+	}
 	if err := tree.Write(dockerfilePath, strings.NewReader(dockerfile)); err != nil {
-		return nil, errors.Wrap(err, "writing dockerfile")
+		return nil, err
 	}
 
 	if err := tree.Copy(b.root); err != nil {
-		return nil, errors.Wrapf(err, "copy %q", b.root)
+		return nil, err
 	}
 
 	bc, err := tree.Archive()
 	if err != nil {
-		return nil, errors.Wrap(err, "archive tree")
+		return nil, err
 	}
 	defer bc.Close()
 
