@@ -79,7 +79,7 @@ func run(ctx context.Context, cfg config) error {
 	}
 
 	if task.Kind != r.Kind() {
-		return fmt.Errorf("cannot link %q to a %s task", cfg.file, r.Kind())
+		return fmt.Errorf("cannot link %q to a %s task", cfg.file, task.Kind)
 	}
 
 	if fsx.Exists(cfg.file) {
