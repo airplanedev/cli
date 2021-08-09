@@ -51,7 +51,7 @@ func (r Runtime) PrepareRun(ctx context.Context, opts runtime.PrepareRunOptions)
 	if dockerfilePath := build.FindDockerfile(root); dockerfilePath != "" {
 		logger.Warning("Found Dockerfile at %s.", dockerfilePath)
 		logger.Warning("`airplane dev` does not currently support running inside a Docker image.")
-		logger.Warning("The script will run inside your local machine environmetnn.")
+		logger.Warning("The script will run inside your local machine environment.")
 	}
 
 	if err := os.Mkdir(filepath.Join(root, ".airplane"), os.ModeDir|0777); err != nil && !os.IsExist(err) {
