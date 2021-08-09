@@ -109,7 +109,6 @@ func ShellShim(entrypoint string) (string, error) {
 func FindDockerfile(root string) string {
 	for _, filePath := range []string{
 		"Dockerfile.airplane",
-		".airplane/Dockerfile",
 		"Dockerfile",
 	} {
 		dockerfilePath := filepath.Join(root, filePath)
