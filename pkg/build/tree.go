@@ -51,11 +51,19 @@ func (t *Tree) Copy(src string) error {
 	return nil
 }
 
+// MkdirAll creates dir relative to root
+func (t *Tree) MkdirAll(dir string) error {
+	if err := os.MkdirAll(filepath.Join(t.root, dir), 0777); err != nil {
+		return errors.Wrap(err, "making directory")
+	}
+	return nil
+}
+
 // Write writes the given r into dst.
 func (t *Tree) Write(dst string, r io.Reader) error {
 	buf, err := ioutil.ReadAll(r)
 	if err != nil {
-		return errors.Wrap(err, "read")
+		return errors.Wrap(err, "write")
 	}
 
 	return ioutil.WriteFile(filepath.Join(t.root, dst), buf, 0600)
