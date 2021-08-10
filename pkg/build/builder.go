@@ -288,9 +288,13 @@ const (
 
 func NeedsBuilding(kind api.TaskKind) bool {
 	switch Name(kind) {
-	case NameGo, NameDeno, NamePython, NameNode, NameDockerfile:
+	case NameGo, NameDeno, NamePython, NameNode, NameDockerfile, NameShell:
 		return true
+	case NameImage:
+		return false
 	default:
+		// Unexpected, default to false:
+		logger.Debug("NeedsBuilding got unexpected kind %s, defaulting to false", kind)
 		return false
 	}
 }
