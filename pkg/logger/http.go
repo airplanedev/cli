@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/go-retryablehttp"
 )
 
-// HTTPLogger is a wrapper around the default logger that
+// HTTPLogger is a wrapper around the default debug logger that
 // can be used for HTTP requests via `hashicorp/go-retryablehttp`.
 type HTTPLogger struct{}
 
