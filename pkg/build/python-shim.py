@@ -5,19 +5,19 @@ import json
 import sys
 
 def run(args):
-    sys.path.append("{{.TaskRoot}}")
+    sys.path.append(r"{{.TaskRoot}}")
     
     if len(args) != 2:
         raise Exception("usage: python ./shim.py <args>")
 
-    spec = util.spec_from_file_location("mod.main", "{{ .Entrypoint }}")
+    spec = util.spec_from_file_location("mod.main", r"{{ .Entrypoint }}")
     mod = util.module_from_spec(spec)
     spec.loader.exec_module(mod)
 
     try:
         mod.main(json.loads(args[1]))
     except Exception as e:
-        raise Exception("executing {{.Entrypoint}}") from e
+        raise Exception(r"executing {{.Entrypoint}}") from e
 
 if __name__ == "__main__":
     run(sys.argv)
