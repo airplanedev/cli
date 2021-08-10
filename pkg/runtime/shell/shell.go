@@ -5,13 +5,16 @@ import (
 	"context"
 	"fmt"
 	"html/template"
+	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/airplanedev/cli/pkg/api"
+	"github.com/airplanedev/cli/pkg/build"
 	"github.com/airplanedev/cli/pkg/fsx"
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/runtime"
+	"github.com/aymerick/raymond"
 	"github.com/pkg/errors"
 )
 
@@ -40,7 +43,45 @@ type Runtime struct{}
 
 // PrepareRun implementation.
 func (r Runtime) PrepareRun(ctx context.Context, opts runtime.PrepareRunOptions) ([]string, error) {
-	return nil, errors.New("not supported")
+	root, err := r.Root(opts.Path)
+	if err != nil {
+		return nil, err
+	}
+
+	if dockerfilePath := build.FindDockerfile(root); dockerfilePath != "" {
+		logger.Warning("Found Dockerfile at %s.", dockerfilePath)
+		logger.Warning("`airplane dev` does not currently support running inside a Docker image.")
+		logger.Warning("The script will run inside your local machine environment.")
+	}
+
+	if err := os.Mkdir(filepath.Join(root, ".airplane"), os.ModeDir|0777); err != nil && !os.IsExist(err) {
+		return nil, errors.Wrap(err, "creating .airplane directory")
+	}
+
+	entrypoint, err := filepath.Rel(root, opts.Path)
+	if err != nil {
+		return nil, errors.Wrap(err, "entrypoint is not within the task root")
+	}
+	shim, err := build.ShellShim(entrypoint)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := os.WriteFile(filepath.Join(root, ".airplane/shim.sh"), []byte(shim), 0644); err != nil {
+		return nil, errors.Wrap(err, "writing shim file")
+	}
+
+	cmd := []string{"bash", filepath.Join(root, ".airplane/shim.sh")}
+	// TODO: this is a rough approximation of how interpolateParameters works in prod
+	for slug, _ := range opts.ParamValues {
+		tmpl := fmt.Sprintf("%s={{%s}}", slug, slug)
+		val, err := raymond.Render(tmpl, opts.ParamValues)
+		if err != nil {
+			return nil, errors.Wrap(err, "rendering shell command")
+		}
+		cmd = append(cmd, val)
+	}
+	return cmd, nil
 }
 
 // Generate implementation.
@@ -64,11 +105,8 @@ func (r Runtime) Workdir(path string) (string, error) {
 func (r Runtime) Root(path string) (string, error) {
 	root, ok := fsx.Find(path, "Dockerfile")
 	if !ok {
-		logger.Warning("No Dockerfile file found - using a basic Ubuntu image.")
-		logger.Log("To build a custom environment for your task, add a Dockerfile to the script directory (or any parent directory).")
 		return filepath.Dir(path), nil
 	}
-	logger.Log("Using Dockerfile at %s to build the script environment", filepath.Join(root, "Dockerfile"))
 	return root, nil
 }
 

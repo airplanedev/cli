@@ -28,7 +28,7 @@ func shell(root string, options api.KindOptions) (string, error) {
 
 	// Build off of the dockerfile if provided:
 	var dockerfileTemplate string
-	if dockerfilePath := filepath.Join(root, "Dockerfile"); fsx.Exists(dockerfilePath) {
+	if dockerfilePath := FindDockerfile(root); dockerfilePath != "" {
 		contents, err := ioutil.ReadFile(dockerfilePath)
 		if err != nil {
 			return "", errors.Wrap(err, "opening dockerfile")
@@ -102,4 +102,19 @@ func ShellShim(entrypoint string) (string, error) {
 	}
 
 	return shim, nil
+}
+
+// FindDockerfile looks for variants of supported Dockerfile locations and returns non-empty path
+// to the file, if found.
+func FindDockerfile(root string) string {
+	for _, filePath := range []string{
+		"Dockerfile.airplane",
+		"Dockerfile",
+	} {
+		dockerfilePath := filepath.Join(root, filePath)
+		if fsx.Exists(dockerfilePath) {
+			return dockerfilePath
+		}
+	}
+	return ""
 }
