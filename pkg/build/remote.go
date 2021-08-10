@@ -276,7 +276,8 @@ func confirmBuildRoot(root string) error {
 	} else if home != root {
 		return nil
 	}
-	logger.Warning("This task's root is your home directory–deploying will attempt to upload the entire directory.")
+	logger.Warning("This task's root is your home directory — deploying will attempt to upload the entire directory.")
+	logger.Warning("Consider moving your task entrypoint to a subdirectory.")
 	if ok, err := utils.Confirm("Are you sure?"); err != nil {
 		return err
 	} else if !ok {
