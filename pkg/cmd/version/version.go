@@ -30,5 +30,9 @@ func Version() string {
 func run(ctx context.Context) error {
 	logger.Log(Version())
 
+	if err := version.CheckLatest(ctx); err != nil {
+		return err
+	}
+
 	return nil
 }

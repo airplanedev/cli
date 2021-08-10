@@ -110,3 +110,13 @@ func Lookup(path string) (Interface, bool) {
 	r, ok := runtimes[ext]
 	return r, ok
 }
+
+// SuggestExt returns the default extension for a given TaskKind, if any.
+func SuggestExt(kind api.TaskKind) string {
+	for ext, runtime := range runtimes {
+		if runtime.Kind() == kind {
+			return ext
+		}
+	}
+	return ""
+}

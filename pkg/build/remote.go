@@ -16,11 +16,15 @@ import (
 	"github.com/airplanedev/cli/pkg/build/ignore"
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/taskdir/definitions"
+	"github.com/airplanedev/cli/pkg/utils"
 	"github.com/dustin/go-humanize"
 	"github.com/pkg/errors"
 )
 
 func remote(ctx context.Context, req Request) (*Response, error) {
+	if err := confirmBuildRoot(req.Root); err != nil {
+		return nil, err
+	}
 	buildLog(api.LogLevelInfo, logger.Gray("Building with %s as root...", relpath(req.Root)))
 
 	// Before performing a remote build, we must first update kind/kindOptions
@@ -42,6 +46,7 @@ func remote(ctx context.Context, req Request) (*Response, error) {
 	defer os.RemoveAll(tmpdir)
 
 	archivePath := path.Join(tmpdir, "archive.tar.gz")
+	buildLog(api.LogLevelInfo, logger.Gray("Packaging and uploading %s to build the task...", req.Root))
 	if err := archiveTaskDir(req.Def, req.Root, archivePath); err != nil {
 		return nil, err
 	}
@@ -263,4 +268,20 @@ func relpath(root string) string {
 		}
 	}
 	return root
+}
+
+func confirmBuildRoot(root string) error {
+	if home, err := os.UserHomeDir(); err != nil {
+		return errors.Wrap(err, "getting home dir")
+	} else if home != root {
+		return nil
+	}
+	logger.Warning("This task's root is your home directory — deploying will attempt to upload the entire directory.")
+	logger.Warning("Consider moving your task entrypoint to a subdirectory.")
+	if ok, err := utils.Confirm("Are you sure?"); err != nil {
+		return err
+	} else if !ok {
+		return errors.New("aborting build")
+	}
+	return nil
 }

@@ -25,6 +25,7 @@ import (
 	_ "github.com/airplanedev/cli/pkg/runtime/shell"
 	_ "github.com/airplanedev/cli/pkg/runtime/typescript"
 	"github.com/airplanedev/cli/pkg/utils"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -41,46 +42,57 @@ func New(c *cli.Config) *cobra.Command {
 		Use:   "init",
 		Short: "Initialize a task definition",
 		Example: heredoc.Doc(`
-			$ airplane tasks init
+			$ airplane tasks init --slug task-slug
 			$ airplane tasks init --slug task-slug ./my/task.js
 			$ airplane tasks init --slug task-slug ./my/task.ts
 		`),
-		Args: cobra.ExactArgs(1),
+		Args: cobra.MaximumNArgs(1),
 		PersistentPreRunE: utils.WithParentPersistentPreRunE(func(cmd *cobra.Command, args []string) error {
 			return login.EnsureLoggedIn(cmd.Root().Context(), c)
 		}),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cfg.file = args[0]
+			if len(args) > 0 {
+				cfg.file = args[0]
+			}
 			return run(cmd.Root().Context(), cfg)
 		},
 	}
 
 	cmd.Flags().StringVar(&cfg.slug, "slug", "", "Slug of an existing task to generate from.")
-	cmd.MarkFlagRequired("slug")
+	if err := cmd.MarkFlagRequired("slug"); err != nil {
+		logger.Debug("error: %s", err)
+	}
 
 	return cmd
 }
 
 func run(ctx context.Context, cfg config) error {
-	var ext = filepath.Ext(cfg.file)
-	var client = cfg.client
-
-	if ext == "" {
-		return fmt.Errorf("expected <path> %q to have a file extension", cfg.file)
-	}
-
-	r, ok := runtime.Lookup(cfg.file)
-	if !ok {
-		return fmt.Errorf("unable to deploy task with %q file extension", ext)
-	}
+	client := cfg.client
 
 	task, err := client.GetTask(ctx, cfg.slug)
 	if err != nil {
 		return err
 	}
 
+	if cfg.file == "" {
+		cfg.file, err = promptForNewFileName(task)
+		if err != nil {
+			return err
+		}
+	}
+
+	ext := filepath.Ext(cfg.file)
+	if ext == "" {
+		return errors.Errorf("expected <path> %q to have a file extension", cfg.file)
+	}
+
+	r, ok := runtime.Lookup(cfg.file)
+	if !ok {
+		return errors.Errorf("unable to deploy task with %q file extension", ext)
+	}
+
 	if task.Kind != r.Kind() {
-		return fmt.Errorf("cannot link %q to a %s task", cfg.file, task.Kind)
+		return errors.Errorf("cannot link %q to a %s task", cfg.file, task.Kind)
 	}
 
 	if fsx.Exists(cfg.file) {
@@ -188,4 +200,38 @@ func patch(slug, file string) (ok bool, err error) {
 		&ok,
 	)
 	return
+}
+
+func promptForNewFileName(task api.Task) (string, error) {
+	fileName := task.Slug + runtime.SuggestExt(task.Kind)
+
+	if cwdIsHome, err := cwdIsHome(); err != nil {
+		return "", err
+	} else if cwdIsHome {
+		// Suggest a subdirectory to avoid putting a file directly into home directory.
+		fileName = filepath.Join("airplane", fileName)
+	}
+
+	if err := survey.AskOne(
+		&survey.Input{
+			Message: "Where should the script be created?",
+			Default: fileName,
+		},
+		&fileName,
+	); err != nil {
+		return "", err
+	}
+	return fileName, nil
+}
+
+func cwdIsHome() (bool, error) {
+	cwd, err := os.Getwd()
+	if err != nil {
+		return false, err
+	}
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return false, err
+	}
+	return cwd == home, nil
 }
