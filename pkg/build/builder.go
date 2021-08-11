@@ -286,12 +286,14 @@ const (
 	NameShell      Name = "shell"
 )
 
-func NeedsBuilding(kind api.TaskKind) bool {
+func NeedsBuilding(kind api.TaskKind) (bool, error) {
 	switch Name(kind) {
-	case NameGo, NameDeno, NamePython, NameNode, NameDockerfile:
-		return true
+	case NameGo, NameDeno, NamePython, NameNode, NameDockerfile, NameShell:
+		return true, nil
+	case NameImage:
+		return false, nil
 	default:
-		return false
+		return false, errors.Errorf("NeedsBuilding got unexpected kind %s", kind)
 	}
 }
 
