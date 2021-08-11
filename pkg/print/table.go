@@ -132,7 +132,7 @@ func (t Table) task(task api.Task) {
 func (t Table) runs(runs []api.Run) {
 	tw := tablewriter.NewWriter(os.Stdout)
 	tw.SetBorder(false)
-	tw.SetHeader([]string{"id", "status", "created at", "ended at"})
+	tw.SetHeader([]string{"id", "task", "status", "created at", "ended at"})
 
 	for _, run := range runs {
 		var endedAt string
@@ -148,6 +148,7 @@ func (t Table) runs(runs []api.Run) {
 
 		tw.Append([]string{
 			run.RunID,
+			run.TaskName,
 			string(run.Status),
 			run.CreatedAt.Format(time.RFC3339),
 			endedAt,

@@ -374,6 +374,7 @@ const (
 type Run struct {
 	RunID       string     `json:"runID"`
 	TaskID      string     `json:"taskID"`
+	TaskName    string     `json:"taskName"`
 	TeamID      string     `json:"teamID"`
 	Status      RunStatus  `json:"status"`
 	ParamValues Values     `json:"paramValues"`
