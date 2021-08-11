@@ -293,7 +293,7 @@ func NeedsBuilding(kind api.TaskKind) (bool, error) {
 	case NameImage:
 		return false, nil
 	default:
-		return false, errors.Errorf("NeedsBuilding got unexpected kind %s, defaulting to false", kind)
+		return false, errors.Errorf("NeedsBuilding got unexpected kind %s", kind)
 	}
 }
 
