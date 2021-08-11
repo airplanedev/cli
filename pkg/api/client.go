@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -22,6 +23,11 @@ import (
 var (
 	// Client tolerates minor outages and retries.
 	client *http.Client
+)
+
+const (
+	// pageLimit is the default number of results to fetch per paginated request.
+	pageLimit = 1000
 )
 
 func init() {
@@ -154,15 +160,23 @@ func (c Client) GetUniqueSlug(ctx context.Context, name, preferredSlug string) (
 }
 
 // ListRuns lists most recent runs.
-func (c Client) ListRuns(ctx context.Context, taskID string) (resp ListRunsResponse, err error) {
+func (c Client) ListRuns(ctx context.Context, taskID string) (ListRunsResponse, error) {
 	q := url.Values{
 		"taskID": []string{taskID},
-		"page":   []string{"0"},
-		"limit":  []string{"100"},
+		"limit":  []string{strconv.FormatInt(int64(pageLimit), 10)},
 	}
 
-	err = c.do(ctx, "GET", "/runs/list?"+q.Encode(), nil, &resp)
-	return
+	var resp ListRunsResponse
+	var page ListRunsResponse
+	for i := 0; i == 0 || len(page.Runs) == pageLimit; i++ {
+		q["page"] = []string{strconv.FormatInt(int64(i), 10)}
+		if err := c.do(ctx, "GET", "/runs/list?"+q.Encode(), nil, &page); err != nil {
+			return ListRunsResponse{}, err
+		}
+		resp.Runs = append(resp.Runs, page.Runs...)
+	}
+
+	return resp, nil
 }
 
 // RunTask runs a task.
