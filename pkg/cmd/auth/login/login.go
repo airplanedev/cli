@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/airplanedev/cli/pkg/analytics"
+	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/cli"
 	"github.com/airplanedev/cli/pkg/conf"
 	"github.com/airplanedev/cli/pkg/logger"
@@ -27,10 +28,8 @@ func New(c *cli.Config) *cobra.Command {
 
 // Run runs the login command.
 func run(ctx context.Context, c *cli.Config) error {
-	if !isLoggedIn(c) {
-		if err := login(ctx, c); err != nil {
-			return err
-		}
+	if err := login(ctx, c); err != nil {
+		return err
 	}
 
 	logger.Log("You're all set!\n\nTo see what tasks you can run, try:\n    airplane tasks list")
@@ -42,8 +41,28 @@ var (
 	ErrLoggedOut = errors.New("you are not logged in. To login, run:\n    airplane login")
 )
 
+// validateToken returns a boolean indicating whether or not the current
+// client token is valid.
+func validateToken(ctx context.Context, c *cli.Config) (bool, error) {
+	if c.Client.Token == "" {
+		return false, nil
+	}
+
+	_, err := c.Client.AuthInfo(ctx)
+	if e, ok := err.(api.Error); ok && e.Code == 401 {
+		logger.Debug("Found an expired token. Re-authenticating.")
+		return false, nil
+	} else if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
 func EnsureLoggedIn(ctx context.Context, c *cli.Config) error {
-	if isLoggedIn(c) {
+	if ok, err := validateToken(ctx, c); err != nil {
+		return err
+	} else if ok {
 		return nil
 	}
 
@@ -64,10 +83,6 @@ func EnsureLoggedIn(ctx context.Context, c *cli.Config) error {
 	}
 
 	return nil
-}
-
-func isLoggedIn(c *cli.Config) bool {
-	return c.Client.Token != ""
 }
 
 func login(ctx context.Context, c *cli.Config) error {

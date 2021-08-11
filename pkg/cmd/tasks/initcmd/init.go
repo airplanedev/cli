@@ -5,6 +5,7 @@
 package initcmd
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io/ioutil"
@@ -116,17 +117,12 @@ func run(ctx context.Context, cfg config) error {
 			return nil
 		}
 
-		// TODO: fix this, this should put it under a shebang
-		logger.Step("Linking %s to %s", cfg.file, cfg.slug)
-		code := []byte(runtime.Comment(r, task))
-		code = append(code, '\n', '\n')
-		code = append(code, buf...)
-
+		code := prependComment(buf, runtime.Comment(r, task))
 		if err := ioutil.WriteFile(cfg.file, code, 0644); err != nil {
 			return err
 		}
-
 		logger.Step("Linked %s to %s", cfg.file, cfg.slug)
+
 		suggestNextSteps(cfg.file)
 		return nil
 	}
@@ -147,6 +143,36 @@ func run(ctx context.Context, cfg config) error {
 	logger.Step("Created %s", cfg.file)
 	suggestNextSteps(cfg.file)
 	return nil
+}
+
+// prependComment handles writing the linking comment to source code, accounting for shebangs
+// (which have to appear first in the file).
+func prependComment(source []byte, comment string) []byte {
+	var buf bytes.Buffer
+
+	// Regardless of task type, look for a shebang and put comment after it if detected.
+	hasShebang := len(source) >= 2 && source[0] == '#' && source[1] == '!'
+	appendAfterFirstNewline := hasShebang
+
+	appendComment := func() {
+		buf.WriteString(comment)
+		buf.WriteRune('\n')
+		buf.WriteRune('\n')
+	}
+
+	prepended := false
+	if !appendAfterFirstNewline {
+		appendComment()
+		prepended = true
+	}
+	for _, char := range string(source) {
+		buf.WriteRune(char)
+		if char == '\n' && appendAfterFirstNewline && !prepended {
+			appendComment()
+			prepended = true
+		}
+	}
+	return buf.Bytes()
 }
 
 func suggestNextSteps(file string) {
