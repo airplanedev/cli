@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -154,12 +155,18 @@ func (c Client) GetUniqueSlug(ctx context.Context, name, preferredSlug string) (
 }
 
 // ListRuns lists most recent runs.
-func (c Client) ListRuns(ctx context.Context, taskID string) (resp ListRunsResponse, err error) {
+func (c Client) ListRuns(ctx context.Context, req ListRunsRequest) (resp ListRunsResponse, err error) {
 	q := url.Values{
-		"taskID": []string{taskID},
-		"page":   []string{"0"},
-		"limit":  []string{"100"},
+		"page": []string{strconv.FormatInt(int64(req.Page), 10)},
 	}
+	if req.TaskID != "" {
+		q["taskID"] = []string{req.TaskID}
+	}
+	limit := 100
+	if req.Limit != 0 {
+		limit = req.Limit
+	}
+	q["limit"] = []string{strconv.FormatInt(int64(limit), 10)}
 
 	err = c.do(ctx, "GET", "/runs/list?"+q.Encode(), nil, &resp)
 	return
