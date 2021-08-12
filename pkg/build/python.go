@@ -78,8 +78,8 @@ func PythonShim(taskRoot, entrypoint string) (string, error) {
 		TaskRoot   string
 		Entrypoint string
 	}{
-		TaskRoot:   taskRoot,
-		Entrypoint: entrypoint,
+		TaskRoot:   backslashEscape(taskRoot, `"`),
+		Entrypoint: backslashEscape(entrypoint, `"`),
 	})
 	if err != nil {
 		return "", errors.Wrapf(err, "rendering shim")

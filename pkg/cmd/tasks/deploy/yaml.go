@@ -121,7 +121,9 @@ func deployFromYaml(ctx context.Context, cfg config) (rErr error) {
 	props.taskID = task.ID
 	props.taskName = task.Name
 
-	if build.NeedsBuilding(kind) {
+	if ok, err := build.NeedsBuilding(kind); err != nil {
+		return err
+	} else if ok {
 		resp, err := build.Run(ctx, build.Request{
 			Local:  cfg.local,
 			Client: client,

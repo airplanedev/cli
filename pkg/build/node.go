@@ -130,6 +130,8 @@ func NodeShim(entrypoint string) (string, error) {
 	entrypoint = strings.TrimSuffix(entrypoint, ".ts")
 	// The shim is stored under the .airplane directory.
 	entrypoint = filepath.Join("../", entrypoint)
+	// Escape for embedding into a string
+	entrypoint = backslashEscape(entrypoint, `"`)
 
 	shim, err := applyTemplate(nodeShim, struct {
 		Entrypoint string

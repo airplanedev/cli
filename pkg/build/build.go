@@ -60,3 +60,14 @@ func inlineString(s string) string {
 	s = strings.ReplaceAll(s, "'", `'"'"'`)
 	return "echo '" + s + "'"
 }
+
+// backslashEscape escapes s by replacing `\` with `\\` and all runes in chars with `\{rune}`.
+// Typically should backslashEscape(s, `"`) to escape backslashes and double quotes.
+func backslashEscape(s string, chars string) string {
+	// Always escape backslash
+	s = strings.ReplaceAll(s, `\`, `\\`)
+	for _, char := range chars {
+		s = strings.ReplaceAll(s, string(char), `\`+string(char))
+	}
+	return s
+}

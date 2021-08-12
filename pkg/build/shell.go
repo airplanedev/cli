@@ -82,7 +82,7 @@ func shell(root string, options api.KindOptions) (string, error) {
 		Entrypoint string
 	}{
 		InlineShim: inlineString(shim),
-		Entrypoint: entrypoint,
+		Entrypoint: backslashEscape(entrypoint, `"`),
 	})
 }
 
