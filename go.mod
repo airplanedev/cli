@@ -12,13 +12,13 @@ require (
 	github.com/aymerick/raymond v2.0.3-0.20180322193309-b565731e1464+incompatible
 	github.com/blang/semver/v4 v4.0.0
 	github.com/containerd/continuity v0.0.0-20210313171317-968621f0704d // indirect
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/docker/docker v20.10.5+incompatible
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/dustin/go-humanize v1.0.0
 	github.com/fatih/color v1.10.0
 	github.com/getsentry/sentry-go v0.11.0
 	github.com/go-git/go-git/v5 v5.2.0
+	github.com/golang-jwt/jwt/v4 v4.0.0
 	github.com/golang/snappy v0.0.3 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/gosimple/slug v1.9.0
