@@ -156,17 +156,22 @@ func (c Client) GetUniqueSlug(ctx context.Context, name, preferredSlug string) (
 
 // ListRuns lists most recent runs.
 func (c Client) ListRuns(ctx context.Context, req ListRunsRequest) (resp ListRunsResponse, err error) {
-	q := url.Values{
-		"page": []string{strconv.FormatInt(int64(req.Page), 10)},
-	}
+	q := url.Values{}
+	q.Set("page", strconv.FormatInt(int64(req.Page), 10))
 	if req.TaskID != "" {
-		q["taskID"] = []string{req.TaskID}
+		q.Set("taskID", req.TaskID)
 	}
 	limit := 100
 	if req.Limit != 0 {
 		limit = req.Limit
 	}
-	q["limit"] = []string{strconv.FormatInt(int64(limit), 10)}
+	q.Set("limit", strconv.FormatInt(int64(limit), 10))
+	if !req.Since.IsZero() {
+		q.Set("since", req.Since.Format(time.RFC3339))
+	}
+	if !req.Until.IsZero() {
+		q.Set("until", req.Until.Format(time.RFC3339))
+	}
 
 	err = c.do(ctx, "GET", "/runs/list?"+q.Encode(), nil, &resp)
 	return
