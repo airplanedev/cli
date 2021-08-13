@@ -155,17 +155,18 @@ func (c Client) GetUniqueSlug(ctx context.Context, name, preferredSlug string) (
 }
 
 // ListRuns lists most recent runs.
-func (c Client) ListRuns(ctx context.Context, req ListRunsRequest) (resp ListRunsResponse, err error) {
+func (c Client) ListRuns(ctx context.Context, req ListRunsRequest) (ListRunsResponse, error) {
 	q := url.Values{}
 	q.Set("page", strconv.FormatInt(int64(req.Page), 10))
 	if req.TaskID != "" {
 		q.Set("taskID", req.TaskID)
 	}
-	limit := 100
-	if req.Limit != 0 {
-		limit = req.Limit
+	pageLimit := 100
+	if req.Limit > 0 && req.Limit < 100 {
+		// If a user provides a smaller limit, fetch exactly that many items.
+		pageLimit = req.Limit
 	}
-	q.Set("limit", strconv.FormatInt(int64(limit), 10))
+	q.Set("limit", strconv.FormatInt(int64(pageLimit), 10))
 	if !req.Since.IsZero() {
 		q.Set("since", req.Since.Format(time.RFC3339))
 	}
@@ -173,8 +174,33 @@ func (c Client) ListRuns(ctx context.Context, req ListRunsRequest) (resp ListRun
 		q.Set("until", req.Until.Format(time.RFC3339))
 	}
 
-	err = c.do(ctx, "GET", "/runs/list?"+q.Encode(), nil, &resp)
-	return
+	var resp ListRunsResponse
+	var page ListRunsResponse
+	var i int
+	for {
+		q["page"] = []string{strconv.FormatInt(int64(i), 10)}
+		i++
+		if err := c.do(ctx, "GET", "/runs/list?"+q.Encode(), nil, &page); err != nil {
+			return ListRunsResponse{}, err
+		}
+		runs := page.Runs
+		if req.Limit > 0 && len(resp.Runs)+len(runs) > req.Limit {
+			// Truncate the response if we over-fetched items:
+			runs = runs[:req.Limit-len(resp.Runs)]
+		}
+		resp.Runs = append(resp.Runs, runs...)
+
+		// There are no more items to fetch:
+		if len(page.Runs) != pageLimit {
+			break
+		}
+		// We have reached the requested limit of items to fetch:
+		if req.Limit > 0 && len(resp.Runs) == req.Limit {
+			break
+		}
+	}
+
+	return resp, nil
 }
 
 // RunTask runs a task.

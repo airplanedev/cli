@@ -15,6 +15,7 @@ import (
 
 type config struct {
 	slug  string
+	limit int
 	since utils.TimeValue
 	until utils.TimeValue
 }
@@ -37,6 +38,7 @@ func New(c *cli.Config) *cobra.Command {
 	}
 
 	cmd.Flags().StringVarP(&cfg.slug, "task", "t", "", "Filter runs by task slug")
+	cmd.Flags().IntVar(&cfg.limit, "limit", 100, "If >0, returns at most --limit items.")
 	cmd.Flags().Var(&cfg.since, "since", "Filter runs by the time they were created at")
 	cmd.Flags().Var(&cfg.until, "until", "Filter runs by the time they were created at")
 
@@ -48,6 +50,7 @@ func run(ctx context.Context, c *cli.Config, cfg config) error {
 	var client = c.Client
 
 	req := api.ListRunsRequest{
+		Limit: cfg.limit,
 		Since: time.Time(cfg.since),
 		Until: time.Time(cfg.until),
 	}
