@@ -47,9 +47,10 @@ func (tv *TimeValue) Set(s string) error {
 	for _, format := range []string{
 		// If a user does not specify a time zone, we interpret the time zone
 		// as local time:
-		"2006-01-02T15:04:05", // RFC339 without the "Z07:00"
+		"2006-01-02T15:04:05", // RFC3339 without the "Z07:00"
 		// Otherwise, we look for a time zone.
 		time.RFC3339,
+		"2006-01-02T15:04:05Z0700", // RFC3339 without the timezone ":"
 	} {
 		v, err := time.ParseInLocation(format, s, time.Now().Location())
 		if err == nil {
