@@ -373,8 +373,11 @@ const (
 // Run represents a run.
 type Run struct {
 	RunID       string     `json:"runID"`
+	TaskID      string     `json:"taskID"`
+	TaskName    string     `json:"taskName"`
 	TeamID      string     `json:"teamID"`
 	Status      RunStatus  `json:"status"`
+	ParamValues Values     `json:"paramValues"`
 	CreatedAt   time.Time  `json:"createdAt"`
 	CreatorID   string     `json:"creatorID"`
 	QueuedAt    *time.Time `json:"queuedAt"`
@@ -383,6 +386,13 @@ type Run struct {
 	FailedAt    *time.Time `json:"failedAt"`
 	CancelledAt *time.Time `json:"cancelledAt"`
 	CancelledBy *string    `json:"cancelledBy"`
+}
+
+// ListRunsRequest represents a list runs request.
+type ListRunsRequest struct {
+	TaskID string `json:"taskID"`
+	Page   int    `json:"page"`
+	Limit  int    `json:"limit"`
 }
 
 // ListRunsResponse represents a list runs response.
