@@ -39,8 +39,8 @@ func New(c *cli.Config) *cobra.Command {
 
 	cmd.Flags().StringVarP(&cfg.slug, "task", "t", "", "Filter runs by task slug")
 	cmd.Flags().IntVar(&cfg.limit, "limit", 100, "If >0, returns at most --limit items.")
-	cmd.Flags().Var(&cfg.since, "since", "Filter runs by the time they were created at")
-	cmd.Flags().Var(&cfg.until, "until", "Filter runs by the time they were created at")
+	cmd.Flags().Var(&cfg.since, "since", "Include only runs created after the given time")
+	cmd.Flags().Var(&cfg.until, "until", "Include only runs created before the given time")
 
 	return cmd
 }
