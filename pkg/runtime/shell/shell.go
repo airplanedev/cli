@@ -14,7 +14,7 @@ import (
 	"github.com/airplanedev/cli/pkg/fsx"
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/runtime"
-	"github.com/aymerick/raymond"
+	"github.com/airplanedev/cli/pkg/utils/handlebars"
 	"github.com/pkg/errors"
 )
 
@@ -75,7 +75,7 @@ func (r Runtime) PrepareRun(ctx context.Context, opts runtime.PrepareRunOptions)
 	// TODO: this is a rough approximation of how interpolateParameters works in prod
 	for slug, _ := range opts.ParamValues {
 		tmpl := fmt.Sprintf("%s={{%s}}", slug, slug)
-		val, err := raymond.Render(tmpl, opts.ParamValues)
+		val, err := handlebars.Render(tmpl, opts.ParamValues)
 		if err != nil {
 			return nil, errors.Wrap(err, "rendering shell command")
 		}
