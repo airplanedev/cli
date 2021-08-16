@@ -36,7 +36,7 @@ func WithParentPersistentPreRunE(f func(cmd *cobra.Command, args []string) error
 //   var tv timeValue
 //   cmd.Flags().Var(&tv, "since", "Filters by created_at")
 //
-// Which could be set as: `--since="2020-01-02 01:02:03"`
+// Which could be set as: `--since="2020-01-02T01:02:03"`
 //
 // TimeValue's are alias types of time.Time. You can convert safely via `time.Time(tv)`.
 type TimeValue time.Time
@@ -44,9 +44,13 @@ type TimeValue time.Time
 var _ pflag.Value = &TimeValue{}
 
 func (tv *TimeValue) Set(s string) error {
+	// Cobra doesn't appear to support quoted strings with spaces:
+	// https://github.com/spf13/cobra/issues/1114
+	// If fixed, we could start supporting time formats with spaces like "2006-01-02 15:04:05".
 	for _, format := range []string{
 		// If a user does not specify a time zone, we interpret the time zone
 		// as local time:
+		"2006-01-02",
 		"2006-01-02T15:04:05", // RFC3339 without the "Z07:00"
 		// Otherwise, we look for a time zone.
 		time.RFC3339,
@@ -60,7 +64,7 @@ func (tv *TimeValue) Set(s string) error {
 	}
 
 	// If we did not find a match, return a helpful error message:
-	return errors.New("expected timestamp formatted as '2006-01-02T15:04:05' (local time) or '2006-01-02T15:04:05+07:00'")
+	return errors.New(`expected timestamp formatted as "2021-04-16" or "2021-04-16T01:30:59"`)
 }
 
 func (tv *TimeValue) Type() string {
