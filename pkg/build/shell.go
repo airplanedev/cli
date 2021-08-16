@@ -21,11 +21,6 @@ func shell(root string, options api.KindOptions) (string, error) {
 		return "", err
 	}
 
-	shim, err := ShellShim(entrypoint)
-	if err != nil {
-		return "", err
-	}
-
 	// Build off of the dockerfile if provided:
 	var dockerfileTemplate string
 	if dockerfilePath := FindDockerfile(root); dockerfilePath != "" {
@@ -75,13 +70,13 @@ func shell(root string, options api.KindOptions) (string, error) {
 		COPY . .
 		RUN chmod +x {{.Entrypoint}}
 		
-		ENTRYPOINT ["bash", ".airplane/shim.sh"]
+		ENTRYPOINT ["bash", ".airplane/shim.sh", "/airplane/{{.Entrypoint}}"]
 	`)
 	return applyTemplate(dockerfileTemplate, struct {
 		InlineShim string
 		Entrypoint string
 	}{
-		InlineShim: inlineString(shim),
+		InlineShim: inlineString(ShellShim()),
 		Entrypoint: backslashEscape(entrypoint, `"`),
 	})
 }
@@ -89,19 +84,8 @@ func shell(root string, options api.KindOptions) (string, error) {
 //go:embed shell-shim.sh
 var shellShim string
 
-func ShellShim(entrypoint string) (string, error) {
-	// exec needs a relative path
-	entrypoint = "./" + filepath.Clean(entrypoint)
-	shim, err := applyTemplate(shellShim, struct {
-		Entrypoint string
-	}{
-		Entrypoint: entrypoint,
-	})
-	if err != nil {
-		return "", errors.Wrap(err, "templating shim")
-	}
-
-	return shim, nil
+func ShellShim() string {
+	return shellShim
 }
 
 // FindDockerfile looks for variants of supported Dockerfile locations and returns non-empty path

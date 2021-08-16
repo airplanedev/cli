@@ -58,20 +58,20 @@ func (r Runtime) PrepareRun(ctx context.Context, opts runtime.PrepareRunOptions)
 		return nil, errors.Wrap(err, "creating .airplane directory")
 	}
 
-	entrypoint, err := filepath.Rel(root, opts.Path)
-	if err != nil {
-		return nil, errors.Wrap(err, "entrypoint is not within the task root")
-	}
-	shim, err := build.ShellShim(entrypoint)
-	if err != nil {
-		return nil, err
-	}
-
+	shim := build.ShellShim()
 	if err := os.WriteFile(filepath.Join(root, ".airplane/shim.sh"), []byte(shim), 0644); err != nil {
 		return nil, errors.Wrap(err, "writing shim file")
 	}
 
-	cmd := []string{"bash", filepath.Join(root, ".airplane/shim.sh")}
+	entrypoint, err := filepath.Rel(root, opts.Path)
+	if err != nil {
+		return nil, errors.Wrap(err, "entrypoint is not within the task root")
+	}
+
+	cmd := []string{
+		"bash", filepath.Join(root, ".airplane/shim.sh"),
+		filepath.Join(root, entrypoint),
+	}
 	// TODO: this is a rough approximation of how interpolateParameters works in prod
 	for slug, _ := range opts.ParamValues {
 		tmpl := fmt.Sprintf("%s={{%s}}", slug, slug)
