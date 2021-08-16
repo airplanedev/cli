@@ -48,13 +48,18 @@ func (tv *TimeValue) Set(s string) error {
 	// https://github.com/spf13/cobra/issues/1114
 	// If fixed, we could start supporting time formats with spaces like "2006-01-02 15:04:05".
 	for _, format := range []string{
-		// If a user does not specify a time zone, we interpret the time zone
-		// as local time:
+		// Overall, we are roughly looking for RFC3339 timestamps with some leeway
+		// to make timestamps easier to specify.
+		//
+		// Local time zones:
 		"2006-01-02",
-		"2006-01-02T15:04:05", // RFC3339 without the "Z07:00"
-		// Otherwise, we look for a time zone.
-		time.RFC3339,
-		"2006-01-02T15:04:05Z0700", // RFC3339 without the timezone ":"
+		"2006-01-02T15:04",
+		"2006-01-02T15:04:05",
+		// Explicit time zones:
+		"2006-01-02T15:04Z07:00",
+		"2006-01-02T15:04Z0700",
+		"2006-01-02T15:04:05Z07:00", // time.RFC3339: copied for comparison with other formats
+		"2006-01-02T15:04:05Z0700",
 	} {
 		v, err := time.ParseInLocation(format, s, time.Now().Location())
 		if err == nil {
