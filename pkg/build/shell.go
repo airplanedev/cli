@@ -8,6 +8,7 @@ import (
 	"github.com/MakeNowJust/heredoc"
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/fsx"
+	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/pkg/errors"
 )
 
@@ -104,15 +105,21 @@ func ShellShim(entrypoint string) (string, error) {
 	return shim, nil
 }
 
+func DockerfilePaths() []string {
+	return []string{
+		"Dockerfile.airplane",
+		"Dockerfile",
+	}
+}
+
 // FindDockerfile looks for variants of supported Dockerfile locations and returns non-empty path
 // to the file, if found.
 func FindDockerfile(root string) string {
-	for _, filePath := range []string{
-		"Dockerfile.airplane",
-		"Dockerfile",
-	} {
+	for _, filePath := range DockerfilePaths() {
+		logger.Debug("looking for %q", filePath)
 		dockerfilePath := filepath.Join(root, filePath)
 		if fsx.Exists(dockerfilePath) {
+			logger.Debug("found %q", dockerfilePath)
 			return dockerfilePath
 		}
 	}

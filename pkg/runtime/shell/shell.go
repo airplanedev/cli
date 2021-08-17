@@ -103,11 +103,12 @@ func (r Runtime) Workdir(path string) (string, error) {
 
 // Root implementation.
 func (r Runtime) Root(path string) (string, error) {
-	root, ok := fsx.Find(path, "Dockerfile")
-	if !ok {
-		return filepath.Dir(path), nil
+	for _, filePath := range build.DockerfilePaths() {
+		if root, ok := fsx.Find(path, filePath); ok {
+			return root, nil
+		}
 	}
-	return root, nil
+	return filepath.Dir(path), nil
 }
 
 // Kind implementation.
