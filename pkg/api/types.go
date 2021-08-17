@@ -390,9 +390,11 @@ type Run struct {
 
 // ListRunsRequest represents a list runs request.
 type ListRunsRequest struct {
-	TaskID string `json:"taskID"`
-	Page   int    `json:"page"`
-	Limit  int    `json:"limit"`
+	TaskID string    `json:"taskID"`
+	Since  time.Time `json:"since"`
+	Until  time.Time `json:"until"`
+	Page   int       `json:"page"`
+	Limit  int       `json:"limit"`
 }
 
 // ListRunsResponse represents a list runs response.
