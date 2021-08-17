@@ -67,8 +67,10 @@ func Patterns(path string) ([]string, error) {
 	// https://github.com/github/gitignore
 	// https://github.com/github/gitignore/blob/master/Go.gitignore
 	// https://github.com/github/gitignore/blob/master/Node.gitignore
+	// https://vercel.com/docs/build-step#ignored-files-and-folders
 	excludes := []string{
-		"*.env",
+		".env.local",
+		".env.*.local",
 		"*.pyc",
 		".git",
 		".gitmodules",
@@ -78,15 +80,14 @@ func Patterns(path string) ([]string, error) {
 		".now",
 		".npm",
 		".svn",
+		".*.swp",
 		".terraform",
 		".venv",
+		".vercel",
 		".yarn",
 		"__pycache__",
-		"bin",
-		"dist",
 		"node_modules",
 		"npm-debug.log",
-		"out",
 		// Local build artifacts created by `airplane dev`.
 		".airplane",
 	}
