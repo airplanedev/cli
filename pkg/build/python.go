@@ -50,6 +50,7 @@ func python(root string, args api.KindOptions) (string, error) {
 		RUN pip install -r requirements.txt
 		{{end}}
 		COPY . .
+		ENV PYTHONUNBUFFERED=1
 		ENTRYPOINT ["python", ".airplane/shim.py"]
 	`)
 
