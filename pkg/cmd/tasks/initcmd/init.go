@@ -81,13 +81,9 @@ func run(ctx context.Context, cfg config) error {
 		}
 	}
 
-	r, ok := runtime.Lookup(task.Kind, cfg.file)
-	if !ok {
-		return errors.Errorf("unable to init %q - check that your CLI is up to date", cfg.file)
-	}
-
-	if task.Kind != r.Kind() {
-		return errors.Errorf("cannot link %q to a %s task", cfg.file, task.Kind)
+	r, err := runtime.Lookup(task.Kind, cfg.file)
+	if err != nil {
+		return errors.Wrapf(err, "unable to init %q - check that your CLI is up to date", cfg.file)
 	}
 
 	if fsx.Exists(cfg.file) {
