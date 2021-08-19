@@ -81,14 +81,9 @@ func run(ctx context.Context, cfg config) error {
 		}
 	}
 
-	ext := filepath.Ext(cfg.file)
-	if ext == "" {
-		return errors.Errorf("expected <path> %q to have a file extension", cfg.file)
-	}
-
-	r, ok := runtime.Lookup(cfg.file)
+	r, ok := runtime.Lookup(task.Kind, cfg.file)
 	if !ok {
-		return errors.Errorf("unable to deploy task with %q file extension", ext)
+		return errors.Errorf("unable to init %q - check that your CLI is up to date", cfg.file)
 	}
 
 	if task.Kind != r.Kind() {

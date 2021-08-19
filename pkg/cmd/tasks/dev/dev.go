@@ -80,9 +80,9 @@ func run(ctx context.Context, cfg config) error {
 		return errors.Wrap(err, "getting task")
 	}
 
-	r, ok := runtime.Lookup(cfg.file)
+	r, ok := runtime.Lookup(task.Kind, cfg.file)
 	if !ok {
-		return errors.Errorf("Unsupported file type: %s", filepath.Base(cfg.file))
+		return errors.Errorf("unsupported file type: %s", filepath.Base(cfg.file))
 	}
 
 	paramValues, err := params.CLI(cfg.args, cfg.root.Client, task)
@@ -220,7 +220,7 @@ func getDevEnv(r runtime.Interface, path string) (map[string]string, error) {
 	return env, errors.Wrap(err, "reading .env")
 }
 
-// slugFromScript attempts to extract a slug from a script.
+// slugFromScript attempts to extract a slug from a file based on its contents.
 func slugFromScript(file string) (string, error) {
 	code, err := ioutil.ReadFile(file)
 	if err != nil {

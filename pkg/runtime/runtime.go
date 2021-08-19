@@ -104,11 +104,28 @@ func Register(ext string, r Interface) {
 	runtimes[ext] = r
 }
 
-// Lookup returns a runtime by path.
-func Lookup(path string) (Interface, bool) {
-	ext := filepath.Ext(path)
-	r, ok := runtimes[ext]
-	return r, ok
+// Lookup returns a runtime by kind and path.
+// If an extension match is found, use that runtime. Otherwise rely on the task kind.
+func Lookup(kind api.TaskKind, path string) (Interface, bool) {
+	type match struct {
+		ext string
+		r   Interface
+	}
+	pathExt := filepath.Ext(path)
+	possible := []match{}
+	for ext, runtime := range runtimes {
+		if runtime.Kind() != kind {
+			continue
+		}
+		if pathExt == ext {
+			return runtime, true
+		}
+		possible = append(possible, match{ext, runtime})
+	}
+	if len(possible) != 1 {
+		return nil, false
+	}
+	return possible[0].r, true
 }
 
 // SuggestExt returns the default extension for a given TaskKind, if any.

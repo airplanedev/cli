@@ -159,13 +159,8 @@ func slugFrom(file string) (string, error) {
 	switch ext := filepath.Ext(file); ext {
 	case ".yml", ".yaml":
 		return slugFromYaml(file)
-	case "":
-		return "", fmt.Errorf("the file %s must have an extension", file)
 	default:
-		if _, ok := runtime.Lookup(file); ok {
-			return slugFromScript(file)
-		}
-		return "", fmt.Errorf("the file %s has unrecognized extension", file)
+		return slugFromScript(file)
 	}
 }
 

@@ -20,32 +20,22 @@ import (
 // DeployFromScript deploys from the given script.
 func deployFromScript(ctx context.Context, cfg config) (rErr error) {
 	client := cfg.client
-	ext := filepath.Ext(cfg.file)
-	props := taskDeployedProps{
+	tp := taskDeployedProps{
 		from: "script",
 	}
 	start := time.Now()
 	defer func() {
 		analytics.Track(cfg.root, "Task Deployed", map[string]interface{}{
-			"from":             props.from,
-			"kind":             props.kind,
-			"task_id":          props.taskID,
-			"task_slug":        props.taskSlug,
-			"task_name":        props.taskName,
-			"build_id":         props.buildID,
+			"from":             tp.from,
+			"kind":             tp.kind,
+			"task_id":          tp.taskID,
+			"task_slug":        tp.taskSlug,
+			"task_name":        tp.taskName,
+			"build_id":         tp.buildID,
 			"errored":          rErr != nil,
 			"duration_seconds": time.Since(start).Seconds(),
 		})
 	}()
-
-	if ext == "" {
-		return errors.New("cannot deploy a file without extension")
-	}
-
-	r, ok := runtime.Lookup(cfg.file)
-	if !ok {
-		return errors.Errorf("cannot deploy a file with extension of %q", ext)
-	}
 
 	code, err := ioutil.ReadFile(cfg.file)
 	if err != nil {
@@ -61,13 +51,14 @@ func deployFromScript(ctx context.Context, cfg config) (rErr error) {
 	if err != nil {
 		return err
 	}
-	props.kind = task.Kind
-	props.taskID = task.ID
-	props.taskSlug = task.Slug
-	props.taskName = task.Name
+	tp.kind = task.Kind
+	tp.taskID = task.ID
+	tp.taskSlug = task.Slug
+	tp.taskName = task.Name
 
-	if task.Kind != r.Kind() {
-		return errors.Errorf("'%s' is a %s task. Expected a %s task.", task.Name, task.Kind, r.Kind())
+	r, ok := runtime.Lookup(task.Kind, cfg.file)
+	if !ok {
+		return errors.Errorf("cannot determine how to deploy %q - check your CLI is up to date", cfg.file)
 	}
 
 	def, err := definitions.NewDefinitionFromTask(task)
@@ -105,7 +96,7 @@ func deployFromScript(ctx context.Context, cfg config) (rErr error) {
 		return err
 	}
 
-	props.buildLocal = cfg.local
+	tp.buildLocal = cfg.local
 	resp, err := build.Run(ctx, build.Request{
 		Local:   cfg.local,
 		Client:  client,
@@ -118,7 +109,7 @@ func deployFromScript(ctx context.Context, cfg config) (rErr error) {
 	if err != nil {
 		return err
 	}
-	props.buildID = resp.BuildID
+	tp.buildID = resp.BuildID
 
 	_, err = client.UpdateTask(ctx, api.UpdateTaskRequest{
 		Slug:                       def.Slug,
