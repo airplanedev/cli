@@ -158,7 +158,11 @@ func (r Runtime) PrepareRun(ctx context.Context, opts runtime.PrepareRunOptions)
 		Files: []string{"./shim.ts"},
 	}
 	if p, ok := fsx.FindUntil(filepath.Dir(opts.Path), root, "tsconfig.json"); ok {
-		tsconfig.Extends = filepath.Join(p, "tsconfig.json")
+		rp, err := filepath.Rel(filepath.Join(root, ".airplane"), filepath.Join(p, "tsconfig.json"))
+		if err != nil {
+			return nil, errors.Wrap(err, "creating relative tsconfig path")
+		}
+		tsconfig.Extends = rp
 	}
 	if content, err := json.MarshalIndent(tsconfig, "", "\t"); err != nil {
 		return nil, errors.Wrap(err, "generating tsconfig")
