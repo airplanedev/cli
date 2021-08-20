@@ -150,6 +150,22 @@ func (r Runtime) PrepareRun(ctx context.Context, opts runtime.PrepareRunOptions)
 		return nil, errors.Wrap(err, "writing shim file")
 	}
 
+	// If the user provides a tsconfig.json, extend it s.t. we only compile the
+	tsconfig := struct {
+		Files   []string `json:"files"`
+		Extends string   `json:"extends,omitempty"`
+	}{
+		Files: []string{"./shim.ts"},
+	}
+	if p, ok := fsx.FindUntil(filepath.Dir(opts.Path), root, "tsconfig.json"); ok {
+		tsconfig.Extends = filepath.Join(p, "tsconfig.json")
+	}
+	if content, err := json.MarshalIndent(tsconfig, "", "\t"); err != nil {
+		return nil, errors.Wrap(err, "generating tsconfig")
+	} else if err := os.WriteFile(filepath.Join(root, ".airplane/tsconfig.json"), content, 0644); err != nil {
+		return nil, errors.Wrap(err, "writing shim file")
+	}
+
 	if err := os.RemoveAll(filepath.Join(root, ".airplane/dist")); err != nil {
 		return nil, errors.Wrap(err, "cleaning dist folder")
 	}

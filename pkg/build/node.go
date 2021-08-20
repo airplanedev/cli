@@ -164,7 +164,7 @@ func NodeTscArgs(root string, opts api.KindOptions) []string {
 		"--rootDir", root,
 		"--skipLibCheck",
 		"--pretty",
-		filepath.Join(root, ".airplane/shim.ts"),
+		"-p", filepath.Join(root, ".airplane"),
 	}
 }
 
