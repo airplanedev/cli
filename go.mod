@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.2.9
-	github.com/MakeNowJust/heredoc v1.0.0
+	github.com/MakeNowJust/heredoc/v2 v2.0.1
 	github.com/Microsoft/hcsshim v0.8.15 // indirect
 	github.com/airplanedev/archiver v1.1.3-0.20210415184012-094191384ed3
 	github.com/alecthomas/jsonschema v0.0.0-20210818095345-1014919a589c
