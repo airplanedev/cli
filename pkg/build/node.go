@@ -128,15 +128,16 @@ func node(root string, options api.KindOptions) (string, error) {
 func GenTSConfig(root string, entrypoint string, opts api.KindOptions) ([]byte, error) {
 	// https://www.typescriptlang.org/tsconfig
 	type CompilerOptions struct {
-		ListFiles       *bool    `json:"listFiles,omitempty"`
-		Target          string   `json:"target,omitempty"`
-		Lib             []string `json:"lib,omitempty"`
-		AllowJS         *bool    `json:"allowJs,omitempty"`
-		Module          string   `json:"module,omitempty"`
-		ESModuleInterop *bool    `json:"esModuleInterop,omitempty"`
-		OutDir          string   `json:"outDir"`
-		RootDir         string   `json:"rootDir"`
-		SkipLibCheck    *bool    `json:"skipLibCheck,omitempty"`
+		ListFiles       *bool                      `json:"listFiles,omitempty"`
+		Target          string                     `json:"target,omitempty"`
+		Lib             []string                   `json:"lib,omitempty"`
+		AllowJS         *bool                      `json:"allowJs,omitempty"`
+		Module          string                     `json:"module,omitempty"`
+		ESModuleInterop *bool                      `json:"esModuleInterop,omitempty"`
+		OutDir          string                     `json:"outDir"`
+		RootDir         string                     `json:"rootDir"`
+		SkipLibCheck    *bool                      `json:"skipLibCheck,omitempty"`
+		Paths           map[string]json.RawMessage `json:"paths,omitempty"`
 	}
 	type TSConfig struct {
 		CompilerOptions CompilerOptions `json:"compilerOptions"`
@@ -160,7 +161,21 @@ func GenTSConfig(root string, entrypoint string, opts api.KindOptions) ([]byte, 
 
 	// Check if the user provided their own tsconfig. Use the tsconfig closest to the user's entrypoint.
 	if p, ok := fsx.FindUntil(filepath.Dir(entrypoint), root, "tsconfig.json"); ok {
-		rp, err := filepath.Rel(filepath.Join(root, ".airplane"), filepath.Join(p, "tsconfig.json"))
+		p = filepath.Join(p, "tsconfig.json")
+		// Read the contents of the user's tsconfig and warn about any unsupported behavior:
+		content, err := ioutil.ReadFile(p)
+		if err != nil {
+			return nil, errors.Wrap(err, "reading user-provided tsconfig")
+		}
+		var tc TSConfig
+		if err := json.Unmarshal(content, &tc); err != nil {
+			return nil, errors.Wrap(err, "parsing user-provide tsconfig")
+		}
+		if len(tc.CompilerOptions.Paths) > 0 {
+			logger.Warning("Detected a tsconfig.json with path aliases which are not supported on Airplane yet.")
+		}
+
+		rp, err := filepath.Rel(filepath.Join(root, ".airplane"), p)
 		if err != nil {
 			return nil, errors.Wrap(err, "creating relative tsconfig path")
 		}
