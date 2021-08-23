@@ -66,7 +66,8 @@ func TestGenTSConfig(t *testing.T) {
 			"skipLibCheck":    true,
 			"target":          "es2020",
 		},
-		"files": []interface{}{"./shim.ts"},
+		"files":   []interface{}{"./shim.ts"},
+		"extends": "../tsconfig.json",
 	}, m)
 
 	// Empty user-provided tsconfig.json w/ node 12: should use older lib:
@@ -87,7 +88,8 @@ func TestGenTSConfig(t *testing.T) {
 			"skipLibCheck":    true,
 			"target":          "es2019", // <-
 		},
-		"files": []interface{}{"./shim.ts"},
+		"files":   []interface{}{"./shim.ts"},
+		"extends": "../tsconfig.json",
 	}, m)
 
 	// Partially filled user-provided tsconfig.json: should accept overrides:
@@ -106,7 +108,8 @@ func TestGenTSConfig(t *testing.T) {
 			"skipLibCheck": true,
 			// target omitted
 		},
-		"files": []interface{}{"./shim.ts"},
+		"files":   []interface{}{"./shim.ts"},
+		"extends": "../tsconfig.json",
 	}, m)
 
 	// Fully specified user-provided tsconfig.json: should accept all:
@@ -125,6 +128,7 @@ func TestGenTSConfig(t *testing.T) {
 			// skipLibCheck omitted
 			// target omitted
 		},
-		"files": []interface{}{"./shim.ts"},
+		"files":   []interface{}{"./shim.ts"},
+		"extends": "../tsconfig.json",
 	}, m)
 }
