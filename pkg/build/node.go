@@ -126,6 +126,7 @@ func node(root string, options api.KindOptions) (string, error) {
 }
 
 func GenTSConfig(root string, entrypoint string, opts api.KindOptions) ([]byte, error) {
+	// https://www.typescriptlang.org/tsconfig
 	type CompilerOptions struct {
 		ListFiles       *bool    `json:"listFiles,omitempty"`
 		Target          string   `json:"target,omitempty"`
@@ -145,13 +146,15 @@ func GenTSConfig(root string, entrypoint string, opts api.KindOptions) ([]byte, 
 
 	tsconfig := TSConfig{
 		// The following configuration takes precedence over a user-provided tsconfig.
+		// All other tsconfig fields should be set to `omitempty` so that they can be
+		// overridden by a user-provided tsconfig.
 		CompilerOptions: CompilerOptions{
 			ListFiles: pointers.Bool(true), // For debugging
 			OutDir:    filepath.Join(root, ".airplane/dist"),
 			RootDir:   root,
 		},
-		// `shim.ts` is our entrypoint. When we compile this tsconfig's project,
-		// it will pull in any imported files, too.
+		// `shim.ts` is our entrypoint. When we point tsc at this tsconfig, it will
+		// compile shim.ts and all of its imported files.
 		Files: []string{"./shim.ts"},
 	}
 
