@@ -175,7 +175,7 @@ func (r Runtime) PrepareRun(ctx context.Context, opts runtime.PrepareRunOptions)
 
 	start := time.Now()
 	var cmd *exec.Cmd
-	tscArgs := []string{"--pretty", "-p", filepath.Join(root, ".airplane"), "."}
+	tscArgs := []string{"--pretty", "-p", filepath.Join(root, ".airplane")}
 	if isTscNpx {
 		cmd = exec.CommandContext(ctx, "npx", append([]string{"-p", "typescript", "--no", "tsc", "--"}, tscArgs...)...)
 	} else {
