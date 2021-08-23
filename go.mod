@@ -6,7 +6,7 @@ require (
 	github.com/AlecAivazis/survey/v2 v2.3.0
 	github.com/MakeNowJust/heredoc v1.0.0
 	github.com/Microsoft/hcsshim v0.8.15 // indirect
-	github.com/airplanedev/archiver v1.1.3-0.20210415184012-094191384ed3
+	github.com/airplanedev/archiver v1.1.3-0.20210823174045-ee4b23880021
 	github.com/alecthomas/jsonschema v0.0.0-20210818095345-1014919a589c
 	github.com/andybalholm/brotli v1.0.3 // indirect
 	github.com/aymerick/raymond v2.0.3-0.20180322193309-b565731e1464+incompatible
