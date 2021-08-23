@@ -1,0 +1,12 @@
+{
+  "files": [
+    "*"
+  ],
+  "compilerOptions": {
+    "esModuleInterop": false,
+    "lib": [],
+    "outDir": "./a",
+    "rootDir": "./b",
+    "target": "ES3"
+  }
+}
