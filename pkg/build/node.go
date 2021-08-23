@@ -66,7 +66,7 @@ func node(root string, options api.KindOptions) (string, error) {
 	}
 	cfg.InlineShim = inlineString(shim)
 
-	tsconfig, err := GenTSConfig(root, entrypoint, options)
+	tsconfig, err := GenTSConfig(root, filepath.Join(root, entrypoint), options)
 	if err != nil {
 		return "", err
 	}
@@ -125,10 +125,13 @@ func node(root string, options api.KindOptions) (string, error) {
 	`), cfg)
 }
 
+// GenTSConfig generates a `tsconfig.json` that can be placed in `<root>/.airplane/tsconfig.json`.
+//
+// If a user-provided tsconfig.json is found, in between the root and entrypoint directories,
+// then the generated `tsconfig.json` will instruct tsc to read that.
 func GenTSConfig(root string, entrypoint string, opts api.KindOptions) ([]byte, error) {
 	// https://www.typescriptlang.org/tsconfig
 	type CompilerOptions struct {
-		ListFiles       *bool                      `json:"listFiles,omitempty"`
 		Target          string                     `json:"target,omitempty"`
 		Lib             []string                   `json:"lib,omitempty"`
 		AllowJS         *bool                      `json:"allowJs,omitempty"`
@@ -150,9 +153,10 @@ func GenTSConfig(root string, entrypoint string, opts api.KindOptions) ([]byte, 
 		// All other tsconfig fields should be set to `omitempty` so that they can be
 		// overridden by a user-provided tsconfig.
 		CompilerOptions: CompilerOptions{
-			ListFiles: pointers.Bool(true), // For debugging
-			OutDir:    filepath.Join(root, ".airplane/dist"),
-			RootDir:   root,
+			// This tsconfig is placed in `<root>/.airplane/tsconfig.json`
+			RootDir: "..",
+			// Placed compiled files into `<root>/.airplane/dist`
+			OutDir: "./dist",
 		},
 		// `shim.ts` is our entrypoint. When we point tsc at this tsconfig, it will
 		// compile shim.ts and all of its imported files.
@@ -160,6 +164,7 @@ func GenTSConfig(root string, entrypoint string, opts api.KindOptions) ([]byte, 
 	}
 
 	// Check if the user provided their own tsconfig. Use the tsconfig closest to the user's entrypoint.
+	var utsc TSConfig
 	if p, ok := fsx.FindUntil(filepath.Dir(entrypoint), root, "tsconfig.json"); ok {
 		p = filepath.Join(p, "tsconfig.json")
 		// Read the contents of the user's tsconfig and warn about any unsupported behavior:
@@ -167,11 +172,11 @@ func GenTSConfig(root string, entrypoint string, opts api.KindOptions) ([]byte, 
 		if err != nil {
 			return nil, errors.Wrap(err, "reading user-provided tsconfig")
 		}
-		var tc TSConfig
-		if err := json.Unmarshal(content, &tc); err != nil {
-			return nil, errors.Wrap(err, "parsing user-provide tsconfig")
+		logger.Debug("found tsconfig.json at %s: %+v", p, strings.TrimSpace(string(content)))
+		if err := json.Unmarshal(content, &utsc); err != nil {
+			return nil, errors.Wrap(err, "invalid tsconfig.json")
 		}
-		if len(tc.CompilerOptions.Paths) > 0 {
+		if len(utsc.CompilerOptions.Paths) > 0 {
 			logger.Warning("Detected a tsconfig.json with path aliases which are not supported on Airplane yet.")
 		}
 
@@ -180,20 +185,33 @@ func GenTSConfig(root string, entrypoint string, opts api.KindOptions) ([]byte, 
 			return nil, errors.Wrap(err, "creating relative tsconfig path")
 		}
 		tsconfig.Extends = rp
-	} else {
-		// Since the user did not provide their own tsconfig, initialize it with some sane defaults:
-		tsconfig.CompilerOptions.AllowJS = pointers.Bool(true)
-		tsconfig.CompilerOptions.Module = "commonjs"
-		tsconfig.CompilerOptions.ESModuleInterop = pointers.Bool(true)
-		tsconfig.CompilerOptions.SkipLibCheck = pointers.Bool(true)
+	}
 
-		target := "es2020"
-		if opts != nil && strings.HasPrefix(opts["nodeVersion"].(string), "12") {
-			// For Node 12 (the earliest version of Node we support), we need to compile to an
-			// older version of ECMAScript.
-			target = "es2019"
-		}
+	// Apply defaults to a few of the tsconfig fields, but let the user override
+	// them from their tsconfig.json:
+	if utsc.CompilerOptions.AllowJS == nil {
+		tsconfig.CompilerOptions.AllowJS = pointers.Bool(true)
+	}
+	if utsc.CompilerOptions.Module == "" {
+		tsconfig.CompilerOptions.Module = "commonjs"
+	}
+	if utsc.CompilerOptions.ESModuleInterop == nil {
+		tsconfig.CompilerOptions.ESModuleInterop = pointers.Bool(true)
+	}
+	if utsc.CompilerOptions.SkipLibCheck == nil {
+		tsconfig.CompilerOptions.SkipLibCheck = pointers.Bool(true)
+	}
+
+	target := "es2020"
+	if opts != nil && strings.HasPrefix(opts["nodeVersion"].(string), "12") {
+		// For Node 12 (the earliest version of Node we support), we need to compile to an
+		// older version of ECMAScript.
+		target = "es2019"
+	}
+	if utsc.CompilerOptions.Target == "" {
 		tsconfig.CompilerOptions.Target = target
+	}
+	if utsc.CompilerOptions.Lib == nil {
 		tsconfig.CompilerOptions.Lib = []string{target, "dom"}
 	}
 

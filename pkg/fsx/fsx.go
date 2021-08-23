@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 )
 
 // Exists returns true if the given path exists.
@@ -48,10 +49,10 @@ func FindUntil(start, end, filename string) (string, bool) {
 
 	if !Exists(dst) {
 		next := filepath.Dir(start)
-		if next == "." || (end != "" && next == end) || next == string(filepath.Separator) {
+		if next == "." || (end != "" && strings.HasPrefix(end, next)) || next == string(filepath.Separator) {
 			return "", false
 		}
-		return Find(next, filename)
+		return FindUntil(next, end, filename)
 	}
 
 	return start, true
