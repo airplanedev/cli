@@ -36,17 +36,16 @@ func node(root string, options api.KindOptions) (string, error) {
 
 	workdir, _ := options["workdir"].(string)
 	cfg := struct {
-		Workdir        string
-		Base           string
-		HasPackageJSON bool
-		IsYarn         bool
-		HasShimDeps    bool
-		InlineShim     string
-		InlineTSConfig string
+		Workdir               string
+		Base                  string
+		HasPackageJSON        bool
+		IsYarn                bool
+		InlineShim            string
+		InlineTSConfig        string
+		InlineShimPackageJSON string
 	}{
 		Workdir:        workdir,
 		HasPackageJSON: fsx.AssertExistsAll(filepath.Join(root, "package.json")) == nil,
-		HasShimDeps:    HasNodeShimDeps(root),
 		IsYarn:         fsx.AssertExistsAll(filepath.Join(root, "yarn.lock")) == nil,
 	}
 
@@ -59,6 +58,12 @@ func node(root string, options api.KindOptions) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
+	pjson, err := GenShimPackageJSON()
+	if err != nil {
+		return "", err
+	}
+	cfg.InlineShimPackageJSON = inlineString(string(pjson))
 
 	shim, err := NodeShim(entrypoint)
 	if err != nil {
@@ -99,30 +104,38 @@ func node(root string, options api.KindOptions) (string, error) {
 		RUN npm install -g typescript@4.2
 		COPY . /airplane
 
+		RUN mkdir -p /airplane/.airplane && \
+			cd /airplane/.airplane && \
+			echo '{{.InlineShimPackageJSON}}' > package.json && \
+			npm install
+		RUN pwd
+
 		{{if not .HasPackageJSON}}
 		RUN echo '{}' > /airplane/package.json
 		{{end}}
 
 		{{if .IsYarn}}
-		{{if .HasShimDeps}}
 		RUN yarn --non-interactive
 		{{else}}
-		RUN yarn add --non-interactive @types/node
-		{{end}}
-		{{else}}
-		{{if .HasShimDeps}}
 		RUN npm install
-		{{else}}
-		RUN npm install @types/node
-		{{end}}
 		{{end}}
 
-		RUN mkdir -p /airplane/.airplane/dist && \
-			{{.InlineShim}} > /airplane/.airplane/shim.ts && \
+		RUN {{.InlineShim}} > /airplane/.airplane/shim.ts && \
 			{{.InlineTSConfig}} > /airplane/.airplane/tsconfig.json && \
 			tsc --pretty -p /airplane/.airplane
 		ENTRYPOINT ["node", "/airplane/.airplane/dist/.airplane/shim.js"]
 	`), cfg)
+}
+
+func GenShimPackageJSON() ([]byte, error) {
+	b, err := json.Marshal(struct {
+		Dependencies map[string]string `json:"dependencies"`
+	}{
+		Dependencies: map[string]string{
+			"@types/node": "^16",
+		},
+	})
+	return b, errors.Wrap(err, "generating shim dependencies")
 }
 
 // GenTSConfig generates a `tsconfig.json` that can be placed in `<root>/.airplane/tsconfig.json`.
@@ -245,44 +258,6 @@ func NodeShim(entrypoint string) (string, error) {
 	}
 
 	return shim, nil
-}
-
-func HasNodeShimDeps(root string) bool {
-	return hasNodeDeps(root, "@types/node")
-}
-
-// hasNodeDeps returns true if all deps are installed in the root's
-// package.json, either as dependencies or dev dependencies.
-func hasNodeDeps(root string, deps ...string) bool {
-	pkgjsonpath := filepath.Join(root, "package.json")
-	if fsx.AssertExistsAll(pkgjsonpath) != nil {
-		return false
-	}
-
-	contents, err := ioutil.ReadFile(pkgjsonpath)
-	if err != nil {
-		logger.Debug("Failed to read package.json contents. Continuing... Error: %+v", err)
-		return false
-	}
-
-	var pkgjson struct {
-		Dependencies    map[string]json.RawMessage `json:"dependencies"`
-		DevDependencies map[string]json.RawMessage `json:"devDependencies"`
-	}
-	if err := json.Unmarshal(contents, &pkgjson); err != nil {
-		logger.Debug("Failed to unmarshal package.json contents. Continuing... Error: %+v", err)
-		return false
-	}
-
-	for _, dep := range deps {
-		_, hasDep := pkgjson.Dependencies[dep]
-		_, hasDevDep := pkgjson.DevDependencies[dep]
-		if !hasDep && !hasDevDep {
-			return false
-		}
-	}
-
-	return true
 }
 
 // nodeLegacyBuilder creates a dockerfile for Node (typescript/javascript).
