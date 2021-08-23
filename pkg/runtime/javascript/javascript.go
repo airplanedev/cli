@@ -150,22 +150,8 @@ func (r Runtime) PrepareRun(ctx context.Context, opts runtime.PrepareRunOptions)
 		return nil, errors.Wrap(err, "writing shim file")
 	}
 
-	// If the user provides a tsconfig.json, extend it s.t. we only compile the
-	tsconfig := struct {
-		Files   []string `json:"files"`
-		Extends string   `json:"extends,omitempty"`
-	}{
-		Files: []string{"./shim.ts"},
-	}
-	if p, ok := fsx.FindUntil(filepath.Dir(opts.Path), root, "tsconfig.json"); ok {
-		rp, err := filepath.Rel(filepath.Join(root, ".airplane"), filepath.Join(p, "tsconfig.json"))
-		if err != nil {
-			return nil, errors.Wrap(err, "creating relative tsconfig path")
-		}
-		tsconfig.Extends = rp
-	}
-	if content, err := json.MarshalIndent(tsconfig, "", "\t"); err != nil {
-		return nil, errors.Wrap(err, "generating tsconfig")
+	if content, err := build.GenTSConfig(root, opts.Path, opts.KindOptions); err != nil {
+		return nil, err
 	} else if err := os.WriteFile(filepath.Join(root, ".airplane/tsconfig.json"), content, 0644); err != nil {
 		return nil, errors.Wrap(err, "writing shim file")
 	}
@@ -189,10 +175,11 @@ func (r Runtime) PrepareRun(ctx context.Context, opts runtime.PrepareRunOptions)
 
 	start := time.Now()
 	var cmd *exec.Cmd
+	tscArgs := []string{"--pretty", "-p", filepath.Join(root, ".airplane"), "."}
 	if isTscNpx {
-		cmd = exec.CommandContext(ctx, "npx", append([]string{"-p", "typescript", "--no", "tsc", "--"}, build.NodeTscArgs(".", opts.KindOptions)...)...)
+		cmd = exec.CommandContext(ctx, "npx", append([]string{"-p", "typescript", "--no", "tsc", "--"}, tscArgs...)...)
 	} else {
-		cmd = exec.CommandContext(ctx, "tsc", build.NodeTscArgs(".", opts.KindOptions)...)
+		cmd = exec.CommandContext(ctx, "tsc", tscArgs...)
 	}
 	cmd.Dir = root
 	logger.Debug("Running %s (in %s)", logger.Bold(strings.Join(cmd.Args, " ")), root)

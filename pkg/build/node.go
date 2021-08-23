@@ -13,6 +13,7 @@ import (
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/fsx"
 	"github.com/airplanedev/cli/pkg/logger"
+	"github.com/airplanedev/cli/pkg/utils/pointers"
 	"github.com/pkg/errors"
 )
 
@@ -38,19 +39,15 @@ func node(root string, options api.KindOptions) (string, error) {
 		Workdir        string
 		Base           string
 		HasPackageJSON bool
-		HasPackageLock bool
 		IsYarn         bool
 		HasShimDeps    bool
 		InlineShim     string
-		IsTS           bool
-		TscArgs        string
+		InlineTSConfig string
 	}{
 		Workdir:        workdir,
 		HasPackageJSON: fsx.AssertExistsAll(filepath.Join(root, "package.json")) == nil,
-		HasPackageLock: fsx.AssertExistsAll(filepath.Join(root, "package-lock.json")) == nil,
 		HasShimDeps:    HasNodeShimDeps(root),
 		IsYarn:         fsx.AssertExistsAll(filepath.Join(root, "yarn.lock")) == nil,
-		TscArgs:        strings.Join(NodeTscArgs("/airplane", options), " \\\n"),
 	}
 
 	if !strings.HasPrefix(cfg.Workdir, "/") {
@@ -68,6 +65,12 @@ func node(root string, options api.KindOptions) (string, error) {
 		return "", err
 	}
 	cfg.InlineShim = inlineString(shim)
+
+	tsconfig, err := GenTSConfig(root, entrypoint, options)
+	if err != nil {
+		return "", err
+	}
+	cfg.InlineTSConfig = inlineString(string(tsconfig))
 
 	// The following Dockerfile can build both JS and TS tasks. In general, we're
 	// aiming for recent EC202x support and for support for import/export syntax.
@@ -116,9 +119,72 @@ func node(root string, options api.KindOptions) (string, error) {
 
 		RUN mkdir -p /airplane/.airplane/dist && \
 			{{.InlineShim}} > /airplane/.airplane/shim.ts && \
-			tsc {{.TscArgs}}
+			{{.InlineTSConfig}} > /airplane/.airplane/tsconfig.json && \
+			tsc --pretty -p /airplane/.airplane
 		ENTRYPOINT ["node", "/airplane/.airplane/dist/.airplane/shim.js"]
 	`), cfg)
+}
+
+func GenTSConfig(root string, entrypoint string, opts api.KindOptions) ([]byte, error) {
+	type CompilerOptions struct {
+		ListFiles       *bool    `json:"listFiles,omitempty"`
+		Target          string   `json:"target,omitempty"`
+		Lib             []string `json:"lib,omitempty"`
+		AllowJS         *bool    `json:"allowJs,omitempty"`
+		Module          string   `json:"module,omitempty"`
+		ESModuleInterop *bool    `json:"esModuleInterop,omitempty"`
+		OutDir          string   `json:"outDir"`
+		RootDir         string   `json:"rootDir"`
+		SkipLibCheck    *bool    `json:"skipLibCheck,omitempty"`
+	}
+	type TSConfig struct {
+		CompilerOptions CompilerOptions `json:"compilerOptions"`
+		Files           []string        `json:"files"`
+		Extends         string          `json:"extends,omitempty"`
+	}
+
+	tsconfig := TSConfig{
+		// The following configuration takes precedence over a user-provided tsconfig.
+		CompilerOptions: CompilerOptions{
+			ListFiles: pointers.Bool(true), // For debugging
+			OutDir:    filepath.Join(root, ".airplane/dist"),
+			RootDir:   root,
+		},
+		// `shim.ts` is our entrypoint. When we compile this tsconfig's project,
+		// it will pull in any imported files, too.
+		Files: []string{"./shim.ts"},
+	}
+
+	// Check if the user provided their own tsconfig. Use the tsconfig closest to the user's entrypoint.
+	if p, ok := fsx.FindUntil(filepath.Dir(entrypoint), root, "tsconfig.json"); ok {
+		rp, err := filepath.Rel(filepath.Join(root, ".airplane"), filepath.Join(p, "tsconfig.json"))
+		if err != nil {
+			return nil, errors.Wrap(err, "creating relative tsconfig path")
+		}
+		tsconfig.Extends = rp
+	} else {
+		// Since the user did not provide their own tsconfig, initialize it with some sane defaults:
+		tsconfig.CompilerOptions.AllowJS = pointers.Bool(true)
+		tsconfig.CompilerOptions.Module = "commonjs"
+		tsconfig.CompilerOptions.ESModuleInterop = pointers.Bool(true)
+		tsconfig.CompilerOptions.SkipLibCheck = pointers.Bool(true)
+
+		target := "es2020"
+		if opts != nil && strings.HasPrefix(opts["nodeVersion"].(string), "12") {
+			// For Node 12 (the earliest version of Node we support), we need to compile to an
+			// older version of ECMAScript.
+			target = "es2019"
+		}
+		tsconfig.CompilerOptions.Target = target
+		tsconfig.CompilerOptions.Lib = []string{target, "dom"}
+	}
+
+	content, err := json.MarshalIndent(tsconfig, "", "\t")
+	if err != nil {
+		return nil, errors.Wrap(err, "marshaling tsconfig")
+	}
+
+	return content, nil
 }
 
 //go:embed node-shim.ts
@@ -143,29 +209,6 @@ func NodeShim(entrypoint string) (string, error) {
 	}
 
 	return shim, nil
-}
-
-func NodeTscArgs(root string, opts api.KindOptions) []string {
-	// https://github.com/tsconfig/bases/blob/master/bases/node16.json
-	tscTarget := "es2020"
-	tscLib := "es2020,dom"
-	if opts != nil && strings.HasPrefix(opts["nodeVersion"].(string), "12") {
-		tscTarget = "es2019"
-		tscLib = "es2019,dom"
-	}
-
-	return []string{
-		"--allowJs",
-		"--module", "commonjs",
-		"--target", tscTarget,
-		"--lib", tscLib,
-		"--esModuleInterop",
-		"--outDir", filepath.Join(root, ".airplane/dist"),
-		"--rootDir", root,
-		"--skipLibCheck",
-		"--pretty",
-		"-p", filepath.Join(root, ".airplane"),
-	}
 }
 
 func HasNodeShimDeps(root string) bool {
