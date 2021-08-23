@@ -108,7 +108,6 @@ func node(root string, options api.KindOptions) (string, error) {
 			cd /airplane/.airplane && \
 			echo '{{.InlineShimPackageJSON}}' > package.json && \
 			npm install
-		RUN pwd
 
 		{{if not .HasPackageJSON}}
 		RUN echo '{}' > /airplane/package.json
