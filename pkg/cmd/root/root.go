@@ -65,8 +65,8 @@ func New() *cobra.Command {
 			logger.EnableDebug = cfg.DebugMode
 			trap.Printf = logger.Log
 
-			// Log the version everytime the CLI is run with --debug. This means we can align
-			// debugging output from a customer with a specific release of the CLI.
+			// Log the version every time the CLI is run with `--debug`. This aligns
+			// customer debugging output with a specific release of the CLI.
 			logger.Debug(version.Version())
 
 			return nil
