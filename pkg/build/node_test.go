@@ -8,26 +8,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// -(map[string]interface {}) {
-// 	+(map[string]interface {}) (len=2) {
-// 	+ (string) (len=15) "compilerOptions": (map[string]interface {}) (len=8) {
-// 	+  (string) (len=7) "allowJs": (bool) true,
-// 	+  (string) (len=15) "esModuleInterop": (bool) true,
-// 	+  (string) (len=3) "lib": ([]interface {}) (len=2) {
-// 	+   (string) (len=6) "es2020",
-// 	+   (string) (len=3) "dom"
-// 	+  },
-// 	+  (string) (len=6) "module": (string) (len=8) "commonjs",
-// 	+  (string) (len=6) "outDir": (string) (len=6) "./dist",
-// 	+  (string) (len=7) "rootDir": (string) (len=2) "..",
-// 	+  (string) (len=12) "skipLibCheck": (bool) true,
-// 	+  (string) (len=6) "target": (string) (len=6) "es2020"
-// 	+ },
-// 	+ (string) (len=5) "files": ([]interface {}) (len=1) {
-// 	+  (string) (len=9) "./shim.ts"
-// 	+ }
-// 	 }
-
 func TestGenTSConfig(t *testing.T) {
 	require := require.New(t)
 
