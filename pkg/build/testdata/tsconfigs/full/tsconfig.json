@@ -1,0 +1,15 @@
+{
+  "files": [
+    "*"
+  ],
+  "compilerOptions": {
+    "allowJs": false,
+    "esModuleInterop": false,
+    "lib": ["ES2015"],
+    "module": "ES2015",
+    "outDir": "./a",
+    "rootDir": "./b",
+    "skipLibCheck": false,
+    "target": "ES3"
+  }
+}

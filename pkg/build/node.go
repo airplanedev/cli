@@ -13,6 +13,7 @@ import (
 	"github.com/airplanedev/cli/pkg/api"
 	"github.com/airplanedev/cli/pkg/fsx"
 	"github.com/airplanedev/cli/pkg/logger"
+	"github.com/airplanedev/cli/pkg/utils/pointers"
 	"github.com/pkg/errors"
 )
 
@@ -35,22 +36,17 @@ func node(root string, options api.KindOptions) (string, error) {
 
 	workdir, _ := options["workdir"].(string)
 	cfg := struct {
-		Workdir        string
-		Base           string
-		HasPackageJSON bool
-		HasPackageLock bool
-		IsYarn         bool
-		HasShimDeps    bool
-		InlineShim     string
-		IsTS           bool
-		TscArgs        string
+		Workdir               string
+		Base                  string
+		HasPackageJSON        bool
+		IsYarn                bool
+		InlineShim            string
+		InlineTSConfig        string
+		InlineShimPackageJSON string
 	}{
 		Workdir:        workdir,
 		HasPackageJSON: fsx.AssertExistsAll(filepath.Join(root, "package.json")) == nil,
-		HasPackageLock: fsx.AssertExistsAll(filepath.Join(root, "package-lock.json")) == nil,
-		HasShimDeps:    HasNodeShimDeps(root),
 		IsYarn:         fsx.AssertExistsAll(filepath.Join(root, "yarn.lock")) == nil,
-		TscArgs:        strings.Join(NodeTscArgs("/airplane", options), " \\\n"),
 	}
 
 	if !strings.HasPrefix(cfg.Workdir, "/") {
@@ -63,11 +59,23 @@ func node(root string, options api.KindOptions) (string, error) {
 		return "", err
 	}
 
+	pjson, err := GenShimPackageJSON()
+	if err != nil {
+		return "", err
+	}
+	cfg.InlineShimPackageJSON = inlineString(string(pjson))
+
 	shim, err := NodeShim(entrypoint)
 	if err != nil {
 		return "", err
 	}
 	cfg.InlineShim = inlineString(shim)
+
+	tsconfig, err := GenTSConfig(root, filepath.Join(root, entrypoint), options)
+	if err != nil {
+		return "", err
+	}
+	cfg.InlineTSConfig = inlineString(string(tsconfig))
 
 	// The following Dockerfile can build both JS and TS tasks. In general, we're
 	// aiming for recent EC202x support and for support for import/export syntax.
@@ -96,29 +104,137 @@ func node(root string, options api.KindOptions) (string, error) {
 		RUN npm install -g typescript@4.2
 		COPY . /airplane
 
+		RUN mkdir -p /airplane/.airplane && \
+			cd /airplane/.airplane && \
+			echo '{{.InlineShimPackageJSON}}' > package.json && \
+			npm install
+
 		{{if not .HasPackageJSON}}
 		RUN echo '{}' > /airplane/package.json
 		{{end}}
 
 		{{if .IsYarn}}
-		{{if .HasShimDeps}}
 		RUN yarn --non-interactive
 		{{else}}
-		RUN yarn add --non-interactive @types/node
-		{{end}}
-		{{else}}
-		{{if .HasShimDeps}}
 		RUN npm install
-		{{else}}
-		RUN npm install @types/node
-		{{end}}
 		{{end}}
 
-		RUN mkdir -p /airplane/.airplane/dist && \
-			{{.InlineShim}} > /airplane/.airplane/shim.ts && \
-			tsc {{.TscArgs}}
+		RUN {{.InlineShim}} > /airplane/.airplane/shim.ts && \
+			{{.InlineTSConfig}} > /airplane/.airplane/tsconfig.json && \
+			tsc --pretty -p /airplane/.airplane
 		ENTRYPOINT ["node", "/airplane/.airplane/dist/.airplane/shim.js"]
 	`), cfg)
+}
+
+func GenShimPackageJSON() ([]byte, error) {
+	b, err := json.Marshal(struct {
+		Dependencies map[string]string `json:"dependencies"`
+	}{
+		Dependencies: map[string]string{
+			"@types/node": "^16",
+		},
+	})
+	return b, errors.Wrap(err, "generating shim dependencies")
+}
+
+// GenTSConfig generates a `tsconfig.json` that can be placed in `<root>/.airplane/tsconfig.json`.
+//
+// If a user-provided tsconfig.json is found, in between the root and entrypoint directories,
+// then the generated `tsconfig.json` will instruct tsc to read that.
+func GenTSConfig(root string, entrypoint string, opts api.KindOptions) ([]byte, error) {
+	// https://www.typescriptlang.org/tsconfig
+	type CompilerOptions struct {
+		Target          string                     `json:"target,omitempty"`
+		Lib             []string                   `json:"lib,omitempty"`
+		AllowJS         *bool                      `json:"allowJs,omitempty"`
+		Module          string                     `json:"module,omitempty"`
+		ESModuleInterop *bool                      `json:"esModuleInterop,omitempty"`
+		OutDir          string                     `json:"outDir"`
+		RootDir         string                     `json:"rootDir"`
+		SkipLibCheck    *bool                      `json:"skipLibCheck,omitempty"`
+		Paths           map[string]json.RawMessage `json:"paths,omitempty"`
+	}
+	type TSConfig struct {
+		CompilerOptions CompilerOptions `json:"compilerOptions"`
+		Files           []string        `json:"files"`
+		Extends         string          `json:"extends,omitempty"`
+	}
+
+	tsconfig := TSConfig{
+		// The following configuration takes precedence over a user-provided tsconfig.
+		// All other tsconfig fields should be set to `omitempty` so that they can be
+		// overridden by a user-provided tsconfig.
+		CompilerOptions: CompilerOptions{
+			// This tsconfig is placed in `<root>/.airplane/tsconfig.json`
+			RootDir: "..",
+			// Placed compiled files into `<root>/.airplane/dist`
+			OutDir: "./dist",
+		},
+		// `shim.ts` is our entrypoint. When we point tsc at this tsconfig, it will
+		// compile shim.ts and all of its imported files.
+		Files: []string{"./shim.ts"},
+	}
+
+	// Check if the user provided their own tsconfig. Use the tsconfig closest to the user's entrypoint.
+	var utsc TSConfig
+	if p, ok := fsx.FindUntil(filepath.Dir(entrypoint), root, "tsconfig.json"); ok {
+		p = filepath.Join(p, "tsconfig.json")
+		// Read the contents of the user's tsconfig and warn about any unsupported behavior:
+		content, err := ioutil.ReadFile(p)
+		if err != nil {
+			return nil, errors.Wrap(err, "reading user-provided tsconfig")
+		}
+		logger.Debug("Found tsconfig.json at %s: %+v", p, strings.TrimSpace(string(content)))
+		if err := json.Unmarshal(content, &utsc); err != nil {
+			return nil, errors.Wrap(err, "invalid tsconfig.json")
+		}
+		if len(utsc.CompilerOptions.Paths) > 0 {
+			logger.Warning("Detected a tsconfig.json with path aliases which are not supported on Airplane yet.")
+		}
+
+		rp, err := filepath.Rel(filepath.Join(root, ".airplane"), p)
+		if err != nil {
+			return nil, errors.Wrap(err, "creating relative tsconfig path")
+		}
+		tsconfig.Extends = rp
+	}
+
+	// Apply defaults to a few of the tsconfig fields, but let the user override
+	// them from their tsconfig.json:
+	if utsc.CompilerOptions.AllowJS == nil {
+		tsconfig.CompilerOptions.AllowJS = pointers.Bool(true)
+	}
+	if utsc.CompilerOptions.Module == "" {
+		tsconfig.CompilerOptions.Module = "commonjs"
+	}
+	if utsc.CompilerOptions.ESModuleInterop == nil {
+		tsconfig.CompilerOptions.ESModuleInterop = pointers.Bool(true)
+	}
+	if utsc.CompilerOptions.SkipLibCheck == nil {
+		tsconfig.CompilerOptions.SkipLibCheck = pointers.Bool(true)
+	}
+
+	target := "es2020"
+	if opts != nil && strings.HasPrefix(opts["nodeVersion"].(string), "12") {
+		// For Node 12 (the earliest version of Node we support), we need to compile to an
+		// older version of ECMAScript.
+		target = "es2019"
+	}
+	if utsc.CompilerOptions.Target == "" {
+		tsconfig.CompilerOptions.Target = target
+	}
+	if utsc.CompilerOptions.Lib == nil {
+		tsconfig.CompilerOptions.Lib = []string{target, "dom"}
+	}
+
+	content, err := json.MarshalIndent(tsconfig, "", "\t")
+	if err != nil {
+		return nil, errors.Wrap(err, "marshaling tsconfig")
+	}
+
+	logger.Debug("Generated tsconfig.json: %s", strings.TrimSpace(string(content)))
+
+	return content, nil
 }
 
 //go:embed node-shim.ts
@@ -143,67 +259,6 @@ func NodeShim(entrypoint string) (string, error) {
 	}
 
 	return shim, nil
-}
-
-func NodeTscArgs(root string, opts api.KindOptions) []string {
-	// https://github.com/tsconfig/bases/blob/master/bases/node16.json
-	tscTarget := "es2020"
-	tscLib := "es2020,dom"
-	if opts != nil && strings.HasPrefix(opts["nodeVersion"].(string), "12") {
-		tscTarget = "es2019"
-		tscLib = "es2019,dom"
-	}
-
-	return []string{
-		"--allowJs",
-		"--module", "commonjs",
-		"--target", tscTarget,
-		"--lib", tscLib,
-		"--esModuleInterop",
-		"--outDir", filepath.Join(root, ".airplane/dist"),
-		"--rootDir", root,
-		"--skipLibCheck",
-		"--pretty",
-		filepath.Join(root, ".airplane/shim.ts"),
-	}
-}
-
-func HasNodeShimDeps(root string) bool {
-	return hasNodeDeps(root, "@types/node")
-}
-
-// hasNodeDeps returns true if all deps are installed in the root's
-// package.json, either as dependencies or dev dependencies.
-func hasNodeDeps(root string, deps ...string) bool {
-	pkgjsonpath := filepath.Join(root, "package.json")
-	if fsx.AssertExistsAll(pkgjsonpath) != nil {
-		return false
-	}
-
-	contents, err := ioutil.ReadFile(pkgjsonpath)
-	if err != nil {
-		logger.Debug("Failed to read package.json contents. Continuing... Error: %+v", err)
-		return false
-	}
-
-	var pkgjson struct {
-		Dependencies    map[string]json.RawMessage `json:"dependencies"`
-		DevDependencies map[string]json.RawMessage `json:"devDependencies"`
-	}
-	if err := json.Unmarshal(contents, &pkgjson); err != nil {
-		logger.Debug("Failed to unmarshal package.json contents. Continuing... Error: %+v", err)
-		return false
-	}
-
-	for _, dep := range deps {
-		_, hasDep := pkgjson.Dependencies[dep]
-		_, hasDevDep := pkgjson.DevDependencies[dep]
-		if !hasDep && !hasDevDep {
-			return false
-		}
-	}
-
-	return true
 }
 
 // nodeLegacyBuilder creates a dockerfile for Node (typescript/javascript).

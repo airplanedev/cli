@@ -18,5 +18,6 @@ You can test this build process locally by running:
 # or https://goreleaser.com/install/
 brew install goreleaser/tap/goreleaser
 
-goreleaser --snapshot --skip-publish --rm-dist
+SEGMENT_WRITE_KEY=foo SENTRY_DSN=bar \
+  goreleaser --snapshot --skip-publish --rm-dist
 ```
