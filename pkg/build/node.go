@@ -184,7 +184,7 @@ func GenTSConfig(root string, entrypoint string, opts api.KindOptions) ([]byte, 
 		if err != nil {
 			return nil, errors.Wrap(err, "reading user-provided tsconfig")
 		}
-		logger.Debug("found tsconfig.json at %s: %+v", p, strings.TrimSpace(string(content)))
+		logger.Debug("Found tsconfig.json at %s: %+v", p, strings.TrimSpace(string(content)))
 		if err := json.Unmarshal(content, &utsc); err != nil {
 			return nil, errors.Wrap(err, "invalid tsconfig.json")
 		}
@@ -231,6 +231,8 @@ func GenTSConfig(root string, entrypoint string, opts api.KindOptions) ([]byte, 
 	if err != nil {
 		return nil, errors.Wrap(err, "marshaling tsconfig")
 	}
+
+	logger.Debug("Generated tsconfig.json: %s", strings.TrimSpace(string(content)))
 
 	return content, nil
 }
