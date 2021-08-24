@@ -14,6 +14,7 @@ import (
 	"github.com/airplanedev/cli/pkg/logger"
 	"github.com/airplanedev/cli/pkg/runtime"
 	"github.com/airplanedev/cli/pkg/taskdir/definitions"
+	"github.com/airplanedev/cli/pkg/utils/pointers"
 	"github.com/pkg/errors"
 )
 
@@ -129,6 +130,7 @@ func deployFromScript(ctx context.Context, cfg config) (rErr error) {
 		RequireExplicitPermissions: task.RequireExplicitPermissions,
 		Permissions:                task.Permissions,
 		Timeout:                    def.Timeout,
+		BuildID:                    pointers.String(resp.BuildID),
 	})
 	if err != nil {
 		return err

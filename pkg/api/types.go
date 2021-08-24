@@ -46,7 +46,8 @@ type UpdateTaskRequest struct {
 	RequireExplicitPermissions bool              `json:"requireExplicitPermissions" yaml:"-"`
 	Permissions                Permissions       `json:"permissions" yaml:"-"`
 	// TODO(amir): friendly type here (120s, 5m ...)
-	Timeout int `json:"timeout" yaml:"timeout"`
+	Timeout int     `json:"timeout" yaml:"timeout"`
+	BuildID *string `json:"buildID" yaml:"-"`
 }
 
 type Permissions []Permission
