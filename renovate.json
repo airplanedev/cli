@@ -3,5 +3,7 @@
     "config:base",
     "group:allNonMajor"
   ],
-  "postUpdateOptions": "gomodTidy"
+  "postUpdateOptions": [
+    "gomodTidy"
+  ]
 }
