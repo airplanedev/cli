@@ -180,8 +180,14 @@ type Parameter struct {
 
 // Constraints represent constraints.
 type Constraints struct {
-	Optional bool   `json:"optional" yaml:"optional,omitempty"`
-	Regex    string `json:"regex" yaml:"regex,omitempty"`
+	Optional bool               `json:"optional" yaml:"optional,omitempty"`
+	Regex    string             `json:"regex" yaml:"regex,omitempty"`
+	Options  []ConstraintOption `json:"options,omitempty"`
+}
+
+type ConstraintOption struct {
+	Label string `json:"label"`
+	Value Value  `json:"value"`
 }
 
 // Value represents a value.
