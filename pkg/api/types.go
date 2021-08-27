@@ -29,24 +29,25 @@ type CreateTaskRequest struct {
 
 // UpdateTaskRequest updates a task.
 type UpdateTaskRequest struct {
-	Slug                       string            `json:"slug" yaml:"-"`
-	Name                       string            `json:"name" yaml:"name"`
-	Description                string            `json:"description" yaml:"description"`
-	Image                      *string           `json:"image" yaml:"image"`
-	Command                    []string          `json:"command" yaml:"command"`
-	Arguments                  []string          `json:"arguments" yaml:"arguments"`
-	Parameters                 Parameters        `json:"parameters" yaml:"parameters"`
-	Constraints                RunConstraints    `json:"constraints" yaml:"constraints"`
-	Env                        TaskEnv           `json:"env" yaml:"env"`
-	ResourceRequests           map[string]string `json:"resourceRequests" yaml:"resourceRequests"`
-	Resources                  map[string]string `json:"resources" yaml:"resources"`
-	Kind                       TaskKind          `json:"kind" yaml:"builder"`
-	KindOptions                KindOptions       `json:"kindOptions" yaml:"builderConfig"`
-	Repo                       string            `json:"repo" yaml:"repo"`
-	RequireExplicitPermissions bool              `json:"requireExplicitPermissions" yaml:"-"`
-	Permissions                Permissions       `json:"permissions" yaml:"-"`
+	Slug                       string            `json:"slug"`
+	Name                       string            `json:"name"`
+	Description                string            `json:"description"`
+	Image                      *string           `json:"image"`
+	Command                    []string          `json:"command"`
+	Arguments                  []string          `json:"arguments"`
+	Parameters                 Parameters        `json:"parameters"`
+	Constraints                RunConstraints    `json:"constraints"`
+	Env                        TaskEnv           `json:"env"`
+	ResourceRequests           map[string]string `json:"resourceRequests"`
+	Resources                  map[string]string `json:"resources"`
+	Kind                       TaskKind          `json:"kind"`
+	KindOptions                KindOptions       `json:"kindOptions"`
+	Repo                       string            `json:"repo"`
+	RequireExplicitPermissions bool              `json:"requireExplicitPermissions"`
+	Permissions                Permissions       `json:"permissions"`
 	// TODO(amir): friendly type here (120s, 5m ...)
-	Timeout int `json:"timeout" yaml:"timeout"`
+	Timeout int     `json:"timeout"`
+	BuildID *string `json:"buildID"`
 }
 
 type Permissions []Permission

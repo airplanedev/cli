@@ -1,0 +1,9 @@
+{
+  "extends": [
+    "config:base",
+    "group:allNonMajor"
+  ],
+  "postUpdateOptions": [
+    "gomodTidy"
+  ]
+}

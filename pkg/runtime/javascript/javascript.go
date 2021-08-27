@@ -150,6 +150,29 @@ func (r Runtime) PrepareRun(ctx context.Context, opts runtime.PrepareRunOptions)
 		return nil, errors.Wrap(err, "writing shim file")
 	}
 
+	// Install the dependencies we need for our shim file:
+	pjson, err := build.GenShimPackageJSON()
+	if err != nil {
+		return nil, err
+	}
+	if err := os.WriteFile(filepath.Join(root, ".airplane/package.json"), pjson, 0644); err != nil {
+		return nil, errors.Wrap(err, "writing shim package.json")
+	}
+	cmd := exec.CommandContext(ctx, "npm", "install")
+	cmd.Dir = filepath.Join(root, ".airplane")
+	logger.Debug("Running %s (in %s)", logger.Bold(strings.Join(cmd.Args, " ")), root)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		logger.Log(strings.TrimSpace(string(out)))
+		return nil, errors.New("failed to install shim deps")
+	}
+
+	if content, err := build.GenTSConfig(root, opts.Path, opts.KindOptions); err != nil {
+		return nil, err
+	} else if err := os.WriteFile(filepath.Join(root, ".airplane/tsconfig.json"), content, 0644); err != nil {
+		return nil, errors.Wrap(err, "writing tsconfig")
+	}
+
 	if err := os.RemoveAll(filepath.Join(root, ".airplane/dist")); err != nil {
 		return nil, errors.Wrap(err, "cleaning dist folder")
 	}
@@ -161,25 +184,18 @@ func (r Runtime) PrepareRun(ctx context.Context, opts runtime.PrepareRunOptions)
 		return nil, errors.New("a package.json is missing")
 	}
 
-	if !build.HasNodeShimDeps(root) {
-		if err := installShimDeps(ctx, root, opts.Path); err != nil {
-			return nil, err
-		}
-	}
-
 	start := time.Now()
-	var cmd *exec.Cmd
+	tscArgs := []string{"--pretty", "-p", filepath.Join(root, ".airplane")}
 	if isTscNpx {
-		cmd = exec.CommandContext(ctx, "npx", append([]string{"-p", "typescript", "--no", "tsc", "--"}, build.NodeTscArgs(".", opts.KindOptions)...)...)
+		cmd = exec.CommandContext(ctx, "npx", append([]string{"-p", "typescript", "--no", "tsc", "--"}, tscArgs...)...)
 	} else {
-		cmd = exec.CommandContext(ctx, "tsc", build.NodeTscArgs(".", opts.KindOptions)...)
+		cmd = exec.CommandContext(ctx, "tsc", tscArgs...)
 	}
 	cmd.Dir = root
 	logger.Debug("Running %s (in %s)", logger.Bold(strings.Join(cmd.Args, " ")), root)
-	out, err := cmd.CombinedOutput()
+	out, err = cmd.CombinedOutput()
 	if err != nil {
 		logger.Log(strings.TrimSpace(string(out)))
-
 		return nil, errors.Errorf("failed to compile %s", opts.Path)
 	}
 	logger.Debug("Compiled JS in %s", logger.Bold(time.Since(start).String()))
@@ -190,36 +206,6 @@ func (r Runtime) PrepareRun(ctx context.Context, opts runtime.PrepareRunOptions)
 	}
 
 	return []string{"node", filepath.Join(root, ".airplane/dist/.airplane/shim.js"), string(pv)}, nil
-}
-
-func installShimDeps(ctx context.Context, root, path string) error {
-	isYarn := fsx.AssertExistsAll(filepath.Join(root, "yarn.lock")) == nil
-	var cmd *exec.Cmd
-	if isYarn {
-		cmd = exec.CommandContext(ctx, "yarn", "add", "-D", "@types/node")
-	} else {
-		cmd = exec.CommandContext(ctx, "npm", "install", "--save-dev", "@types/node")
-	}
-	cmd.Dir = filepath.Dir(path)
-
-	// Confirm with the user before installing the shim dependencies.
-	if utils.CanPrompt() {
-		logger.Log("Airplane needs to run %s before it can build your task.", logger.Bold(strings.Join(cmd.Args, " ")))
-		confirmed, err := utils.Confirm("Run now?")
-		if err != nil {
-			return err
-		}
-		if !confirmed {
-			return errors.New("unable to run without shim dependencies")
-		}
-	}
-
-	logger.Debug("Running %s", logger.Bold(strings.Join(cmd.Args, " ")))
-	if err := cmd.Run(); err != nil {
-		return errors.New("failed to add shim dependencies")
-	}
-
-	return nil
 }
 
 // checkTscInstalled will verify that the Typescript CLI is installed.
